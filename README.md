@@ -1,20 +1,46 @@
-# Transito Backend
+# Transito Backend + Frontend
 
-Backend del módulo de Tránsito - Desarrollo de Aplicaciones II (UADE)
+Módulo de Tránsito - Desarrollo de Aplicaciones II (UADE)
 
-## Cómo levantar el proyecto
+## Repos
 
-1. Pedile a Alejo el archivo `.env` (tiene las credenciales de la base) y ponelo en la raíz de este proyecto.
-2. Corré: `docker compose up`
-3. El backend queda disponible en `http://localhost:8080`
-4. Verificar que anda: `curl http://localhost:8080/actuator/health` → debería devolver `{"status":"UP"}`
+- Backend: github.com/alejogarciabosio/transito-backend (este repo)
+- Frontend: github.com/alejogarciabosio/transito-frontend
+
+Importante: cloná los dos repos en la misma carpeta padre (ej. ~/Desktop/), uno al lado del otro. El docker-compose.yml de este repo asume esa estructura para encontrar el frontend.
+
+## Como levantar el proyecto completo
+
+1. Clona ambos repos, uno al lado del otro:
+   git clone https://github.com/alejogarciabosio/transito-backend.git
+   git clone https://github.com/alejogarciabosio/transito-frontend.git
+2. Pedile a Alejo el archivo .env (credenciales de Supabase) y ponelo en la raiz de transito-backend.
+3. Corre: docker compose up
+4. Backend disponible en http://localhost:8080
+5. Frontend disponible en http://localhost:8081
+6. Verificar backend: curl http://localhost:8080/actuator/health
 
 ## Requisitos
 
 - Docker Desktop instalado y corriendo
-- **Importante:** si estás en el wifi de la facultad y se cuelga al conectar a la base, cambiate a datos móviles — ese wifi bloquea el puerto de Postgres.
+- Importante: si estas en el wifi de la facultad y se cuelga al conectar a la base, cambiate a datos moviles.
 
 ## Stack
 
-- Java 17 + Spring Boot
-- PostgreSQL (Supabase, Session Pooler)
+- Backend: Java 17 + Spring Boot (Maven)
+- Frontend: React + Vite
+- Base de datos: PostgreSQL (Supabase, Session Pooler)
+- CI: GitHub Actions + cobertura minima 85% (Jacoco en backend, Vitest en frontend)
+- Hosting: Railway, entornos test (rama develop) y production (rama main), para ambos repos
+
+## URLs desplegadas
+
+Backend test: transito-backend-test.up.railway.app
+Backend produccion: transito-backend-prod.up.railway.app
+Frontend test: transito-frontend-test.up.railway.app
+Frontend produccion: transito-frontend-prod.up.railway.app
+
+## Variables de entorno relevantes
+
+- CORS_ALLOWED_ORIGINS (backend): URL del frontend correspondiente a cada entorno
+- VITE_API_URL (frontend): URL del backend correspondiente a cada entorno. Ojo: en Vite esta variable se compila dentro del codigo en el build, cambiarla en Railway requiere un redeploy manual para que tenga efecto.
