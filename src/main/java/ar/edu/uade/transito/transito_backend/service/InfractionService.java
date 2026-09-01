@@ -1,0 +1,141 @@
+package ar.edu.uade.transito.transito_backend.service;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import ar.edu.uade.transito.transito_backend.event.EventEnvelope;
+import ar.edu.uade.transito.transito_backend.event.EventPublisher;
+import ar.edu.uade.transito.transito_backend.event.payload.InfractionAnulledPayload;
+import ar.edu.uade.transito.transito_backend.event.payload.InfractionAppealedPayload;
+import ar.edu.uade.transito.transito_backend.event.payload.InfractionConfirmedPayload;
+import ar.edu.uade.transito.transito_backend.event.payload.InfractionRegisteredPayload;
+import ar.edu.uade.transito.transito_backend.exception.InvalidStateTransitionException;
+import ar.edu.uade.transito.transito_backend.exception.ResourceNotFoundException;
+import ar.edu.uade.transito.transito_backend.model.Infraction;
+import ar.edu.uade.transito.transito_backend.model.enums.InfractionStatus;
+import ar.edu.uade.transito.transito_backend.repository.InfractionRepository;
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+@Transactional
+public class InfractionService {
+
+    private final InfractionRepository infractionRepository;
+    private final EventPublisher eventPublisher;
+
+    public Infraction register(Infraction infraction) {
+        infraction.setStatus(InfractionStatus.PENDING_APPEAL);
+        Infraction saved = infractionRepository.save(infraction);
+
+        eventPublisher.publish(EventEnvelope.of("infractionRegistered", new InfractionRegisteredPayload(
+                saved.getInfractionId(),
+                saved.getLicensePlate(),
+                saved.getInfractionType(),
+                saved.getInfractionDateTime(),
+                saved.getBaseAmount(),
+                saved.getAggravatingFactors(),
+                saved.getFinalAmount(),
+                saved.getOriginOperationId(),
+                saved.getOriginTicketId())));
+
+        return saved;
+    }
+
+    @Transactional(readOnly = true)
+    public List<Infraction> findAll() {
+        return infractionRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Infraction> findByOffenderNationalId(String offenderNationalId) {
+        return infractionRepository.findByOffenderNationalId(offenderNationalId);
+    }
+
+    @Transactional(readOnly = true)
+    public Infraction findById(UUID infractionId) {
+        return infractionRepository.findById(infractionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Infraction no encontrada: " + infractionId));
+    }
+
+    public Infraction update(UUID infractionId, Infraction changes) {
+        Infraction existing = findById(infractionId);
+        requireNotFinal(existing);
+
+        existing.setLicensePlate(changes.getLicensePlate());
+        existing.setLocation(changes.getLocation());
+        existing.setEvidenceUrl(changes.getEvidenceUrl());
+        existing.setOffenderNationalId(changes.getOffenderNationalId());
+        existing.setVehicleOwnerTaxId(changes.getVehicleOwnerTaxId());
+        existing.setDebtorId(changes.getDebtorId());
+        existing.setDebtorIdType(changes.getDebtorIdType());
+        existing.setBaseAmount(changes.getBaseAmount());
+        existing.setAggravatingFactors(changes.getAggravatingFactors());
+        existing.setFinalAmount(changes.getFinalAmount());
+
+        return infractionRepository.save(existing);
+    }
+
+    public Infraction appeal(UUID infractionId, String reason) {
+        Infraction existing = findById(infractionId);
+        if (existing.getStatus() != InfractionStatus.PENDING_APPEAL) {
+            throw new InvalidStateTransitionException(
+                    "Solo se puede apelar una infracción en estado " + InfractionStatus.PENDING_APPEAL);
+        }
+
+        existing.setStatus(InfractionStatus.APPEALED);
+        Infraction saved = infractionRepository.save(existing);
+
+        eventPublisher.publish(EventEnvelope.of("infractionAppealed",
+                new InfractionAppealedPayload(saved.getInfractionId(), reason)));
+
+        return saved;
+    }
+
+    public Infraction confirm(UUID infractionId) {
+        Infraction existing = findById(infractionId);
+        if (existing.getStatus() != InfractionStatus.PENDING_APPEAL
+                && existing.getStatus() != InfractionStatus.APPEALED) {
+            throw new InvalidStateTransitionException(
+                    "No se puede confirmar una infracción en estado " + existing.getStatus());
+        }
+
+        existing.setStatus(InfractionStatus.CONFIRMED);
+        Infraction saved = infractionRepository.save(existing);
+
+        eventPublisher.publish(EventEnvelope.of("infractionConfirmed", new InfractionConfirmedPayload(
+                saved.getInfractionId(),
+                saved.getDebtorId(),
+                saved.getDebtorIdType(),
+                saved.getFinalAmount())));
+
+        return saved;
+    }
+
+    public Infraction annul(UUID infractionId, String annulmentReason, String authorizedBy) {
+        Infraction existing = findById(infractionId);
+        requireNotFinal(existing);
+
+        existing.setStatus(InfractionStatus.ANNULLED);
+        Infraction saved = infractionRepository.save(existing);
+
+        eventPublisher.publish(EventEnvelope.of("infractionAnulled", new InfractionAnulledPayload(
+                saved.getInfractionId(),
+                annulmentReason,
+                authorizedBy,
+                LocalDateTime.now())));
+
+        return saved;
+    }
+
+    private void requireNotFinal(Infraction infraction) {
+        if (infraction.getStatus() == InfractionStatus.CONFIRMED || infraction.getStatus() == InfractionStatus.ANNULLED) {
+            throw new InvalidStateTransitionException(
+                    "La infracción " + infraction.getInfractionId() + " ya está firme (" + infraction.getStatus() + ")");
+        }
+    }
+}
