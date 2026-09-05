@@ -41,7 +41,8 @@ public class InfractionService {
                 saved.getAggravatingFactors(),
                 saved.getFinalAmount(),
                 saved.getOriginOperationId(),
-                saved.getOriginTicketId())));
+                saved.getOriginTicketId(),
+                saved.getOriginParkingSessionId())));
 
         return saved;
     }
