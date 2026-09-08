@@ -88,4 +88,6 @@ public class Infraction {
     private UUID originOperationId;
 
     private String originTicketId;
+
+    private UUID originParkingSessionId;
 }

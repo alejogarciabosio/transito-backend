@@ -16,5 +16,6 @@ public record InfractionRegisteredPayload(
         List<String> aggravatingFactors,
         BigDecimal finalAmount,
         UUID originOperationId,
-        String originTicketId) {
+        String originTicketId,
+        UUID originParkingSessionId) {
 }
