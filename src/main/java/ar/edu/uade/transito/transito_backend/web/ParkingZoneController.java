@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,6 +17,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import ar.edu.uade.transito.transito_backend.model.ParkingZone;
 import ar.edu.uade.transito.transito_backend.service.ParkingZoneService;
+import ar.edu.uade.transito.transito_backend.web.dto.CreateParkingZoneRequest;
+import ar.edu.uade.transito.transito_backend.web.dto.ParkingZoneResponse;
+import ar.edu.uade.transito.transito_backend.web.dto.UpdateParkingZoneRequest;
+import ar.edu.uade.transito.transito_backend.web.mapper.ParkingZoneMapper;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -25,27 +30,32 @@ public class ParkingZoneController {
 
     private final ParkingZoneService parkingZoneService;
 
+    @PreAuthorize("hasRole('ADMIN_MUNICIPAL')")
     @PostMapping
-    public ResponseEntity<ParkingZone> create(@RequestBody ParkingZone zone) {
-        ParkingZone created = parkingZoneService.create(zone);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    public ResponseEntity<ParkingZoneResponse> create(@RequestBody CreateParkingZoneRequest request) {
+        ParkingZone created = parkingZoneService.create(ParkingZoneMapper.toEntity(request));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ParkingZoneMapper.toResponse(created));
     }
 
+    // GET público (consulta ciudadana) -- permitAll ya configurado en SecurityConfig, sin @PreAuthorize.
     @GetMapping
-    public List<ParkingZone> findAll() {
-        return parkingZoneService.findAll();
+    public List<ParkingZoneResponse> findAll() {
+        return parkingZoneService.findAll().stream().map(ParkingZoneMapper::toResponse).toList();
     }
 
     @GetMapping("/{id}")
-    public ParkingZone findById(@PathVariable UUID id) {
-        return parkingZoneService.findById(id);
+    public ParkingZoneResponse findById(@PathVariable UUID id) {
+        return ParkingZoneMapper.toResponse(parkingZoneService.findById(id));
     }
 
+    @PreAuthorize("hasRole('ADMIN_MUNICIPAL')")
     @PutMapping("/{id}")
-    public ParkingZone update(@PathVariable UUID id, @RequestBody ParkingZone changes) {
-        return parkingZoneService.update(id, changes);
+    public ParkingZoneResponse update(@PathVariable UUID id, @RequestBody UpdateParkingZoneRequest request) {
+        ParkingZone updated = parkingZoneService.update(id, ParkingZoneMapper.toEntity(request));
+        return ParkingZoneMapper.toResponse(updated);
     }
 
+    @PreAuthorize("hasRole('ADMIN_MUNICIPAL')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         parkingZoneService.delete(id);

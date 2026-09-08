@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,6 +16,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import ar.edu.uade.transito.transito_backend.model.RoadAccident;
 import ar.edu.uade.transito.transito_backend.service.RoadAccidentService;
+import ar.edu.uade.transito.transito_backend.web.dto.CreateRoadAccidentRequest;
+import ar.edu.uade.transito.transito_backend.web.dto.RoadAccidentResponse;
+import ar.edu.uade.transito.transito_backend.web.dto.UpdateRoadAccidentRequest;
+import ar.edu.uade.transito.transito_backend.web.mapper.RoadAccidentMapper;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -24,24 +29,29 @@ public class RoadAccidentController {
 
     private final RoadAccidentService roadAccidentService;
 
+    @PreAuthorize("hasAnyRole('INSPECTOR', 'OPERADOR_CONTROL')")
     @PostMapping
-    public ResponseEntity<RoadAccident> register(@RequestBody RoadAccident accident) {
-        RoadAccident created = roadAccidentService.register(accident);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    public ResponseEntity<RoadAccidentResponse> register(@RequestBody CreateRoadAccidentRequest request) {
+        RoadAccident created = roadAccidentService.register(RoadAccidentMapper.toEntity(request));
+        return ResponseEntity.status(HttpStatus.CREATED).body(RoadAccidentMapper.toResponse(created));
     }
 
+    @PreAuthorize("hasAnyRole('INSPECTOR', 'SUPERVISOR', 'AUDITOR')")
     @GetMapping
-    public List<RoadAccident> findAll() {
-        return roadAccidentService.findAll();
+    public List<RoadAccidentResponse> findAll() {
+        return roadAccidentService.findAll().stream().map(RoadAccidentMapper::toResponse).toList();
     }
 
+    @PreAuthorize("hasAnyRole('INSPECTOR', 'SUPERVISOR', 'AUDITOR')")
     @GetMapping("/{id}")
-    public RoadAccident findById(@PathVariable UUID id) {
-        return roadAccidentService.findById(id);
+    public RoadAccidentResponse findById(@PathVariable UUID id) {
+        return RoadAccidentMapper.toResponse(roadAccidentService.findById(id));
     }
 
+    @PreAuthorize("hasRole('INSPECTOR')")
     @PatchMapping("/{id}")
-    public RoadAccident update(@PathVariable UUID id, @RequestBody RoadAccident changes) {
-        return roadAccidentService.update(id, changes);
+    public RoadAccidentResponse update(@PathVariable UUID id, @RequestBody UpdateRoadAccidentRequest request) {
+        RoadAccident updated = roadAccidentService.update(id, RoadAccidentMapper.toEntity(request));
+        return RoadAccidentMapper.toResponse(updated);
     }
 }
