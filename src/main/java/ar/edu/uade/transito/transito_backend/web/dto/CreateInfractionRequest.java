@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.UUID;
 
 import ar.edu.uade.transito.transito_backend.model.Location;
+import ar.edu.uade.transito.transito_backend.model.enums.DebtorIdType;
 import ar.edu.uade.transito.transito_backend.model.enums.InfractionType;
 
 public record CreateInfractionRequest(
@@ -18,7 +19,7 @@ public record CreateInfractionRequest(
         String offenderNationalId,
         String vehicleOwnerTaxId,
         String debtorId,
-        String debtorIdType,
+        DebtorIdType debtorIdType,
         BigDecimal baseAmount,
         List<String> aggravatingFactors,
         BigDecimal finalAmount,

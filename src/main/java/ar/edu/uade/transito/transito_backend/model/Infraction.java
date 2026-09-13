@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import ar.edu.uade.transito.transito_backend.model.enums.DebtorIdType;
 import ar.edu.uade.transito.transito_backend.model.enums.InfractionStatus;
 import ar.edu.uade.transito.transito_backend.model.enums.InfractionType;
 import jakarta.persistence.CollectionTable;
@@ -67,7 +68,8 @@ public class Infraction {
 
     private String debtorId;
 
-    private String debtorIdType;
+    @Enumerated(EnumType.STRING)
+    private DebtorIdType debtorIdType;
 
     @Column(nullable = false)
     private BigDecimal baseAmount;

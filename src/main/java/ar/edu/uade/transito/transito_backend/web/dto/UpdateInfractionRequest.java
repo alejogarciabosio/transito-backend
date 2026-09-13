@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import ar.edu.uade.transito.transito_backend.model.Location;
+import ar.edu.uade.transito.transito_backend.model.enums.DebtorIdType;
 
 public record UpdateInfractionRequest(
         String licensePlate,
@@ -12,7 +13,7 @@ public record UpdateInfractionRequest(
         String offenderNationalId,
         String vehicleOwnerTaxId,
         String debtorId,
-        String debtorIdType,
+        DebtorIdType debtorIdType,
         BigDecimal baseAmount,
         List<String> aggravatingFactors,
         BigDecimal finalAmount) {
