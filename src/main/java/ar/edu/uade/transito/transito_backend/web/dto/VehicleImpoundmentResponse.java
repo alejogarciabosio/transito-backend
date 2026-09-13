@@ -1,6 +1,8 @@
 package ar.edu.uade.transito.transito_backend.web.dto;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import ar.edu.uade.transito.transito_backend.model.enums.ImpoundmentOriginType;
@@ -16,5 +18,8 @@ public record VehicleImpoundmentResponse(
         ImpoundmentOriginType originType,
         UUID originId,
         ImpoundmentStatus status,
-        String paymentReference) {
+        String paymentReference,
+        List<String> verifiedRequirements,
+        BigDecimal towingAndStorageFee,
+        String releasedBy) {
 }

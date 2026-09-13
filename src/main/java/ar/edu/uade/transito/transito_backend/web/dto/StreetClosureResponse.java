@@ -14,7 +14,7 @@ public record StreetClosureResponse(
         RequestingModule requestingModule,
         LocalDate startDate,
         LocalDate endDate,
-        String affectedStreet,
+        List<String> affectedStreet,
         List<Detour> detours,
         List<String> conditions,
         StreetClosureStatus status) {

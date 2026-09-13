@@ -61,51 +61,61 @@ public class StreetClosureService {
 
         eventPublisher.publish(EventEnvelope.of("streetClosureApproved", new StreetClosureApprovedPayload(
                 saved.getStreetClosureId(),
+                saved.getClosureRequestId(),
+                saved.getRequestingModule(),
                 saved.getStartDate(),
                 saved.getEndDate(),
+                saved.getAffectedStreet(),
                 saved.getDetours(),
                 saved.getConditions())));
 
         return saved;
     }
 
-    public StreetClosure reject(UUID streetClosureId, String reason) {
+    public StreetClosure reject(UUID streetClosureId, String rejectionReason) {
         StreetClosure existing = findById(streetClosureId);
         requireStatus(existing, StreetClosureStatus.REQUESTED);
 
         existing.setStatus(StreetClosureStatus.REJECTED);
         StreetClosure saved = streetClosureRepository.save(existing);
 
-        eventPublisher.publish(EventEnvelope.of("streetClosureRejected",
-                new StreetClosureRejectedPayload(saved.getStreetClosureId(), reason)));
+        eventPublisher.publish(EventEnvelope.of("streetClosureRejected", new StreetClosureRejectedPayload(
+                saved.getClosureRequestId(),
+                rejectionReason,
+                saved.getRequestingModule())));
 
         return saved;
     }
 
-    public StreetClosure activate(UUID streetClosureId) {
+    public StreetClosure activate(UUID streetClosureId, String activatedBy) {
         StreetClosure existing = findById(streetClosureId);
         requireStatus(existing, StreetClosureStatus.APPROVED);
 
         existing.setStatus(StreetClosureStatus.ACTIVE);
         StreetClosure saved = streetClosureRepository.save(existing);
 
-        LocalDateTime activationDateTime = LocalDateTime.now();
-        eventPublisher.publish(EventEnvelope.of("streetClosureActivated",
-                new StreetClosureActivatedPayload(saved.getStreetClosureId(), activationDateTime)));
+        eventPublisher.publish(EventEnvelope.of("streetClosureActivated", new StreetClosureActivatedPayload(
+                saved.getStreetClosureId(),
+                saved.getClosureRequestId(),
+                saved.getRequestingModule().code(),
+                LocalDateTime.now(),
+                activatedBy)));
 
         return saved;
     }
 
-    public StreetClosure finish(UUID streetClosureId) {
+    public StreetClosure finish(UUID streetClosureId, String notes) {
         StreetClosure existing = findById(streetClosureId);
         requireStatus(existing, StreetClosureStatus.ACTIVE);
 
         existing.setStatus(StreetClosureStatus.FINISHED);
         StreetClosure saved = streetClosureRepository.save(existing);
 
-        LocalDateTime endDateTime = LocalDateTime.now();
-        eventPublisher.publish(EventEnvelope.of("streetClosureEnded",
-                new StreetClosureEndedPayload(saved.getStreetClosureId(), endDateTime)));
+        eventPublisher.publish(EventEnvelope.of("streetClosureEnded", new StreetClosureEndedPayload(
+                saved.getStreetClosureId(),
+                saved.getClosureRequestId(),
+                LocalDateTime.now(),
+                notes)));
 
         return saved;
     }

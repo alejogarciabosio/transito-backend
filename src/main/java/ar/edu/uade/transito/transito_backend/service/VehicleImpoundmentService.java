@@ -1,5 +1,6 @@
 package ar.edu.uade.transito.transito_backend.service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -34,6 +35,7 @@ public class VehicleImpoundmentService {
         eventPublisher.publish(EventEnvelope.of("vehicleImpounded", new VehicleImpoundedPayload(
                 saved.getImpoundmentId(),
                 saved.getLicensePlate(),
+                saved.getOwnerNationalId(),
                 saved.getReason(),
                 saved.getDepotLocation(),
                 saved.getEntryDateTime(),
@@ -65,19 +67,29 @@ public class VehicleImpoundmentService {
         return vehicleImpoundmentRepository.save(existing);
     }
 
-    public VehicleImpoundment release(UUID impoundmentId, String paymentReference) {
+    public VehicleImpoundment release(
+            UUID impoundmentId,
+            List<String> verifiedRequirements,
+            BigDecimal towingAndStorageFee,
+            String paymentReference,
+            String releasedBy) {
         VehicleImpoundment existing = findById(impoundmentId);
         requireImpounded(existing);
 
         existing.setStatus(ImpoundmentStatus.RELEASED);
+        existing.setVerifiedRequirements(verifiedRequirements);
+        existing.setTowingAndStorageFee(towingAndStorageFee);
         existing.setPaymentReference(paymentReference);
+        existing.setReleasedBy(releasedBy);
         VehicleImpoundment saved = vehicleImpoundmentRepository.save(existing);
 
         eventPublisher.publish(EventEnvelope.of("vehicleReleased", new VehicleReleasedPayload(
                 saved.getImpoundmentId(),
-                saved.getLicensePlate(),
+                LocalDateTime.now(),
+                saved.getVerifiedRequirements(),
+                saved.getTowingAndStorageFee(),
                 saved.getPaymentReference(),
-                LocalDateTime.now())));
+                saved.getReleasedBy())));
 
         return saved;
     }

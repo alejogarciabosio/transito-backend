@@ -70,7 +70,9 @@ public class VehicleImpoundmentController {
     @PreAuthorize("hasRole('PERSONAL_DEPOSITO')")
     @PostMapping("/{id}/release")
     public VehicleImpoundmentResponse release(@PathVariable UUID id, @RequestBody ReleaseImpoundmentRequest request) {
-        VehicleImpoundment released = vehicleImpoundmentService.release(id, request.paymentReference());
+        String releasedBy = currentUserProvider.get().userId();
+        VehicleImpoundment released = vehicleImpoundmentService.release(
+                id, request.verifiedRequirements(), request.towingAndStorageFee(), request.paymentReference(), releasedBy);
         return VehicleImpoundmentMapper.toResponse(released);
     }
 }

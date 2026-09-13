@@ -41,6 +41,9 @@ public final class VehicleImpoundmentMapper {
                 impoundment.getOriginType(),
                 impoundment.getOriginId(),
                 impoundment.getStatus(),
-                impoundment.getPaymentReference());
+                impoundment.getPaymentReference(),
+                impoundment.getVerifiedRequirements(),
+                impoundment.getTowingAndStorageFee(),
+                impoundment.getReleasedBy());
     }
 }

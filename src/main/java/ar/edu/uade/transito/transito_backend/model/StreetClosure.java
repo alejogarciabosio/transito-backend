@@ -50,8 +50,11 @@ public class StreetClosure {
     @Column(nullable = false)
     private LocalDate endDate;
 
-    @Column(nullable = false)
-    private String affectedStreet;
+    @ElementCollection
+    @CollectionTable(name = "street_closure_affected_streets", joinColumns = @JoinColumn(name = "street_closure_id"))
+    @Column(name = "street", nullable = false)
+    @Builder.Default
+    private List<String> affectedStreet = new ArrayList<>();
 
     @ElementCollection
     @CollectionTable(name = "street_closure_detours", joinColumns = @JoinColumn(name = "street_closure_id"))
