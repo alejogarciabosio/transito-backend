@@ -1,8 +1,9 @@
 package ar.edu.uade.transito.transito_backend.event.payload;
 
-import java.util.UUID;
+import ar.edu.uade.transito.transito_backend.model.enums.RequestingModule;
 
 public record StreetClosureRejectedPayload(
-        UUID streetClosureId,
-        String reason) {
+        String closureRequestId,
+        String rejectionReason,
+        RequestingModule requestingModule) {
 }

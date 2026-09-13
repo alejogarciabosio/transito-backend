@@ -5,5 +5,8 @@ import java.util.UUID;
 
 public record StreetClosureActivatedPayload(
         UUID streetClosureId,
-        LocalDateTime activationDateTime) {
+        String sourceRequestId,
+        String sourceModule,
+        LocalDateTime activatedAt,
+        String activatedBy) {
 }
