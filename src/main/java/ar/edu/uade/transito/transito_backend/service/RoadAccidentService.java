@@ -31,10 +31,12 @@ public class RoadAccidentService {
         eventPublisher.publish(EventEnvelope.of("roadAccidentRegistered", new RoadAccidentRegisteredPayload(
                 saved.getAccidentId(),
                 saved.getAccidentDateTime(),
+                saved.getLocation(),
                 saved.isInvolvesInfrastructureDamage(),
-                saved.getInspectorId(),
-                saved.getStatus(),
-                saved.getOriginTicketId())));
+                saved.getDamageDescription(),
+                saved.getVehicles(),
+                saved.getPersons(),
+                saved.getInspectorId())));
 
         return saved;
     }

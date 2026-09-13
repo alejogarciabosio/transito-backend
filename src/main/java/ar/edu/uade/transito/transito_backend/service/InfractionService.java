@@ -112,7 +112,14 @@ public class InfractionService {
                 saved.getInfractionId(),
                 saved.getDebtorId(),
                 saved.getDebtorIdType(),
-                saved.getFinalAmount())));
+                saved.getLicensePlate(),
+                saved.getInfractionType(),
+                saved.getInfractionDateTime(),
+                saved.getBaseAmount(),
+                saved.getAggravatingFactors(),
+                saved.getFinalAmount(),
+                saved.getInspectorId(),
+                saved.getLocation())));
 
         return saved;
     }

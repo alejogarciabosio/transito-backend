@@ -34,6 +34,7 @@ public class VehicleImpoundmentService {
         eventPublisher.publish(EventEnvelope.of("vehicleImpounded", new VehicleImpoundedPayload(
                 saved.getImpoundmentId(),
                 saved.getLicensePlate(),
+                saved.getOwnerNationalId(),
                 saved.getReason(),
                 saved.getDepotLocation(),
                 saved.getEntryDateTime(),

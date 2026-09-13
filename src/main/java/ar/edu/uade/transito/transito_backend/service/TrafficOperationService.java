@@ -36,6 +36,8 @@ public class TrafficOperationService {
                 saved.getType(),
                 saved.getZone(),
                 saved.getStartDateTime(),
+                saved.getAssignedInspectors(),
+                saved.getAssignedUnits(),
                 saved.getTicketId())));
 
         return saved;

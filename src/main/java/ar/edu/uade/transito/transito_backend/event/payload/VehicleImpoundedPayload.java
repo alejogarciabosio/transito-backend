@@ -8,6 +8,7 @@ import ar.edu.uade.transito.transito_backend.model.enums.ImpoundmentOriginType;
 public record VehicleImpoundedPayload(
         UUID impoundmentId,
         String licensePlate,
+        String ownerNationalId,
         String reason,
         String depotLocation,
         LocalDateTime entryDateTime,
