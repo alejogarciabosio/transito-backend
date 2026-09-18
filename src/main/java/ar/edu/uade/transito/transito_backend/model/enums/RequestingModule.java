@@ -11,4 +11,16 @@ public enum RequestingModule {
     public String code() {
         return this == OBRAS ? "M3" : "M6";
     }
+
+    /**
+     * Camino inverso de {@link #code()} -- lo usan los listeners que reciben el código M-number
+     * (ej. streetClosureRequested) y necesitan el enum interno.
+     */
+    public static RequestingModule fromCode(String code) {
+        return switch (code) {
+            case "M3" -> OBRAS;
+            case "M6" -> AMBIENTE;
+            default -> throw new IllegalArgumentException("Código de módulo desconocido: " + code);
+        };
+    }
 }
