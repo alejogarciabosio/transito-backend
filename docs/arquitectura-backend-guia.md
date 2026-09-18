@@ -48,6 +48,8 @@ Esto modela la comunicación con **otros módulos** del TP (Rentas, Obras, Ambie
 - **`EventPublisher`** (interfaz) + **`LoggingEventPublisher`** (única implementación hoy): en vez de que cada `service` sepa *cómo* mandar un evento a un broker real, solo le dice a `EventPublisher` "publicá esto". Hoy esa interfaz solo lo loguea a consola. El día que el equipo defina Kafka/RabbitMQ, se escribe una implementación nueva de `EventPublisher` y ningún `service` se toca.
 - **`event/payload/`**: una clase (`record`) por cada tipo de evento (`InfractionRegisteredPayload`, `VehicleReleasedPayload`, etc.) — es el contenido (`data`) del sobre, ya alineado con el catálogo de payloads que definieron con el resto de los módulos.
 
+**Publicar vs. escuchar — dos mitades distintas.** Todo lo de arriba es el lado "publicar" (salida): el `service` le avisa a `EventPublisher` que algo pasó. El lado "escuchar" (entrada) es otra cosa — es el que recibe eventos de **otros** módulos (`ticketUpdated`, `streetClosureRequested`, `paymentRegistered`, etc.) y ejecuta la acción correspondiente en Tránsito. Ese lado hoy **no existe conectado a nada real**, pero sí hay un esqueleto de referencia en `listener/` (`TicketEventListener`, `StreetClosureEventListener`) — muestra cómo se vería un listener en este proyecto, con `TODO`s explícitos marcando que ningún broker los invoca todavía. Sirve para discutir la forma, no para usar en producción tal cual.
+
 ---
 
 ## 5. Seguridad (`auth/`)
