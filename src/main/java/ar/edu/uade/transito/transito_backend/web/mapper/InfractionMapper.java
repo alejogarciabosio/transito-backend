@@ -10,6 +10,7 @@ public final class InfractionMapper {
     private InfractionMapper() {
     }
 
+    //Este método sirve para mapear un CreateInfractionRequest a una entidad Infraction. Se utiliza cuando se crea una nueva infracción a partir de los datos proporcionados en la solicitud.
     public static Infraction toEntity(CreateInfractionRequest request) {
         return Infraction.builder()
                 .licensePlate(request.licensePlate())
@@ -31,6 +32,7 @@ public final class InfractionMapper {
                 .build();
     }
 
+    //Este método sirve para mapear un UpdateInfractionRequest a una entidad Infraction. Se utiliza cuando se actualiza una infracción existente.
     public static Infraction toEntity(UpdateInfractionRequest request) {
         return Infraction.builder()
                 .licensePlate(request.licensePlate())
@@ -46,6 +48,7 @@ public final class InfractionMapper {
                 .build();
     }
 
+    //Este método sirve para mapear una entidad Infraction a una respuesta InfractionResponse. Se utiliza cuando se devuelve información sobre una infracción.
     public static InfractionResponse toResponse(Infraction infraction) {
         return new InfractionResponse(
                 infraction.getInfractionId(),
