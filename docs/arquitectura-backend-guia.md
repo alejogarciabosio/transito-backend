@@ -61,6 +61,7 @@ Resumen rápido de qué hace cada archivo, para saber cuál tocar si hace falta:
 | `JwtService` | Firma y valida el token (JWT propio de Tránsito). |
 | `JwtAuthenticationFilter` | Se ejecuta en cada request: lee el header `Authorization`, valida el token, carga el usuario/rol en el contexto de Spring Security. |
 | `SecurityConfig` | Define qué endpoints son públicos y cuáles exigen estar logueado; conecta el filtro anterior. |
+| `CorsConfig` | Define qué orígenes (URLs de frontend) pueden llamar al backend desde un navegador. Los orígenes salen de la variable `CORS_ALLOWED_ORIGINS` (por defecto `http://localhost:5173`). |
 | `CurrentUserProvider` | Devuelve el usuario autenticado actual (id, DNI, rol) — lo usan los controllers para saber "quién está pidiendo esto" (ej. `releasedBy`, `flagUnpaid`). |
 | `IdentityValidator` / `StubIdentityValidator` | Valida usuario/contraseña. Hoy es un **stub** con usuarios de prueba hardcodeados — ver sección 7. |
 | `Role` (enum) | Los 7 roles del sistema, usados en los `@PreAuthorize` de cada endpoint. |
