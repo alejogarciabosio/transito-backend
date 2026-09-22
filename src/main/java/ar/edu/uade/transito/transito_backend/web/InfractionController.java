@@ -31,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/infractions")
 @RequiredArgsConstructor
+//Esta clase corresponde al patrón de diseño Controller o  Mediator, ya que actúa como un intermediario entre las solicitudes HTTP entrantes y la lógica de negocio de la aplicación. Su responsabilidad principal es recibir las solicitudes, delegar el procesamiento a los servicios correspondientes y devolver las respuestas adecuadas al cliente. Al utilizar este patrón, se logra una separación clara de responsabilidades, lo que facilita el mantenimiento y la escalabilidad del sistema.
 public class InfractionController {
 
     private final InfractionService infractionService;

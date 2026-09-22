@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import ar.edu.uade.transito.transito_backend.exception.InvalidCredentialsException;
 import ar.edu.uade.transito.transito_backend.model.enums.Role;
 
-// TODO: reemplazar por un cliente REST al módulo de Usuarios cuando definan el contrato de validación de identidad.
+// ATENCIÓN: hay reemplazar por un cliente REST al módulo de Usuarios cuando definan el contrato de validación de identidad.
 @Component
 public class StubIdentityValidator implements IdentityValidator {
 

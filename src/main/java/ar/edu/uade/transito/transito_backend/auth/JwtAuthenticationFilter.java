@@ -24,6 +24,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
 
+    //Aquí se puede ver el patrón de diseño Chain of Responsability, ya que este filtro se encarga de procesar la solicitud y luego pasarla al siguiente filtro en la cadena.
     @Override
     protected void doFilterInternal(
             @NonNull HttpServletRequest request,
