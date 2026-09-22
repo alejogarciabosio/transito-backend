@@ -1,3 +1,5 @@
+# --------------- MODELO INICIAL - ACTUALMENTE DESACTUALIZADO ---------------
+
 # Módulo 7 — Tránsito, Estacionamiento y Seguridad Vial
 ## Entidades y métodos CRUD base
 
