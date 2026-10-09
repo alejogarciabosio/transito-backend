@@ -15,7 +15,6 @@ public record CreateInfractionRequest(
         LocalDateTime infractionDateTime,
         Location location,
         List<String> evidenceUrl,
-        String inspectorId,
         String offenderNationalId,
         String vehicleOwnerTaxId,
         String debtorId,

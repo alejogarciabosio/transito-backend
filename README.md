@@ -1,20 +1,55 @@
-# Transito Backend
+# Tránsito Backend
 
-Backend del módulo de Tránsito - Desarrollo de Aplicaciones II (UADE)
+Backend del módulo de Tránsito, Estacionamiento y Seguridad Vial del trabajo práctico de Desarrollo de Aplicaciones II (UADE).
 
-## Cómo levantar el proyecto
+## API
 
-1. Pedile a Alejo el archivo `.env` (tiene las credenciales de la base) y ponelo en la raíz de este proyecto.
-2. Corré: `docker compose up`
-3. El backend queda disponible en `http://localhost:8080`
-4. Verificar que anda: `curl http://localhost:8080/actuator/health` → debería devolver `{"status":"UP"}`
+- URL local: `http://localhost:8080`
+- Prefijo REST: `/api/v1`
+- Swagger UI: `http://localhost:8080/swagger-ui/index.html`
+- Contrato OpenAPI: `http://localhost:8080/openapi.yaml`
+- Health check: `http://localhost:8080/actuator/health`
 
-## Requisitos
+La documentación consolidada de la entrega está en `docs/actividad-api-rest-entrega.md`.
 
-- Docker Desktop instalado y corriendo
-- **Importante:** si estás en el wifi de la facultad y se cuelga al conectar a la base, cambiate a datos móviles — ese wifi bloquea el puerto de Postgres.
+## Ejecución con Docker
 
-## Stack
+Crear un archivo `.env` en la raíz con las variables entregadas por el equipo:
 
-- Java 17 + Spring Boot
-- PostgreSQL (Supabase, Session Pooler)
+```dotenv
+DB_URL=jdbc:postgresql://host:5432/database
+DB_USER=usuario
+DB_PASSWORD=contraseña
+JWT_SECRET=un-secreto-de-al-menos-32-bytes
+CORS_ALLOWED_ORIGINS=http://localhost:5173
+```
+
+Luego ejecutar:
+
+```bash
+docker compose up --build
+```
+
+## Verificación local
+
+Los tests usan una base H2 en memoria y no requieren credenciales externas:
+
+```bash
+./mvnw test
+./mvnw package
+```
+
+En Windows:
+
+```powershell
+.\mvnw.cmd test
+.\mvnw.cmd package
+```
+
+## Estado de integraciones
+
+- Autenticación JWT y autorización por roles: implementadas.
+- Proveedor local de identidad: implementado para desarrollo.
+- Integración SOAP con Usuarios: planificada.
+- Publicación real mediante broker y Transactional Outbox: planificada.
+- Frontend: login integrado; pantallas restantes en etapa de prototipo mock.

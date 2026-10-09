@@ -1,5 +1,6 @@
 package ar.edu.uade.transito.transito_backend.web;
 
+import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,7 +30,7 @@ import ar.edu.uade.transito.transito_backend.web.mapper.InfractionMapper;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/infractions")
+@RequestMapping("/api/v1/infractions")
 @RequiredArgsConstructor
 //Esta clase corresponde al patrón de diseño Controller o  Mediator, ya que actúa como un intermediario entre las solicitudes HTTP entrantes y la lógica de negocio de la aplicación. Su responsabilidad principal es recibir las solicitudes, delegar el procesamiento a los servicios correspondientes y devolver las respuestas adecuadas al cliente. Al utilizar este patrón, se logra una separación clara de responsabilidades, lo que facilita el mantenimiento y la escalabilidad del sistema.
 public class InfractionController {
@@ -40,8 +41,11 @@ public class InfractionController {
     @PreAuthorize("hasRole('INSPECTOR')")
     @PostMapping
     public ResponseEntity<InfractionResponse> register(@RequestBody CreateInfractionRequest request) {
-        Infraction created = infractionService.register(InfractionMapper.toEntity(request));
-        return ResponseEntity.status(HttpStatus.CREATED).body(InfractionMapper.toResponse(created));
+        Infraction infraction = InfractionMapper.toEntity(request);
+        infraction.setInspectorId(currentUserProvider.get().userId());
+        Infraction created = infractionService.register(infraction);
+        return ResponseEntity.created(URI.create("/api/v1/infractions/" + created.getInfractionId()))
+                .body(InfractionMapper.toResponse(created));
     }
 
     @PreAuthorize("hasAnyRole('INSPECTOR', 'SUPERVISOR', 'AUDITOR')")
@@ -88,16 +92,17 @@ public class InfractionController {
     }
 
     @PreAuthorize("hasAnyRole('INSPECTOR', 'SUPERVISOR')")
-    @PostMapping("/{id}/confirm")
+    @PostMapping("/{id}/confirmation")
     public InfractionResponse confirm(@PathVariable UUID id) {
         Infraction confirmed = infractionService.confirm(id);
         return InfractionMapper.toResponse(confirmed);
     }
 
     @PreAuthorize("hasRole('SUPERVISOR')")
-    @PostMapping("/{id}/annul")
+    @PostMapping("/{id}/annulment")
     public InfractionResponse annul(@PathVariable UUID id, @RequestBody AnnulRequest request) {
-        Infraction annulled = infractionService.annul(id, request.annulmentReason(), request.authorizedBy());
+        String authorizedBy = currentUserProvider.get().userId();
+        Infraction annulled = infractionService.annul(id, request.annulmentReason(), authorizedBy);
         return InfractionMapper.toResponse(annulled);
     }
 }

@@ -1,5 +1,6 @@
 package ar.edu.uade.transito.transito_backend.web;
 
+import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,7 +25,7 @@ import ar.edu.uade.transito.transito_backend.web.mapper.TrafficOperationMapper;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/operations")
+@RequestMapping("/api/v1/operations")
 @RequiredArgsConstructor
 public class TrafficOperationController {
 
@@ -34,7 +35,8 @@ public class TrafficOperationController {
     @PostMapping
     public ResponseEntity<TrafficOperationResponse> create(@RequestBody CreateTrafficOperationRequest request) {
         TrafficOperation created = trafficOperationService.create(TrafficOperationMapper.toEntity(request));
-        return ResponseEntity.status(HttpStatus.CREATED).body(TrafficOperationMapper.toResponse(created));
+        return ResponseEntity.created(URI.create("/api/v1/operations/" + created.getOperationId()))
+                .body(TrafficOperationMapper.toResponse(created));
     }
 
     @PreAuthorize("hasAnyRole('INSPECTOR', 'SUPERVISOR', 'AUDITOR')")
@@ -57,7 +59,7 @@ public class TrafficOperationController {
     }
 
     @PreAuthorize("hasRole('INSPECTOR')")
-    @PostMapping("/{id}/close")
+    @PostMapping("/{id}/closure")
     public TrafficOperationResponse close(@PathVariable UUID id, @RequestBody CloseOperationRequest request) {
         TrafficOperation closed = trafficOperationService.close(id, request.resolution());
         return TrafficOperationMapper.toResponse(closed);

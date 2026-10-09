@@ -1,6 +1,6 @@
-# Guía de integración — Backend Tránsito para el Frontend
+# Guía de integración histórica — Backend Tránsito para el Frontend
 
-> Referencia de lo que expone el backend hoy: cómo autenticarse, qué endpoints existen, qué mandan y qué devuelven. Pensado para armar/ajustar las pantallas del frontend contra la API real, no contra datos inventados.
+> **Documento archivado:** conserva el contrato anterior sin versionado para trazabilidad. El contrato vigente y la tabla final de endpoints se encuentran en `docs/actividad-api-rest-entrega.md` y usan el prefijo `/api/v1`.
 
 ---
 

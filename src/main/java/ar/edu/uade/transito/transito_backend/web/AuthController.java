@@ -13,7 +13,7 @@ import ar.edu.uade.transito.transito_backend.web.dto.LoginResponse;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthController {
 

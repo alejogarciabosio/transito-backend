@@ -1,0 +1,521 @@
+openapi: 3.0.3
+info:
+  title: API de Tránsito Municipal
+  version: 1.0.0
+  description: >-
+    Contrato representativo del módulo de Tránsito, Estacionamiento y
+    Seguridad Vial. Documenta diez operaciones principales de la primera etapa.
+servers:
+  - url: http://localhost:8080
+    description: Entorno local
+tags:
+  - name: Autenticación
+  - name: Infracciones
+  - name: Operativos
+paths:
+  /api/v1/auth/login:
+    post:
+      tags: [Autenticación]
+      summary: Iniciar sesión
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Autenticación exitosa
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /api/v1/infractions:
+    post:
+      tags: [Infracciones]
+      summary: Registrar una infracción
+      description: El inspector se obtiene del JWT y no se recibe en el body.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateInfractionRequest'
+      responses:
+        '201':
+          description: Infracción registrada
+          headers:
+            Location:
+              description: URI de la infracción creada
+              schema:
+                type: string
+                format: uri-reference
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InfractionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    get:
+      tags: [Infracciones]
+      summary: Listar infracciones
+      responses:
+        '200':
+          description: Lista de infracciones
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InfractionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/v1/infractions/mine:
+    get:
+      tags: [Infracciones]
+      summary: Listar las infracciones del ciudadano autenticado
+      responses:
+        '200':
+          description: Infracciones propias
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InfractionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/v1/infractions/{id}:
+    get:
+      tags: [Infracciones]
+      summary: Obtener una infracción
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '200':
+          description: Detalle de la infracción
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InfractionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/infractions/{id}/appeal:
+    post:
+      tags: [Infracciones]
+      summary: Presentar un descargo
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppealRequest'
+      responses:
+        '200':
+          description: Descargo registrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InfractionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /api/v1/infractions/{id}/confirmation:
+    post:
+      tags: [Infracciones]
+      summary: Confirmar una infracción
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '200':
+          description: Infracción confirmada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InfractionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /api/v1/infractions/{id}/annulment:
+    post:
+      tags: [Infracciones]
+      summary: Anular una infracción
+      description: El autorizante se obtiene del JWT y no se recibe en el body.
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnnulRequest'
+      responses:
+        '200':
+          description: Infracción anulada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InfractionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /api/v1/operations:
+    post:
+      tags: [Operativos]
+      summary: Crear un operativo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTrafficOperationRequest'
+      responses:
+        '201':
+          description: Operativo creado
+          headers:
+            Location:
+              description: URI del operativo creado
+              schema:
+                type: string
+                format: uri-reference
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrafficOperationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/v1/operations/{id}/closure:
+    post:
+      tags: [Operativos]
+      summary: Cerrar un operativo
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CloseOperationRequest'
+      responses:
+        '200':
+          description: Operativo cerrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrafficOperationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    ResourceId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  responses:
+    BadRequest:
+      description: Solicitud inválida
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetail'
+    Unauthorized:
+      description: Token ausente, inválido o credenciales incorrectas
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetail'
+    Forbidden:
+      description: El usuario no posee permisos
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetail'
+    NotFound:
+      description: Recurso inexistente
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetail'
+    Conflict:
+      description: Transición de estado inválida
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetail'
+    TooManyRequests:
+      description: Demasiados intentos de autenticación
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetail'
+    BadGateway:
+      description: Respuesta inválida del servicio de identidad
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetail'
+    ServiceUnavailable:
+      description: Servicio de identidad temporalmente no disponible
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+          description: Segundos recomendados antes de reintentar
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetail'
+  schemas:
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+          format: password
+    LoginResponse:
+      type: object
+      required: [token, role, expiresInSeconds]
+      properties:
+        token:
+          type: string
+        role:
+          type: string
+        expiresInSeconds:
+          type: integer
+          format: int64
+    Location:
+      type: object
+      required: [street]
+      properties:
+        street:
+          type: string
+        crossStreet:
+          type: string
+          nullable: true
+        latitude:
+          type: number
+          format: double
+          nullable: true
+        longitude:
+          type: number
+          format: double
+          nullable: true
+    InfractionStatus:
+      type: string
+      enum: [PENDING_APPEAL, APPEALED, CONFIRMED, ANNULLED]
+    CreateInfractionRequest:
+      type: object
+      required:
+        - licensePlate
+        - infractionType
+        - infractionDateTime
+        - location
+        - baseAmount
+        - finalAmount
+      properties:
+        licensePlate:
+          type: string
+          example: AB123CD
+        infractionType:
+          type: string
+          enum: [UNPAID_PARKING, SPEEDING, RED_LIGHT, ILLEGAL_PARKING, NO_LICENSE, RECKLESS_DRIVING, OTHER]
+        infractionDateTime:
+          type: string
+          format: date-time
+        location:
+          $ref: '#/components/schemas/Location'
+        evidenceUrl:
+          type: array
+          items:
+            type: string
+            format: uri
+        offenderNationalId:
+          type: string
+        vehicleOwnerTaxId:
+          type: string
+          nullable: true
+        debtorId:
+          type: string
+        debtorIdType:
+          type: string
+          enum: [DNI, CUIT]
+        baseAmount:
+          type: number
+        aggravatingFactors:
+          type: array
+          items:
+            type: string
+        finalAmount:
+          type: number
+        originOperationId:
+          type: string
+          format: uuid
+          nullable: true
+        originTicketId:
+          type: string
+          nullable: true
+        originParkingSessionId:
+          type: string
+          format: uuid
+          nullable: true
+    InfractionResponse:
+      allOf:
+        - $ref: '#/components/schemas/CreateInfractionRequest'
+        - type: object
+          required: [infractionId, inspectorId, status]
+          properties:
+            infractionId:
+              type: string
+              format: uuid
+            inspectorId:
+              type: string
+            status:
+              $ref: '#/components/schemas/InfractionStatus'
+    AppealRequest:
+      type: object
+      required: [reason]
+      properties:
+        reason:
+          type: string
+    AnnulRequest:
+      type: object
+      required: [annulmentReason]
+      properties:
+        annulmentReason:
+          type: string
+    CreateTrafficOperationRequest:
+      type: object
+      required: [type, zone, startDateTime, assignedInspectors, assignedUnits]
+      properties:
+        type:
+          type: string
+          enum: [ROUTINE_CONTROL, COMPLAINT_VERIFICATION, SAFETY_INSPECTION]
+        zone:
+          type: string
+        startDateTime:
+          type: string
+          format: date-time
+        endDateTime:
+          type: string
+          format: date-time
+          nullable: true
+        assignedInspectors:
+          type: array
+          items:
+            type: string
+        assignedUnits:
+          type: array
+          items:
+            type: string
+        ticketId:
+          type: string
+          nullable: true
+    TrafficOperationResponse:
+      allOf:
+        - $ref: '#/components/schemas/CreateTrafficOperationRequest'
+        - type: object
+          required: [operationId, status]
+          properties:
+            operationId:
+              type: string
+              format: uuid
+            status:
+              type: string
+              enum: [OPEN, CLOSED]
+            resolution:
+              type: string
+              enum: [INFRACTION_CREATED, ACCIDENT_REGISTERED, NO_ACTION]
+              nullable: true
+    CloseOperationRequest:
+      type: object
+      required: [resolution]
+      properties:
+        resolution:
+          type: string
+          enum: [INFRACTION_CREATED, ACCIDENT_REGISTERED, NO_ACTION]
+    ProblemDetail:
+      type: object
+      required: [type, title, status, detail, instance]
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+          format: uri-reference
+      additionalProperties: true
+security:
+  - bearerAuth: []
