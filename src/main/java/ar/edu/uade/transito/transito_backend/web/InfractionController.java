@@ -27,6 +27,7 @@ import ar.edu.uade.transito.transito_backend.web.dto.CreateInfractionRequest;
 import ar.edu.uade.transito.transito_backend.web.dto.InfractionResponse;
 import ar.edu.uade.transito.transito_backend.web.dto.UpdateInfractionRequest;
 import ar.edu.uade.transito.transito_backend.web.mapper.InfractionMapper;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -40,7 +41,7 @@ public class InfractionController {
 
     @PreAuthorize("hasRole('INSPECTOR')")
     @PostMapping
-    public ResponseEntity<InfractionResponse> register(@RequestBody CreateInfractionRequest request) {
+    public ResponseEntity<InfractionResponse> register(@Valid @RequestBody CreateInfractionRequest request) {
         Infraction infraction = InfractionMapper.toEntity(request);
         infraction.setInspectorId(currentUserProvider.get().userId());
         Infraction created = infractionService.register(infraction);
@@ -75,14 +76,14 @@ public class InfractionController {
 
     @PreAuthorize("hasRole('INSPECTOR')")
     @PatchMapping("/{id}")
-    public InfractionResponse update(@PathVariable UUID id, @RequestBody UpdateInfractionRequest request) {
+    public InfractionResponse update(@PathVariable UUID id, @Valid @RequestBody UpdateInfractionRequest request) {
         Infraction updated = infractionService.update(id, InfractionMapper.toEntity(request));
         return InfractionMapper.toResponse(updated);
     }
 
     @PreAuthorize("hasRole('CIUDADANO')")
     @PostMapping("/{id}/appeal")
-    public InfractionResponse appeal(@PathVariable UUID id, @RequestBody AppealRequest request) {
+    public InfractionResponse appeal(@PathVariable UUID id, @Valid @RequestBody AppealRequest request) {
         Infraction existing = infractionService.findById(id);
         if (!currentUserProvider.get().nationalId().equals(existing.getOffenderNationalId())) {
             throw new AccessDeniedException("La infracción no pertenece al ciudadano autenticado");
@@ -100,7 +101,7 @@ public class InfractionController {
 
     @PreAuthorize("hasRole('SUPERVISOR')")
     @PostMapping("/{id}/annulment")
-    public InfractionResponse annul(@PathVariable UUID id, @RequestBody AnnulRequest request) {
+    public InfractionResponse annul(@PathVariable UUID id, @Valid @RequestBody AnnulRequest request) {
         String authorizedBy = currentUserProvider.get().userId();
         Infraction annulled = infractionService.annul(id, request.annulmentReason(), authorizedBy);
         return InfractionMapper.toResponse(annulled);

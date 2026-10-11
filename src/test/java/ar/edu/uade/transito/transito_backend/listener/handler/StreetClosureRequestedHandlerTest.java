@@ -44,8 +44,8 @@ class StreetClosureRequestedHandlerTest {
         verify(service).createFromRequest(argThat(closure -> {
             OffsetDateTime expectedFrom = OffsetDateTime.parse("2026-09-04T08:00:00-03:00");
             OffsetDateTime expectedTo = OffsetDateTime.parse("2026-09-04T18:00:00-03:00");
-            return closure.getStartDate().isEqual(expectedFrom)
-                    && closure.getEndDate().isEqual(expectedTo)
+            return closure.getStartDate().isEqual(expectedFrom.toLocalDate())
+                    && closure.getEndDate().isEqual(expectedTo.toLocalDate())
                     && closure.getRequestingModule() == RequestingModule.OBRAS
                     && "REQ-M3-501".equals(closure.getClosureRequestId())
                     && List.of("Av. Cabildo entre Juramento y Mendoza").equals(closure.getAffectedStreet());

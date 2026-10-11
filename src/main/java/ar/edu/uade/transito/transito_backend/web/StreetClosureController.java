@@ -20,6 +20,7 @@ import ar.edu.uade.transito.transito_backend.web.dto.FinishClosureRequest;
 import ar.edu.uade.transito.transito_backend.web.dto.RejectClosureRequest;
 import ar.edu.uade.transito.transito_backend.web.dto.StreetClosureResponse;
 import ar.edu.uade.transito.transito_backend.web.mapper.StreetClosureMapper;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -44,7 +45,7 @@ public class StreetClosureController {
 
     @PreAuthorize("hasAnyRole('INSPECTOR', 'SUPERVISOR')")
     @PostMapping("/{id}/approval")
-    public StreetClosureResponse approve(@PathVariable UUID id, @RequestBody ApproveClosureRequest request) {
+    public StreetClosureResponse approve(@PathVariable UUID id, @Valid @RequestBody ApproveClosureRequest request) {
         StreetClosure changes = StreetClosure.builder()
                 .detours(request.detours() != null ? request.detours() : List.<Detour>of())
                 .conditions(request.conditions() != null ? request.conditions() : List.<String>of())
@@ -54,7 +55,7 @@ public class StreetClosureController {
 
     @PreAuthorize("hasAnyRole('INSPECTOR', 'SUPERVISOR')")
     @PostMapping("/{id}/rejection")
-    public StreetClosureResponse reject(@PathVariable UUID id, @RequestBody RejectClosureRequest request) {
+    public StreetClosureResponse reject(@PathVariable UUID id, @Valid @RequestBody RejectClosureRequest request) {
         return StreetClosureMapper.toResponse(streetClosureService.reject(id, request.rejectionReason()));
     }
 
@@ -67,7 +68,7 @@ public class StreetClosureController {
 
     @PreAuthorize("hasRole('OPERADOR_CONTROL')")
     @PostMapping("/{id}/completion")
-    public StreetClosureResponse finish(@PathVariable UUID id, @RequestBody FinishClosureRequest request) {
+    public StreetClosureResponse finish(@PathVariable UUID id, @Valid @RequestBody FinishClosureRequest request) {
         return StreetClosureMapper.toResponse(streetClosureService.finish(id, request.notes()));
     }
 }

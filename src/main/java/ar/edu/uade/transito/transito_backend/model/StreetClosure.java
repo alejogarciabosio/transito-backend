@@ -1,6 +1,6 @@
 package ar.edu.uade.transito.transito_backend.model;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -45,10 +45,10 @@ public class StreetClosure {
     private RequestingModule requestingModule;
 
     @Column(nullable = false)
-    private OffsetDateTime startDate;
+    private LocalDate startDate;
 
     @Column(nullable = false)
-    private OffsetDateTime endDate;
+    private LocalDate endDate;
 
     @ElementCollection
     @CollectionTable(name = "street_closure_affected_streets", joinColumns = @JoinColumn(name = "street_closure_id"))

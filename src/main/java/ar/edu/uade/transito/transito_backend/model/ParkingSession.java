@@ -37,6 +37,8 @@ public class ParkingSession {
     @Column(nullable = false)
     private LocalDateTime startDateTime;
 
+    private String startedByUserId;
+
     private LocalDateTime endDateTime;
 
     @Column(nullable = false)

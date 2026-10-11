@@ -12,6 +12,7 @@ import ar.edu.uade.transito.transito_backend.event.EventEnvelope;
 import ar.edu.uade.transito.transito_backend.event.EventPublisher;
 import ar.edu.uade.transito.transito_backend.event.payload.VehicleImpoundedPayload;
 import ar.edu.uade.transito.transito_backend.event.payload.VehicleReleasedPayload;
+import ar.edu.uade.transito.transito_backend.exception.InvalidRequestException;
 import ar.edu.uade.transito.transito_backend.exception.InvalidStateTransitionException;
 import ar.edu.uade.transito.transito_backend.exception.ResourceNotFoundException;
 import ar.edu.uade.transito.transito_backend.model.VehicleImpoundment;
@@ -60,9 +61,15 @@ public class VehicleImpoundmentService {
         VehicleImpoundment existing = findById(impoundmentId);
         requireImpounded(existing);
 
-        existing.setReason(changes.getReason());
-        existing.setDepotLocation(changes.getDepotLocation());
-        existing.setOwnerNationalId(changes.getOwnerNationalId());
+        if (changes.getReason() != null) {
+            existing.setReason(changes.getReason());
+        }
+        if (changes.getDepotLocation() != null) {
+            existing.setDepotLocation(changes.getDepotLocation());
+        }
+        if (changes.getOwnerNationalId() != null) {
+            existing.setOwnerNationalId(changes.getOwnerNationalId());
+        }
 
         return vehicleImpoundmentRepository.save(existing);
     }
@@ -75,6 +82,7 @@ public class VehicleImpoundmentService {
             String releasedBy) {
         VehicleImpoundment existing = findById(impoundmentId);
         requireImpounded(existing);
+        validateRelease(verifiedRequirements, towingAndStorageFee, paymentReference);
 
         existing.setStatus(ImpoundmentStatus.RELEASED);
         existing.setVerifiedRequirements(verifiedRequirements);
@@ -98,6 +106,20 @@ public class VehicleImpoundmentService {
         if (impoundment.getStatus() != ImpoundmentStatus.IMPOUNDED) {
             throw new InvalidStateTransitionException(
                     "El vehículo de la retención " + impoundment.getImpoundmentId() + " ya fue liberado");
+        }
+    }
+
+    private void validateRelease(List<String> verifiedRequirements, BigDecimal towingAndStorageFee,
+            String paymentReference) {
+        if (verifiedRequirements == null || verifiedRequirements.isEmpty()) {
+            throw new InvalidRequestException("Debe verificarse al menos un requisito antes de liberar el vehículo");
+        }
+        if (towingAndStorageFee == null || towingAndStorageFee.signum() < 0) {
+            throw new InvalidRequestException("El costo de acarreo y estadía no puede ser negativo");
+        }
+        if (towingAndStorageFee.signum() > 0 && (paymentReference == null || paymentReference.isBlank())) {
+            throw new InvalidRequestException(
+                    "La referencia de pago es obligatoria cuando el costo es mayor que cero");
         }
     }
 }

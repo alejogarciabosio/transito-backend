@@ -37,8 +37,8 @@ public class StreetClosureRequestedHandler implements IncomingEventHandler {
         streetClosureService.createFromRequest(StreetClosure.builder()
                 .closureRequestId(payload.closureRequestId())
                 .requestingModule(RequestingModule.fromCode(payload.sourceModule()))
-                .startDate(payload.requestedFrom())
-                .endDate(payload.requestedTo())
+                .startDate(payload.requestedFrom().toLocalDate())
+                .endDate(payload.requestedTo().toLocalDate())
                 .affectedStreet(affectedStreets)
                 .build());
     }

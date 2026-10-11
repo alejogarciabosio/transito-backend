@@ -1,6 +1,6 @@
 package ar.edu.uade.transito.transito_backend.event.payload;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -11,8 +11,8 @@ public record StreetClosureApprovedPayload(
         UUID streetClosureId,
         String closureRequestId,
         RequestingModule requestingModule,
-        OffsetDateTime startDate,
-        OffsetDateTime endDate,
+        LocalDate startDate,
+        LocalDate endDate,
         List<String> affectedStreet,
         List<Detour> detours,
         List<String> conditions) {

@@ -22,6 +22,7 @@ import ar.edu.uade.transito.transito_backend.web.dto.CreateTrafficOperationReque
 import ar.edu.uade.transito.transito_backend.web.dto.TrafficOperationResponse;
 import ar.edu.uade.transito.transito_backend.web.dto.UpdateTrafficOperationRequest;
 import ar.edu.uade.transito.transito_backend.web.mapper.TrafficOperationMapper;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -33,7 +34,7 @@ public class TrafficOperationController {
 
     @PreAuthorize("hasAnyRole('INSPECTOR', 'OPERADOR_CONTROL')")
     @PostMapping
-    public ResponseEntity<TrafficOperationResponse> create(@RequestBody CreateTrafficOperationRequest request) {
+    public ResponseEntity<TrafficOperationResponse> create(@Valid @RequestBody CreateTrafficOperationRequest request) {
         TrafficOperation created = trafficOperationService.create(TrafficOperationMapper.toEntity(request));
         return ResponseEntity.created(URI.create("/api/v1/operations/" + created.getOperationId()))
                 .body(TrafficOperationMapper.toResponse(created));
@@ -53,14 +54,14 @@ public class TrafficOperationController {
 
     @PreAuthorize("hasRole('INSPECTOR')")
     @PatchMapping("/{id}")
-    public TrafficOperationResponse update(@PathVariable UUID id, @RequestBody UpdateTrafficOperationRequest request) {
+    public TrafficOperationResponse update(@PathVariable UUID id, @Valid @RequestBody UpdateTrafficOperationRequest request) {
         TrafficOperation updated = trafficOperationService.update(id, TrafficOperationMapper.toEntity(request));
         return TrafficOperationMapper.toResponse(updated);
     }
 
     @PreAuthorize("hasRole('INSPECTOR')")
     @PostMapping("/{id}/closure")
-    public TrafficOperationResponse close(@PathVariable UUID id, @RequestBody CloseOperationRequest request) {
+    public TrafficOperationResponse close(@PathVariable UUID id, @Valid @RequestBody CloseOperationRequest request) {
         TrafficOperation closed = trafficOperationService.close(id, request.resolution());
         return TrafficOperationMapper.toResponse(closed);
     }

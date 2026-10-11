@@ -56,6 +56,20 @@ class ApiContractSmokeTests {
     }
 
     @Test
+    void invalidRequestReturnsFieldValidationProblemDetails() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"username":"","password":""}
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.type").value("https://transito.uade.edu.ar/problems/validation-error"))
+                .andExpect(jsonPath("$.errors.username").value("El usuario es obligatorio"))
+                .andExpect(jsonPath("$.errors.password").value("La contraseña es obligatoria"));
+    }
+
+    @Test
     void publicContractAndParkingZonesAreAvailable() throws Exception {
         mockMvc.perform(get("/openapi.yaml"))
                 .andExpect(status().isOk())
@@ -97,5 +111,28 @@ class ApiContractSmokeTests {
                         org.hamcrest.Matchers.matchesPattern("/api/v1/infractions/[0-9a-f-]+")))
                 .andExpect(jsonPath("$.inspectorId").value("u-1001"))
                 .andExpect(jsonPath("$.status").value("PENDING_APPEAL"));
+    }
+
+    @Test
+    void creatingAccidentIgnoresSpoofedInspectorAndUsesJwtIdentity() throws Exception {
+        String token = jwtService.generateToken(
+                new AuthenticatedUser("inspector-jwt-2", "30222333", Role.INSPECTOR));
+
+        mockMvc.perform(post("/api/v1/accidents")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "accidentDateTime": "2026-10-06T15:30:00",
+                                  "location": {"street": "Av. Rivadavia"},
+                                  "involvesInfrastructureDamage": false,
+                                  "vehicles": [],
+                                  "persons": [],
+                                  "inspectorId": "usuario-falsificado"
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.inspectorId").value("inspector-jwt-2"))
+                .andExpect(jsonPath("$.status").value("PRELIMINARY"));
     }
 }
