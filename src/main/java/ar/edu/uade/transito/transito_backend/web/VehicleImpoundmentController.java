@@ -1,5 +1,6 @@
 package ar.edu.uade.transito.transito_backend.web;
 
+import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
@@ -28,7 +29,7 @@ import ar.edu.uade.transito.transito_backend.web.mapper.VehicleImpoundmentMapper
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/impoundments")
+@RequestMapping("/api/v1/impoundments")
 @RequiredArgsConstructor
 public class VehicleImpoundmentController {
 
@@ -39,7 +40,8 @@ public class VehicleImpoundmentController {
     @PostMapping
     public ResponseEntity<VehicleImpoundmentResponse> register(@RequestBody CreateVehicleImpoundmentRequest request) {
         VehicleImpoundment created = vehicleImpoundmentService.register(VehicleImpoundmentMapper.toEntity(request));
-        return ResponseEntity.status(HttpStatus.CREATED).body(VehicleImpoundmentMapper.toResponse(created));
+        return ResponseEntity.created(URI.create("/api/v1/impoundments/" + created.getImpoundmentId()))
+                .body(VehicleImpoundmentMapper.toResponse(created));
     }
 
     @PreAuthorize("hasAnyRole('INSPECTOR', 'PERSONAL_DEPOSITO', 'SUPERVISOR')")

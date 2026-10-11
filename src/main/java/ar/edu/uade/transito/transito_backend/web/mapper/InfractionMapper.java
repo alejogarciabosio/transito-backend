@@ -18,7 +18,6 @@ public final class InfractionMapper {
                 .infractionDateTime(request.infractionDateTime())
                 .location(request.location())
                 .evidenceUrl(request.evidenceUrl())
-                .inspectorId(request.inspectorId())
                 .offenderNationalId(request.offenderNationalId())
                 .vehicleOwnerTaxId(request.vehicleOwnerTaxId())
                 .debtorId(request.debtorId())

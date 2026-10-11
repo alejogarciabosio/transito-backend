@@ -1,5 +1,6 @@
 package ar.edu.uade.transito.transito_backend.web;
 
+import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,7 +25,7 @@ import ar.edu.uade.transito.transito_backend.web.mapper.ParkingZoneMapper;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/parking-zones")
+@RequestMapping("/api/v1/parking-zones")
 @RequiredArgsConstructor
 public class ParkingZoneController {
 
@@ -34,7 +35,8 @@ public class ParkingZoneController {
     @PostMapping
     public ResponseEntity<ParkingZoneResponse> create(@RequestBody CreateParkingZoneRequest request) {
         ParkingZone created = parkingZoneService.create(ParkingZoneMapper.toEntity(request));
-        return ResponseEntity.status(HttpStatus.CREATED).body(ParkingZoneMapper.toResponse(created));
+        return ResponseEntity.created(URI.create("/api/v1/parking-zones/" + created.getZoneId()))
+                .body(ParkingZoneMapper.toResponse(created));
     }
 
     // GET público (consulta ciudadana) -- permitAll ya configurado en SecurityConfig, sin @PreAuthorize.

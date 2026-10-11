@@ -1,5 +1,6 @@
 package ar.edu.uade.transito.transito_backend.web;
 
+import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
@@ -7,7 +8,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,7 +27,7 @@ import ar.edu.uade.transito.transito_backend.web.mapper.ParkingSessionMapper;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/parking-sessions")
+@RequestMapping("/api/v1/parking-sessions")
 @RequiredArgsConstructor
 public class ParkingSessionController {
 
@@ -38,7 +38,8 @@ public class ParkingSessionController {
     @PostMapping
     public ResponseEntity<ParkingSessionResponse> start(@RequestBody CreateParkingSessionRequest request) {
         ParkingSession created = parkingSessionService.start(ParkingSessionMapper.toEntity(request));
-        return ResponseEntity.status(HttpStatus.CREATED).body(ParkingSessionMapper.toResponse(created));
+        return ResponseEntity.created(URI.create("/api/v1/parking-sessions/" + created.getSessionId()))
+                .body(ParkingSessionMapper.toResponse(created));
     }
 
     @PreAuthorize("hasAnyRole('INSPECTOR', 'OPERADOR_CONTROL', 'SUPERVISOR')")
@@ -57,13 +58,13 @@ public class ParkingSessionController {
     }
 
     @PreAuthorize("hasAnyRole('CIUDADANO', 'OPERADOR_CONTROL')")
-    @PatchMapping("/{id}/close")
+    @PostMapping("/{id}/closure")
     public ParkingSessionResponse close(@PathVariable UUID id) {
         return ParkingSessionMapper.toResponse(parkingSessionService.close(id));
     }
 
     @PreAuthorize("hasRole('INSPECTOR')")
-    @PostMapping("/{id}/flag-unpaid")
+    @PostMapping("/{id}/unpaid-flag")
     //este es un ejemplo del patrón de diseño Facade ya que el controlador actúa como una interfaz simplificada para el servicio de ParkingSession, ocultando la complejidad de la lógica de negocio y proporcionando un punto de entrada único para las operaciones relacionadas con las sesiones de estacionamiento.
     public InfractionResponse flagUnpaid(@PathVariable UUID id, @RequestBody FlagUnpaidRequest request) {
         String inspectorId = currentUserProvider.get().userId();

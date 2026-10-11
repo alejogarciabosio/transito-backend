@@ -1,5 +1,6 @@
 package ar.edu.uade.transito.transito_backend.web;
 
+import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
@@ -23,7 +24,7 @@ import ar.edu.uade.transito.transito_backend.web.mapper.RoadAccidentMapper;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/accidents")
+@RequestMapping("/api/v1/accidents")
 @RequiredArgsConstructor
 public class RoadAccidentController {
 
@@ -33,7 +34,8 @@ public class RoadAccidentController {
     @PostMapping
     public ResponseEntity<RoadAccidentResponse> register(@RequestBody CreateRoadAccidentRequest request) {
         RoadAccident created = roadAccidentService.register(RoadAccidentMapper.toEntity(request));
-        return ResponseEntity.status(HttpStatus.CREATED).body(RoadAccidentMapper.toResponse(created));
+        return ResponseEntity.created(URI.create("/api/v1/accidents/" + created.getAccidentId()))
+                .body(RoadAccidentMapper.toResponse(created));
     }
 
     @PreAuthorize("hasAnyRole('INSPECTOR', 'SUPERVISOR', 'AUDITOR')")

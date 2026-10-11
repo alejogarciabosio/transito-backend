@@ -23,7 +23,7 @@ import ar.edu.uade.transito.transito_backend.web.mapper.StreetClosureMapper;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/street-closures")
+@RequestMapping("/api/v1/street-closures")
 @RequiredArgsConstructor
 public class StreetClosureController {
 
@@ -43,7 +43,7 @@ public class StreetClosureController {
     }
 
     @PreAuthorize("hasAnyRole('INSPECTOR', 'SUPERVISOR')")
-    @PostMapping("/{id}/approve")
+    @PostMapping("/{id}/approval")
     public StreetClosureResponse approve(@PathVariable UUID id, @RequestBody ApproveClosureRequest request) {
         StreetClosure changes = StreetClosure.builder()
                 .detours(request.detours() != null ? request.detours() : List.<Detour>of())
@@ -53,20 +53,20 @@ public class StreetClosureController {
     }
 
     @PreAuthorize("hasAnyRole('INSPECTOR', 'SUPERVISOR')")
-    @PostMapping("/{id}/reject")
+    @PostMapping("/{id}/rejection")
     public StreetClosureResponse reject(@PathVariable UUID id, @RequestBody RejectClosureRequest request) {
         return StreetClosureMapper.toResponse(streetClosureService.reject(id, request.rejectionReason()));
     }
 
     @PreAuthorize("hasRole('OPERADOR_CONTROL')")
-    @PostMapping("/{id}/activate")
+    @PostMapping("/{id}/activation")
     public StreetClosureResponse activate(@PathVariable UUID id) {
         String activatedBy = currentUserProvider.get().userId();
         return StreetClosureMapper.toResponse(streetClosureService.activate(id, activatedBy));
     }
 
     @PreAuthorize("hasRole('OPERADOR_CONTROL')")
-    @PostMapping("/{id}/finish")
+    @PostMapping("/{id}/completion")
     public StreetClosureResponse finish(@PathVariable UUID id, @RequestBody FinishClosureRequest request) {
         return StreetClosureMapper.toResponse(streetClosureService.finish(id, request.notes()));
     }
