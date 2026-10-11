@@ -124,7 +124,7 @@ class ParkingIntegrationTest extends AbstractIntegrationTest {
             String zone = createZone("Z");
             String tariff = createTariff(zone);
             String session = startSession(zone);
-            patch("/parking-sessions/" + session + "/close", CIUDADANO, null).andExpect(status().isOk());
+            post("/parking-sessions/" + session + "/closure", CIUDADANO, null).andExpect(status().isOk());
             delete("/parking-tariffs/" + tariff, ADMIN).andExpect(status().isNoContent());
             get("/parking-tariffs/" + tariff, null).andExpect(status().isNotFound());
         }
@@ -136,7 +136,7 @@ class ParkingIntegrationTest extends AbstractIntegrationTest {
             String tariff = createTariff(zone);
             startSession(zone);
             delete("/parking-tariffs/" + tariff, ADMIN).andExpect(status().isConflict())
-                    .andExpect(jsonPath("$.message", org.hamcrest.Matchers.containsString("sesiones activas")));
+                    .andExpect(jsonPath("$.detail", org.hamcrest.Matchers.containsString("sesiones activas")));
         }
     }
 
@@ -174,21 +174,21 @@ class ParkingIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("TC-BE-PS-03: cerrar sesión → endDateTime seteado; cerrar dos veces → 409")
         void close() throws Exception {
             String id = startSession(createZone("Z"));
-            patch("/parking-sessions/" + id + "/close", OPERADOR, null)
+            post("/parking-sessions/" + id + "/closure", OPERADOR, null)
                     .andExpect(status().isOk()).andExpect(jsonPath("$.endDateTime", notNullValue()));
-            patch("/parking-sessions/" + id + "/close", CIUDADANO, null).andExpect(status().isConflict());
+            post("/parking-sessions/" + id + "/closure", CIUDADANO, null).andExpect(status().isConflict());
         }
 
         @Test
         @DisplayName("TC-BE-PS-05: no se marca impaga una sesión paga → 409; solo INSPECTOR → 403")
         void flagUnpaidRules() throws Exception {
             String id = startSession(createZone("Z"));
-            post("/parking-sessions/" + id + "/flag-unpaid", OPERADOR, "{\"baseAmount\":1}").andExpect(status().isForbidden());
+            post("/parking-sessions/" + id + "/unpaid-flag", OPERADOR, "{\"baseAmount\":1}").andExpect(status().isForbidden());
 
             ParkingSession session = parkingSessionRepository.findById(UUID.fromString(id)).orElseThrow();
             session.setPaid(true);
             parkingSessionRepository.save(session);
-            post("/parking-sessions/" + id + "/flag-unpaid", INSPECTOR, "{\"baseAmount\":1}").andExpect(status().isConflict());
+            post("/parking-sessions/" + id + "/unpaid-flag", INSPECTOR, "{\"baseAmount\":1}").andExpect(status().isConflict());
             assertThat(events.all()).isEmpty();
         }
     }

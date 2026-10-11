@@ -50,7 +50,7 @@ class TrafficOperationIntegrationTest extends AbstractIntegrationTest {
         get("/operations/" + id, SUPERVISOR).andExpect(status().isOk());
         get("/operations", OPERADOR).andExpect(status().isForbidden());
         patch("/operations/" + id, OPERADOR, "{\"zone\":\"x\"}").andExpect(status().isForbidden());
-        post("/operations/" + id + "/close", SUPERVISOR, "{\"resolution\":\"NO_ACTION\"}").andExpect(status().isForbidden());
+        post("/operations/" + id + "/closure", SUPERVISOR, "{\"resolution\":\"NO_ACTION\"}").andExpect(status().isForbidden());
         get("/operations/" + UUID.randomUUID(), INSPECTOR).andExpect(status().isNotFound());
     }
 
@@ -70,7 +70,7 @@ class TrafficOperationIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("TC-BE-OP-04: cerrar con resolución → CLOSED; si no tenía fin, se completa con 'ahora'")
     void closeSetsEnd() throws Exception {
         String id = create();
-        post("/operations/" + id + "/close", INSPECTOR, "{\"resolution\":\"INFRACTION_CREATED\"}")
+        post("/operations/" + id + "/closure", INSPECTOR, "{\"resolution\":\"INFRACTION_CREATED\"}")
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("CLOSED"))
                 .andExpect(jsonPath("$.resolution").value("INFRACTION_CREATED"))
@@ -82,7 +82,7 @@ class TrafficOperationIntegrationTest extends AbstractIntegrationTest {
     void closeKeepsEnd() throws Exception {
         String id = create();
         patch("/operations/" + id, INSPECTOR, "{\"zone\":\"Z\",\"endDateTime\":\"2026-09-20T12:00:00\",\"assignedInspectors\":[],\"assignedUnits\":[]}");
-        post("/operations/" + id + "/close", INSPECTOR, "{\"resolution\":\"NO_ACTION\"}")
+        post("/operations/" + id + "/closure", INSPECTOR, "{\"resolution\":\"NO_ACTION\"}")
                 .andExpect(jsonPath("$.endDateTime").value("2026-09-20T12:00:00"));
     }
 
@@ -90,9 +90,9 @@ class TrafficOperationIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("TC-BE-OP-06: operativo cerrado no se edita ni se vuelve a cerrar → 409")
     void closedIsFinal() throws Exception {
         String id = create();
-        post("/operations/" + id + "/close", INSPECTOR, "{\"resolution\":\"NO_ACTION\"}");
+        post("/operations/" + id + "/closure", INSPECTOR, "{\"resolution\":\"NO_ACTION\"}");
         patch("/operations/" + id, INSPECTOR, "{\"zone\":\"x\"}").andExpect(status().isConflict());
-        post("/operations/" + id + "/close", INSPECTOR, "{\"resolution\":\"NO_ACTION\"}").andExpect(status().isConflict())
-                .andExpect(jsonPath("$.message", org.hamcrest.Matchers.containsString("ya está cerrado")));
+        post("/operations/" + id + "/closure", INSPECTOR, "{\"resolution\":\"NO_ACTION\"}").andExpect(status().isConflict())
+                .andExpect(jsonPath("$.detail", org.hamcrest.Matchers.containsString("ya está cerrado")));
     }
 }

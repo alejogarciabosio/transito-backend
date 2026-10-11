@@ -34,17 +34,17 @@ class AuthAndSecurityIntegrationTest extends AbstractIntegrationTest {
                 .andReturn();
         // el token devuelto sirve para llamar endpoints protegidos
         String token = read(result, "$.token");
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/infractions/mine").header("Authorization", "Bearer " + token))
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(API_PREFIX + "/infractions/mine").header("Authorization", "Bearer " + token))
                 .andExpect(role.equals("CIUDADANO") ? status().isOk() : status().isForbidden());
     }
 
-    @ParameterizedTest(name = "TC-BE-AUTH-02: credenciales inválidas ({0}/{1}) → 401 con ErrorResponse")
+    @ParameterizedTest(name = "TC-BE-AUTH-02: credenciales inválidas ({0}/{1}) → 401 en Problem Details")
     @CsvSource({"inspector1,mal", "noexiste,inspector123", "INSPECTOR1,inspector123"})
     void loginFails(String user, String pass) throws Exception {
         post("/auth/login", null, "{\"username\":\"" + user + "\",\"password\":\"" + pass + "\"}")
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.status").value(401))
-                .andExpect(jsonPath("$.message").value("Usuario o contraseña inválidos"));
+                .andExpect(jsonPath("$.detail").value("Usuario o contraseña inválidos"));
     }
 
     @Test
@@ -54,41 +54,46 @@ class AuthAndSecurityIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("TC-BE-SEC-02: endpoint protegido sin token → 403 (documentado en la guía)")
+    @DisplayName("TC-BE-SEC-02: endpoint protegido sin token → 401 (sin credenciales)")
     void noToken() throws Exception {
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/infractions")).andExpect(status().isForbidden());
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(API_PREFIX + "/infractions")).andExpect(status().isUnauthorized());
     }
 
     @Test
-    @DisplayName("TC-BE-SEC-03: token mal formado / firmado con otra clave / sin 'Bearer' → 403")
+    @DisplayName("TC-BE-SEC-03: token mal formado / firmado con otra clave / sin 'Bearer' → 401; rol insuficiente → 403")
     void invalidTokens() throws Exception {
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/infractions").header("Authorization", "Bearer basura")).andExpect(status().isForbidden());
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(API_PREFIX + "/infractions").header("Authorization", "Bearer basura"))
+                .andExpect(status().isUnauthorized());
         String valid = token(INSPECTOR);
         String tampered = valid.substring(0, valid.length() - 3) + "abc";
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/infractions").header("Authorization", "Bearer " + tampered)).andExpect(status().isForbidden());
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/infractions").header("Authorization", valid)).andExpect(status().isForbidden());
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/infractions").header("Authorization", "Bearer " + valid)).andExpect(status().isOk());
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(API_PREFIX + "/infractions").header("Authorization", "Bearer " + tampered))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(API_PREFIX + "/infractions").header("Authorization", valid))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(API_PREFIX + "/infractions").header("Authorization", "Bearer " + valid))
+                .andExpect(status().isOk());
     }
 
     @Test
-    @DisplayName("TC-BE-SEC-04: token con rol inexistente → 403 (no 500)")
+    @DisplayName("TC-BE-SEC-04: token con rol inexistente → 401 (no 500)")
     void unknownRoleClaim() throws Exception {
         String forged = io.jsonwebtoken.Jwts.builder().subject("u").claim("nationalId", "1").claim("role", "HACKER")
                 .signWith(io.jsonwebtoken.security.Keys.hmacShaKeyFor(
                         "test-secret-de-al-menos-32-bytes-para-hs256-0123456789".getBytes()))
                 .compact();
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/infractions").header("Authorization", "Bearer " + forged)).andExpect(status().isForbidden());
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(API_PREFIX + "/infractions").header("Authorization", "Bearer " + forged))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
     @DisplayName("TC-BE-SEC-05: CORS — origen permitido recibe Access-Control-Allow-Origin; otro origen → 403")
     void cors() throws Exception {
-        mockMvc.perform(options("/infractions")
+        mockMvc.perform(options(API_PREFIX + "/infractions")
                         .header("Origin", "http://localhost:5173")
                         .header("Access-Control-Request-Method", "GET"))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:5173"));
-        mockMvc.perform(options("/infractions")
+        mockMvc.perform(options(API_PREFIX + "/infractions")
                         .header("Origin", "http://evil.com")
                         .header("Access-Control-Request-Method", "GET"))
                 .andExpect(status().isForbidden());

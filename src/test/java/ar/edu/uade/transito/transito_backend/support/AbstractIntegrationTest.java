@@ -68,8 +68,11 @@ public abstract class AbstractIntegrationTest {
         return jwtService.generateToken(user);
     }
 
+    /** Prefijo de versión del contrato REST (ver docs/actividad-api-rest-entrega.md §3). */
+    protected static final String API_PREFIX = "/api/v1";
+
     protected ResultActions call(HttpMethod method, String url, AuthenticatedUser user, String jsonBody) throws Exception {
-        MockHttpServletRequestBuilder builder = request(method, url);
+        MockHttpServletRequestBuilder builder = request(method, API_PREFIX + url);
         if (user != null) {
             builder.header("Authorization", "Bearer " + token(user));
         }

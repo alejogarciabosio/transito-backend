@@ -82,7 +82,7 @@ class InfractionIntegrationTest extends AbstractIntegrationTest {
             for (var user : new ar.edu.uade.transito.transito_backend.auth.AuthenticatedUser[]{SUPERVISOR, AUDITOR, CIUDADANO, ADMIN, DEPOSITO, OPERADOR}) {
                 post("/infractions", user, Payloads.infraction("1")).andExpect(status().isForbidden());
             }
-            post("/infractions", null, Payloads.infraction("1")).andExpect(status().isForbidden());
+            post("/infractions", null, Payloads.infraction("1")).andExpect(status().isUnauthorized());
             assertThat(events.all()).isEmpty();
             assertThat(infractionRepository.count()).isZero();
         }
@@ -121,7 +121,7 @@ class InfractionIntegrationTest extends AbstractIntegrationTest {
             get("/infractions/" + id, CIUDADANO).andExpect(status().isOk()).andExpect(jsonPath("$.infractionId").value(id));
             get("/infractions/" + id, OTRO_CIUDADANO).andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.status").value(403))
-                    .andExpect(jsonPath("$.message").value("No tenés permiso para acceder a este recurso"));
+                    .andExpect(jsonPath("$.detail").value("No tenés permiso para acceder a este recurso"));
             get("/infractions/" + id, INSPECTOR).andExpect(status().isOk());
             get("/infractions/" + id, AUDITOR).andExpect(status().isOk());
         }
@@ -132,9 +132,8 @@ class InfractionIntegrationTest extends AbstractIntegrationTest {
             get("/infractions/" + UUID.randomUUID(), INSPECTOR)
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.status").value(404))
-                    .andExpect(jsonPath("$.error").value("Not Found"))
-                    .andExpect(jsonPath("$.timestamp", notNullValue()))
-                    .andExpect(jsonPath("$.message", org.hamcrest.Matchers.startsWith("Infraction no encontrada")));
+                    .andExpect(jsonPath("$.title").value("Not Found"))
+                    .andExpect(jsonPath("$.detail", org.hamcrest.Matchers.startsWith("Infraction no encontrada")));
         }
 
         @Test
@@ -163,12 +162,12 @@ class InfractionIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("TC-BE-INF-11: actas cerradas no se modifican — editar CONFIRMED o ANNULLED → 409")
         void updateFinal() throws Exception {
             String confirmed = registerAsInspector("1");
-            post("/infractions/" + confirmed + "/confirm", SUPERVISOR, null).andExpect(status().isOk());
+            post("/infractions/" + confirmed + "/confirmation", SUPERVISOR, null).andExpect(status().isOk());
             patch("/infractions/" + confirmed, INSPECTOR, Payloads.infractionUpdate()).andExpect(status().isConflict())
                     .andExpect(jsonPath("$.status").value(409));
 
             String annulled = registerAsInspector("1");
-            post("/infractions/" + annulled + "/annul", SUPERVISOR, "{\"annulmentReason\":\"x\",\"authorizedBy\":\"u-1002\"}");
+            post("/infractions/" + annulled + "/annulment", SUPERVISOR, "{\"annulmentReason\":\"x\",\"authorizedBy\":\"u-1002\"}");
             patch("/infractions/" + annulled, INSPECTOR, Payloads.infractionUpdate()).andExpect(status().isConflict());
         }
 
@@ -206,7 +205,7 @@ class InfractionIntegrationTest extends AbstractIntegrationTest {
             post("/infractions/" + id + "/appeal", CIUDADANO, "{\"reason\":\"b\"}").andExpect(status().isConflict());
 
             String confirmed = registerAsInspector(CIUDADANO.nationalId());
-            post("/infractions/" + confirmed + "/confirm", INSPECTOR, null);
+            post("/infractions/" + confirmed + "/confirmation", INSPECTOR, null);
             post("/infractions/" + confirmed + "/appeal", CIUDADANO, "{\"reason\":\"c\"}").andExpect(status().isConflict());
         }
 
@@ -228,7 +227,7 @@ class InfractionIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("TC-BE-INF-16: confirmar PENDING_APPEAL → CONFIRMED y evento infractionConfirmed completo para Rentas")
         void confirmPending() throws Exception {
             String id = registerAsInspector(CIUDADANO.nationalId());
-            post("/infractions/" + id + "/confirm", SUPERVISOR, null)
+            post("/infractions/" + id + "/confirmation", SUPERVISOR, null)
                     .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("CONFIRMED"));
 
             var p = events.lastPayload("infractionConfirmed", InfractionConfirmedPayload.class);
@@ -246,7 +245,7 @@ class InfractionIntegrationTest extends AbstractIntegrationTest {
         void confirmAppealed() throws Exception {
             String id = registerAsInspector(CIUDADANO.nationalId());
             post("/infractions/" + id + "/appeal", CIUDADANO, "{\"reason\":\"x\"}");
-            post("/infractions/" + id + "/confirm", INSPECTOR, null)
+            post("/infractions/" + id + "/confirmation", INSPECTOR, null)
                     .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("CONFIRMED"));
             assertThat(events.ofType("infractionConfirmed")).hasSize(1);
         }
@@ -255,22 +254,22 @@ class InfractionIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("TC-BE-INF-18: confirmar una ya CONFIRMED o ANNULLED → 409 y no se republica el evento")
         void confirmInvalid() throws Exception {
             String id = registerAsInspector("1");
-            post("/infractions/" + id + "/confirm", SUPERVISOR, null);
-            post("/infractions/" + id + "/confirm", SUPERVISOR, null).andExpect(status().isConflict())
-                    .andExpect(jsonPath("$.message", org.hamcrest.Matchers.containsString("CONFIRMED")));
+            post("/infractions/" + id + "/confirmation", SUPERVISOR, null);
+            post("/infractions/" + id + "/confirmation", SUPERVISOR, null).andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.detail", org.hamcrest.Matchers.containsString("CONFIRMED")));
             assertThat(events.ofType("infractionConfirmed")).hasSize(1);
 
             String annulled = registerAsInspector("1");
-            post("/infractions/" + annulled + "/annul", SUPERVISOR, "{\"annulmentReason\":\"x\",\"authorizedBy\":\"u-1002\"}");
-            post("/infractions/" + annulled + "/confirm", SUPERVISOR, null).andExpect(status().isConflict());
+            post("/infractions/" + annulled + "/annulment", SUPERVISOR, "{\"annulmentReason\":\"x\",\"authorizedBy\":\"u-1002\"}");
+            post("/infractions/" + annulled + "/confirmation", SUPERVISOR, null).andExpect(status().isConflict());
         }
 
         @Test
         @DisplayName("TC-BE-INF-19: AUDITOR / CIUDADANO no pueden confirmar → 403")
         void confirmForbidden() throws Exception {
             String id = registerAsInspector("1");
-            post("/infractions/" + id + "/confirm", AUDITOR, null).andExpect(status().isForbidden());
-            post("/infractions/" + id + "/confirm", CIUDADANO, null).andExpect(status().isForbidden());
+            post("/infractions/" + id + "/confirmation", AUDITOR, null).andExpect(status().isForbidden());
+            post("/infractions/" + id + "/confirmation", CIUDADANO, null).andExpect(status().isForbidden());
         }
     }
 
@@ -282,7 +281,7 @@ class InfractionIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("TC-BE-INF-20: supervisor anula → ANNULLED y evento infractionAnulled con motivo, autorizante y fecha")
         void supervisorAnnuls() throws Exception {
             String id = registerAsInspector("1");
-            post("/infractions/" + id + "/annul", SUPERVISOR,
+            post("/infractions/" + id + "/annulment", SUPERVISOR,
                     "{\"annulmentReason\":\"Error de carga\",\"authorizedBy\":\"u-1002\"}")
                     .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("ANNULLED"));
             var p = events.lastPayload("infractionAnulled", InfractionAnulledPayload.class);
@@ -297,7 +296,7 @@ class InfractionIntegrationTest extends AbstractIntegrationTest {
         void annulAppealed() throws Exception {
             String id = registerAsInspector(CIUDADANO.nationalId());
             post("/infractions/" + id + "/appeal", CIUDADANO, "{\"reason\":\"x\"}");
-            post("/infractions/" + id + "/annul", SUPERVISOR, "{\"annulmentReason\":\"ok\",\"authorizedBy\":\"u-1002\"}")
+            post("/infractions/" + id + "/annulment", SUPERVISOR, "{\"annulmentReason\":\"ok\",\"authorizedBy\":\"u-1002\"}")
                     .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("ANNULLED"));
         }
 
@@ -305,10 +304,10 @@ class InfractionIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("TC-BE-INF-22: anulaciones requieren autorización — INSPECTOR → 403; confirmada → 409")
         void annulRules() throws Exception {
             String id = registerAsInspector("1");
-            post("/infractions/" + id + "/annul", INSPECTOR, "{\"annulmentReason\":\"x\",\"authorizedBy\":\"u\"}")
+            post("/infractions/" + id + "/annulment", INSPECTOR, "{\"annulmentReason\":\"x\",\"authorizedBy\":\"u\"}")
                     .andExpect(status().isForbidden());
-            post("/infractions/" + id + "/confirm", SUPERVISOR, null);
-            post("/infractions/" + id + "/annul", SUPERVISOR, "{\"annulmentReason\":\"x\",\"authorizedBy\":\"u\"}")
+            post("/infractions/" + id + "/confirmation", SUPERVISOR, null);
+            post("/infractions/" + id + "/annulment", SUPERVISOR, "{\"annulmentReason\":\"x\",\"authorizedBy\":\"u\"}")
                     .andExpect(status().isConflict());
             assertThat(events.ofType("infractionAnulled")).isEmpty();
         }

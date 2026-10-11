@@ -52,7 +52,7 @@ class BugReproductionTest extends AbstractIntegrationTest {
     @DisplayName("BUG-BE-01: flag-unpaid debería crear la infracción UNPAID_PARKING (hoy 500: location null)")
     void bug01_flagUnpaidAlways500() throws Exception {
         String id = session(zone());
-        post("/parking-sessions/" + id + "/flag-unpaid", INSPECTOR, "{\"baseAmount\":12000}")
+        post("/parking-sessions/" + id + "/unpaid-flag", INSPECTOR, "{\"baseAmount\":12000}")
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.infractionType").value("UNPAID_PARKING"));
     }
@@ -60,7 +60,7 @@ class BugReproductionTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("BUG-BE-02: aprobar corte sin detours/conditions debería responder 200 (hoy 500: List.of() inmutable)")
     void bug02_approveWithoutDetours() throws Exception {
-        post("/street-closures/" + closure() + "/approve", SUPERVISOR, "{}").andExpect(status().isOk());
+        post("/street-closures/" + closure() + "/approval", SUPERVISOR, "{}").andExpect(status().isOk());
     }
 
     @Test
@@ -102,7 +102,7 @@ class BugReproductionTest extends AbstractIntegrationTest {
     @DisplayName("BUG-BE-07: RN 'anulaciones requieren autorización' — authorizedBy debería ser el supervisor autenticado (hoy viene del body, puede ser null)")
     void bug07_annulAuthorizedByFromBody() throws Exception {
         String id = infraction();
-        post("/infractions/" + id + "/annul", SUPERVISOR, "{\"annulmentReason\":\"x\"}").andExpect(status().isOk());
+        post("/infractions/" + id + "/annulment", SUPERVISOR, "{\"annulmentReason\":\"x\"}").andExpect(status().isOk());
         assertThat(events.lastPayload("infractionAnulled", InfractionAnulledPayload.class).authorizedBy())
                 .isEqualTo(SUPERVISOR.userId());
     }
@@ -174,7 +174,7 @@ class BugReproductionTest extends AbstractIntegrationTest {
     void bug12_malformedJsonFormat() throws Exception {
         post("/infractions", INSPECTOR, "{esto no es json")
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message", not(emptyOrNullString())));
+                .andExpect(jsonPath("$.detail", not(emptyOrNullString())));
     }
 
     @Test
@@ -184,7 +184,7 @@ class BugReproductionTest extends AbstractIntegrationTest {
                 .signWith(io.jsonwebtoken.security.Keys.hmacShaKeyFor(
                         "test-secret-de-al-menos-32-bytes-para-hs256-0123456789".getBytes()))
                 .compact();
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/infractions")
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(API_PREFIX + "/infractions")
                 .header("Authorization", "Bearer " + forged)).andExpect(status().isForbidden());
     }
 
@@ -192,7 +192,7 @@ class BugReproductionTest extends AbstractIntegrationTest {
     @DisplayName("BUG-BE-14: streetClosureApproved debería informar affectedStreet (campo requerido por contrato; hoy siempre [])")
     void bug14_affectedStreetAlwaysEmpty() throws Exception {
         String id = closure();
-        post("/street-closures/" + id + "/approve", SUPERVISOR,
+        post("/street-closures/" + id + "/approval", SUPERVISOR,
                 "{\"detours\":[{\"street\":\"A\",\"alternateRoute\":\"B\"}],\"conditions\":[\"c\"]}");
         assertThat(events.lastPayload("streetClosureApproved", StreetClosureApprovedPayload.class).affectedStreet()).isNotEmpty();
     }
@@ -201,8 +201,8 @@ class BugReproductionTest extends AbstractIntegrationTest {
     @DisplayName("BUG-BE-15: no debería poder marcarse impaga dos veces la misma sesión (duplica la multa)")
     void bug15_flagUnpaidTwice() throws Exception {
         String id = session(zone());
-        post("/parking-sessions/" + id + "/flag-unpaid", INSPECTOR, "{\"baseAmount\":1}");
-        post("/parking-sessions/" + id + "/flag-unpaid", INSPECTOR, "{\"baseAmount\":1}").andExpect(status().isConflict());
+        post("/parking-sessions/" + id + "/unpaid-flag", INSPECTOR, "{\"baseAmount\":1}");
+        post("/parking-sessions/" + id + "/unpaid-flag", INSPECTOR, "{\"baseAmount\":1}").andExpect(status().isConflict());
     }
 
     // ---------------------------------------------------------------- Bajos

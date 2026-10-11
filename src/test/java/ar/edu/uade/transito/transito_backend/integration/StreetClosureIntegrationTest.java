@@ -64,7 +64,7 @@ class StreetClosureIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("TC-BE-SC-03: aprobar → APPROVED con desvíos/condiciones y evento streetClosureApproved")
     void approve() throws Exception {
         String id = requestClosure("M3");
-        post("/street-closures/" + id + "/approve", INSPECTOR, APPROVE)
+        post("/street-closures/" + id + "/approval", INSPECTOR, APPROVE)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("APPROVED"))
                 .andExpect(jsonPath("$.detours[0].alternateRoute").value("Av. Córdoba"))
@@ -82,22 +82,22 @@ class StreetClosureIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("TC-BE-SC-05: rechazar → REJECTED y evento streetClosureRejected con motivo y módulo")
     void reject() throws Exception {
         String id = requestClosure("M6");
-        post("/street-closures/" + id + "/reject", SUPERVISOR, "{\"rejectionReason\":\"Horario pico\"}")
+        post("/street-closures/" + id + "/rejection", SUPERVISOR, "{\"rejectionReason\":\"Horario pico\"}")
                 .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("REJECTED"));
         var p = events.lastPayload("streetClosureRejected", StreetClosureRejectedPayload.class);
         assertThat(p.rejectionReason()).isEqualTo("Horario pico");
         assertThat(p.requestingModule()).isEqualTo(RequestingModule.AMBIENTE);
         // un rechazado no se puede aprobar ni activar
-        post("/street-closures/" + id + "/approve", SUPERVISOR, APPROVE).andExpect(status().isConflict());
-        post("/street-closures/" + id + "/activate", OPERADOR, null).andExpect(status().isConflict());
+        post("/street-closures/" + id + "/approval", SUPERVISOR, APPROVE).andExpect(status().isConflict());
+        post("/street-closures/" + id + "/activation", OPERADOR, null).andExpect(status().isConflict());
     }
 
     @Test
     @DisplayName("TC-BE-SC-06: flujo completo REQUESTED→APPROVED→ACTIVE→FINISHED con eventos activated/ended")
     void fullLifecycle() throws Exception {
         String id = requestClosure("M3");
-        post("/street-closures/" + id + "/approve", SUPERVISOR, APPROVE).andExpect(status().isOk());
-        post("/street-closures/" + id + "/activate", OPERADOR, null)
+        post("/street-closures/" + id + "/approval", SUPERVISOR, APPROVE).andExpect(status().isOk());
+        post("/street-closures/" + id + "/activation", OPERADOR, null)
                 .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("ACTIVE"));
         var activated = events.lastPayload("streetClosureActivated", StreetClosureActivatedPayload.class);
         assertThat(activated.streetClosureId()).hasToString(id);
@@ -106,7 +106,7 @@ class StreetClosureIntegrationTest extends AbstractIntegrationTest {
         assertThat(activated.activatedAt()).isNotNull();
         assertThat(activated.sourceRequestId()).startsWith("REQ-");
 
-        post("/street-closures/" + id + "/finish", OPERADOR, "{\"notes\":\"Circulación restablecida\"}")
+        post("/street-closures/" + id + "/completion", OPERADOR, "{\"notes\":\"Circulación restablecida\"}")
                 .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("FINISHED"));
         var ended = events.lastPayload("streetClosureEnded", StreetClosureEndedPayload.class);
         assertThat(ended.notes()).isEqualTo("Circulación restablecida");
@@ -120,23 +120,23 @@ class StreetClosureIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("TC-BE-SC-07: transiciones inválidas → 409 (activar REQUESTED, finalizar APPROVED, aprobar dos veces)")
     void invalidTransitions() throws Exception {
         String id = requestClosure("M3");
-        post("/street-closures/" + id + "/activate", OPERADOR, null).andExpect(status().isConflict())
-                .andExpect(jsonPath("$.message", org.hamcrest.Matchers.containsString("debe estar en estado APPROVED")));
-        post("/street-closures/" + id + "/finish", OPERADOR, "{\"notes\":\"x\"}").andExpect(status().isConflict());
-        post("/street-closures/" + id + "/approve", SUPERVISOR, APPROVE).andExpect(status().isOk());
-        post("/street-closures/" + id + "/approve", SUPERVISOR, APPROVE).andExpect(status().isConflict());
-        post("/street-closures/" + id + "/reject", SUPERVISOR, "{\"rejectionReason\":\"x\"}").andExpect(status().isConflict());
-        post("/street-closures/" + id + "/finish", OPERADOR, "{\"notes\":\"x\"}").andExpect(status().isConflict());
+        post("/street-closures/" + id + "/activation", OPERADOR, null).andExpect(status().isConflict())
+                .andExpect(jsonPath("$.detail", org.hamcrest.Matchers.containsString("debe estar en estado APPROVED")));
+        post("/street-closures/" + id + "/completion", OPERADOR, "{\"notes\":\"x\"}").andExpect(status().isConflict());
+        post("/street-closures/" + id + "/approval", SUPERVISOR, APPROVE).andExpect(status().isOk());
+        post("/street-closures/" + id + "/approval", SUPERVISOR, APPROVE).andExpect(status().isConflict());
+        post("/street-closures/" + id + "/rejection", SUPERVISOR, "{\"rejectionReason\":\"x\"}").andExpect(status().isConflict());
+        post("/street-closures/" + id + "/completion", OPERADOR, "{\"notes\":\"x\"}").andExpect(status().isConflict());
     }
 
     @Test
     @DisplayName("TC-BE-SC-08: permisos — activar/finalizar solo OPERADOR_CONTROL; aprobar no OPERADOR; consultar no CIUDADANO")
     void permissions() throws Exception {
         String id = requestClosure("M3");
-        post("/street-closures/" + id + "/approve", OPERADOR, APPROVE).andExpect(status().isForbidden());
-        post("/street-closures/" + id + "/approve", SUPERVISOR, APPROVE);
-        post("/street-closures/" + id + "/activate", INSPECTOR, null).andExpect(status().isForbidden());
-        post("/street-closures/" + id + "/finish", SUPERVISOR, "{\"notes\":\"x\"}").andExpect(status().isForbidden());
+        post("/street-closures/" + id + "/approval", OPERADOR, APPROVE).andExpect(status().isForbidden());
+        post("/street-closures/" + id + "/approval", SUPERVISOR, APPROVE);
+        post("/street-closures/" + id + "/activation", INSPECTOR, null).andExpect(status().isForbidden());
+        post("/street-closures/" + id + "/completion", SUPERVISOR, "{\"notes\":\"x\"}").andExpect(status().isForbidden());
         get("/street-closures", CIUDADANO).andExpect(status().isForbidden());
         get("/street-closures/" + UUID.randomUUID(), INSPECTOR).andExpect(status().isNotFound());
     }
