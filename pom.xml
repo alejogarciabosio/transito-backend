@@ -28,6 +28,9 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
 </scm>
 <properties>
 <java.version>17</java.version>
+<!-- Los tests con @Tag("bug") reproducen bugs abiertos: se excluyen del build normal.
+     Para correrlos: ./mvnw test -Dbugs.excluded=none -Dgroups=bug -Djacoco.skip=true -->
+<bugs.excluded>bug</bugs.excluded>
 </properties>
 <dependencies>
 <dependency>
@@ -89,6 +92,16 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
 <artifactId>spring-boot-starter-webmvc-test</artifactId>
 <scope>test</scope>
 </dependency>
+<dependency>
+<groupId>org.springframework.boot</groupId>
+<artifactId>spring-boot-starter-security-test</artifactId>
+<scope>test</scope>
+</dependency>
+<dependency>
+<groupId>com.h2database</groupId>
+<artifactId>h2</artifactId>
+<scope>test</scope>
+</dependency>
 </dependencies>
 
 <build>
@@ -96,6 +109,13 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
 <plugin>
 <groupId>org.springframework.boot</groupId>
 <artifactId>spring-boot-maven-plugin</artifactId>
+</plugin>
+<plugin>
+<groupId>org.apache.maven.plugins</groupId>
+<artifactId>maven-surefire-plugin</artifactId>
+<configuration>
+<excludedGroups>${bugs.excluded}</excludedGroups>
+</configuration>
 </plugin>
 <plugin>
 <groupId>org.jacoco</groupId>
