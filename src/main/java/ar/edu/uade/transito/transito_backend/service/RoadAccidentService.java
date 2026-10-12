@@ -1,5 +1,6 @@
 package ar.edu.uade.transito.transito_backend.service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -44,6 +45,13 @@ public class RoadAccidentService {
     @Transactional(readOnly = true)
     public List<RoadAccident> findAll() {
         return roadAccidentRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public List<RoadAccident> findInvolving(String nationalId) {
+        return roadAccidentRepository.findInvolving(nationalId).stream()
+                .sorted(Comparator.comparing(RoadAccident::getAccidentDateTime).reversed())
+                .toList();
     }
 
     @Transactional(readOnly = true)

@@ -44,6 +44,16 @@ public class StreetClosureService {
         return streetClosureRepository.findAll();
     }
 
+    /**
+     * Cortes vigentes para la consulta ciudadana: los ya aprobados (próximos a activarse)
+     * y los activos. Los solicitados, rechazados y finalizados no se exponen al vecino.
+     */
+    @Transactional(readOnly = true)
+    public List<StreetClosure> findCurrent() {
+        return streetClosureRepository.findByStatusInOrderByStartDateAsc(
+                List.of(StreetClosureStatus.APPROVED, StreetClosureStatus.ACTIVE));
+    }
+
     @Transactional(readOnly = true)
     public StreetClosure findById(UUID streetClosureId) {
         return streetClosureRepository.findById(streetClosureId)

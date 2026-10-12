@@ -53,6 +53,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/actuator/health").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/parking-zones/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/parking-tariffs/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/street-closures/current").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

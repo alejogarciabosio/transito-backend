@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import ar.edu.uade.transito.transito_backend.auth.CurrentUserProvider;
 import ar.edu.uade.transito.transito_backend.model.RoadAccident;
 import ar.edu.uade.transito.transito_backend.service.RoadAccidentService;
 import ar.edu.uade.transito.transito_backend.web.dto.CreateRoadAccidentRequest;
@@ -29,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 public class RoadAccidentController {
 
     private final RoadAccidentService roadAccidentService;
+    private final CurrentUserProvider currentUserProvider;
 
     @PreAuthorize("hasAnyRole('INSPECTOR', 'OPERADOR_CONTROL')")
     @PostMapping
@@ -42,6 +44,13 @@ public class RoadAccidentController {
     @GetMapping
     public List<RoadAccidentResponse> findAll() {
         return roadAccidentService.findAll().stream().map(RoadAccidentMapper::toResponse).toList();
+    }
+
+    @PreAuthorize("hasRole('CIUDADANO')")
+    @GetMapping("/mine")
+    public List<RoadAccidentResponse> findMine() {
+        String nationalId = currentUserProvider.get().nationalId();
+        return roadAccidentService.findInvolving(nationalId).stream().map(RoadAccidentMapper::toResponse).toList();
     }
 
     @PreAuthorize("hasAnyRole('INSPECTOR', 'SUPERVISOR', 'AUDITOR')")

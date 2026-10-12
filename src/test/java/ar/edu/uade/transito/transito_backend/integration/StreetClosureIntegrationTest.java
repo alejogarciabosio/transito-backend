@@ -6,6 +6,7 @@ import ar.edu.uade.transito.transito_backend.event.payload.StreetClosureEndedPay
 import ar.edu.uade.transito.transito_backend.event.payload.StreetClosureRejectedPayload;
 import ar.edu.uade.transito.transito_backend.model.enums.RequestingModule;
 import ar.edu.uade.transito.transito_backend.support.AbstractIntegrationTest;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -139,5 +140,33 @@ class StreetClosureIntegrationTest extends AbstractIntegrationTest {
         post("/street-closures/" + id + "/completion", SUPERVISOR, "{\"notes\":\"x\"}").andExpect(status().isForbidden());
         get("/street-closures", CIUDADANO).andExpect(status().isForbidden());
         get("/street-closures/" + UUID.randomUUID(), INSPECTOR).andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("TC-BE-SC-CIU-01: /street-closures/current es público y solo expone cortes APPROVED o ACTIVE")
+    void currentForCitizens() throws Exception {
+        String approved = requestClosure("M3");
+        post("/street-closures/" + approved + "/approval", INSPECTOR, APPROVE).andExpect(status().isOk());
+
+        String active = requestClosure("M6");
+        post("/street-closures/" + active + "/approval", SUPERVISOR, APPROVE).andExpect(status().isOk());
+        post("/street-closures/" + active + "/activation", OPERADOR, null).andExpect(status().isOk());
+
+        String rejected = requestClosure("M3");
+        post("/street-closures/" + rejected + "/rejection", INSPECTOR, "{\"rejectionReason\":\"Sin permiso\"}")
+                .andExpect(status().isOk());
+
+        requestClosure("M6"); // queda REQUESTED
+
+        get("/street-closures/current", null)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[*].status", containsInAnyOrder("APPROVED", "ACTIVE")))
+                .andExpect(jsonPath("$[0].detours[0].alternateRoute").value("Av. Córdoba"));
+        get("/street-closures/current", CIUDADANO).andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(2)));
+
+        // El listado completo y el detalle siguen reservados al personal.
+        get("/street-closures", CIUDADANO).andExpect(status().isForbidden());
+        get("/street-closures/" + approved, CIUDADANO).andExpect(status().isForbidden());
     }
 }
