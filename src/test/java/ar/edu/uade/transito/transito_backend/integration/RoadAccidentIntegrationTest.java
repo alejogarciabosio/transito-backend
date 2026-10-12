@@ -1,0 +1,90 @@
+package ar.edu.uade.transito.transito_backend.integration;
+
+import ar.edu.uade.transito.transito_backend.event.payload.RoadAccidentRegisteredPayload;
+import ar.edu.uade.transito.transito_backend.model.enums.InjuryLevel;
+import ar.edu.uade.transito.transito_backend.support.AbstractIntegrationTest;
+import ar.edu.uade.transito.transito_backend.support.Payloads;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import java.util.UUID;
+
+import static ar.edu.uade.transito.transito_backend.support.TestUsers.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.hasSize;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@DisplayName("Siniestros viales (/accidents)")
+class RoadAccidentIntegrationTest extends AbstractIntegrationTest {
+
+    private String register() throws Exception {
+        return read(post("/accidents", INSPECTOR, Payloads.accident()).andExpect(status().isCreated()).andReturn(), "$.accidentId");
+    }
+
+    @Test
+    @DisplayName("TC-BE-ACC-01: INSPECTOR/OPERADOR registran → PRELIMINARY y evento roadAccidentRegistered con vehículos y personas")
+    void register_publishesEvent() throws Exception {
+        post("/accidents", OPERADOR, Payloads.accident())
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.status").value("PRELIMINARY"))
+                .andExpect(jsonPath("$.vehicles", hasSize(1)))
+                .andExpect(jsonPath("$.persons[0].injuryLevel").value("MINOR"));
+
+        var p = events.lastPayload("roadAccidentRegistered", RoadAccidentRegisteredPayload.class);
+        assertThat(p.accidentId()).isNotNull();
+        assertThat(p.involvesInfrastructureDamage()).isTrue();
+        assertThat(p.damageDescription()).isEqualTo("Semáforo derribado");
+        assertThat(p.vehicles()).extracting("licensePlate").containsExactly("AB123CD");
+        assertThat(p.persons()).extracting("injuryLevel").containsExactly(InjuryLevel.MINOR);
+        assertThat(p.inspectorId()).isEqualTo("u-1001");
+        assertThat(p.location().getStreet()).isEqualTo("Av. 9 de Julio");
+    }
+
+    @Test
+    @DisplayName("TC-BE-ACC-02: permisos — SUPERVISOR no registra; CIUDADANO no consulta")
+    void permissions() throws Exception {
+        post("/accidents", SUPERVISOR, Payloads.accident()).andExpect(status().isForbidden());
+        String id = register();
+        get("/accidents", AUDITOR).andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(1)));
+        get("/accidents/" + id, SUPERVISOR).andExpect(status().isOk());
+        get("/accidents", CIUDADANO).andExpect(status().isForbidden());
+        patch("/accidents/" + id, OPERADOR, Payloads.accidentUpdate(null)).andExpect(status().isForbidden());
+        get("/accidents/" + UUID.randomUUID(), INSPECTOR).andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("TC-BE-ACC-03: editar PRELIMINARY sin status mantiene PRELIMINARY")
+    void updatePreliminary() throws Exception {
+        String id = register();
+        patch("/accidents/" + id, INSPECTOR, Payloads.accidentUpdate(null))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("PRELIMINARY"))
+                .andExpect(jsonPath("$.damageDescription").value("Sin daños"))
+                .andExpect(jsonPath("$.involvesInfrastructureDamage").value(false))
+                .andExpect(jsonPath("$.vehicles", hasSize(0)));
+    }
+
+    @Test
+    @DisplayName("TC-BE-ACC-04: verificar (status VERIFIED) y luego cualquier edición → 409 (acta cerrada)")
+    void verifiedIsFinal() throws Exception {
+        String id = register();
+        patch("/accidents/" + id, INSPECTOR, Payloads.accidentUpdate("VERIFIED"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("VERIFIED"));
+        patch("/accidents/" + id, INSPECTOR, Payloads.accidentUpdate("PRELIMINARY")).andExpect(status().isConflict());
+    }
+
+    @Test
+    @DisplayName("TC-BE-ACC-05: enviar status PRELIMINARY no hace nada especial (no hay 'des-verificar')")
+    void preliminaryStatusIgnored() throws Exception {
+        String id = register();
+        patch("/accidents/" + id, INSPECTOR, Payloads.accidentUpdate("PRELIMINARY"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("PRELIMINARY"));
+    }
+
+    @Test
+    @DisplayName("TC-BE-ACC-06: enum inválido en el body → 400")
+    void invalidEnum() throws Exception {
+        post("/accidents", INSPECTOR, Payloads.accident().replace("MINOR", "MUERTO")).andExpect(status().isBadRequest());
+    }
+}
