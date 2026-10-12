@@ -94,4 +94,21 @@ class VehicleImpoundmentIntegrationTest extends AbstractIntegrationTest {
         patch("/impoundments/" + id, DEPOSITO, "{\"reason\":\"x\",\"depotLocation\":\"y\"}").andExpect(status().isConflict());
         assertThat(events.ofType("vehicleReleased")).hasSize(1);
     }
+
+    @Test
+    @DisplayName("TC-BE-IMP-CIU-01: /impoundments/mine devuelve solo los vehículos del ciudadano logueado")
+    void mine() throws Exception {
+        String propio = register(CIUDADANO.nationalId());
+        register(OTRO_CIUDADANO.nationalId());
+        register("1");
+
+        get("/impoundments/mine", CIUDADANO)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].impoundmentId").value(propio))
+                .andExpect(jsonPath("$[0].status").value("IMPOUNDED"));
+        get("/impoundments/mine", OTRO_CIUDADANO).andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(1)));
+        get("/impoundments/mine", DEPOSITO).andExpect(status().isForbidden());
+        get("/impoundments/mine", null).andExpect(status().isUnauthorized());
+    }
 }

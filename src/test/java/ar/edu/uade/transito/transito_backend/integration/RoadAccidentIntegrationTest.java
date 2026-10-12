@@ -87,4 +87,31 @@ class RoadAccidentIntegrationTest extends AbstractIntegrationTest {
     void invalidEnum() throws Exception {
         post("/accidents", INSPECTOR, Payloads.accident().replace("MINOR", "MUERTO")).andExpect(status().isBadRequest());
     }
+
+    @Test
+    @DisplayName("TC-BE-ACC-CIU-01: /accidents/mine devuelve los siniestros donde el ciudadano figura, sin duplicados")
+    void mine() throws Exception {
+        // Payloads.accident() incluye al CIUDADANO como persona y como titular: debe aparecer una sola vez.
+        String id = register();
+        post("/accidents", INSPECTOR, Payloads.accident().replace("30777888", "11111111")).andExpect(status().isCreated());
+
+        get("/accidents/mine", CIUDADANO)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].accidentId").value(id));
+        get("/accidents/mine", OTRO_CIUDADANO).andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(0)));
+        get("/accidents/mine", INSPECTOR).andExpect(status().isForbidden());
+        get("/accidents/mine", null).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("TC-BE-ACC-CIU-02: /accidents/mine también encuentra al ciudadano solo como titular de un vehículo")
+    void mine_asVehicleOwnerOnly() throws Exception {
+        String soloTitular = Payloads.accident()
+                .replace("{\"nationalId\": \"30777888\", \"injuryLevel\": \"MINOR\"}", "{\"nationalId\": \"22222222\", \"injuryLevel\": \"NONE\"}");
+        assertThat(soloTitular).doesNotContain("\"nationalId\": \"30777888\"");
+        post("/accidents", INSPECTOR, soloTitular).andExpect(status().isCreated());
+
+        get("/accidents/mine", CIUDADANO).andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(1)));
+    }
 }

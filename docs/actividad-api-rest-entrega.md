@@ -91,6 +91,7 @@ La conexión SOAP con el módulo de Usuarios, la publicación en un broker, Tran
 |---|---|---|---|---|
 | `POST` | `/api/v1/accidents` | Inspector, operador | `CreateRoadAccidentRequest` | `201 RoadAccidentResponse` |
 | `GET` | `/api/v1/accidents` | Inspector, supervisor, auditor | Sin body | `200 RoadAccidentResponse[]` |
+| `GET` | `/api/v1/accidents/mine` | Ciudadano | Sin body (usa el DNI del token) | `200 RoadAccidentResponse[]` donde figura como persona o titular |
 | `GET` | `/api/v1/accidents/{id}` | Inspector, supervisor, auditor | UUID por path | `200`; `404` |
 | `PATCH` | `/api/v1/accidents/{id}` | Inspector | `UpdateRoadAccidentRequest` | `200`; `400`, `404`, `409` |
 
@@ -100,6 +101,7 @@ La conexión SOAP con el módulo de Usuarios, la publicación en un broker, Tran
 |---|---|---|---|---|
 | `POST` | `/api/v1/impoundments` | Inspector, personal de depósito | `CreateVehicleImpoundmentRequest` | `201 VehicleImpoundmentResponse` |
 | `GET` | `/api/v1/impoundments` | Inspector, depósito, supervisor | Sin body | `200 VehicleImpoundmentResponse[]` |
+| `GET` | `/api/v1/impoundments/mine` | Ciudadano | Sin body (usa el DNI del token) | `200 VehicleImpoundmentResponse[]` de vehículos propios |
 | `GET` | `/api/v1/impoundments/{id}` | Inspector, depósito o ciudadano titular | UUID por path | `200`; `404` |
 | `PATCH` | `/api/v1/impoundments/{id}` | Personal de depósito | `UpdateVehicleImpoundmentRequest` | `200`; `400`, `404`, `409` |
 | `POST` | `/api/v1/impoundments/{id}/release` | Personal de depósito | `ReleaseImpoundmentRequest` | `200`; `400`, `404`, `409` |
@@ -111,6 +113,7 @@ Los cortes se crean al consumir un evento de Obras o Ambiente, por lo que no exi
 | Método | URI | Roles | Request | Respuesta |
 |---|---|---|---|---|
 | `GET` | `/api/v1/street-closures` | Inspector, operador, supervisor | Sin body | `200 StreetClosureResponse[]` |
+| `GET` | `/api/v1/street-closures/current` | **Público** | Sin body | `200 StreetClosureResponse[]` solo `APPROVED` y `ACTIVE` |
 | `GET` | `/api/v1/street-closures/{id}` | Inspector, operador, supervisor | UUID por path | `200`; `404` |
 | `POST` | `/api/v1/street-closures/{id}/approval` | Inspector, supervisor | `{detours, conditions}` | `200`; `400`, `404`, `409` |
 | `POST` | `/api/v1/street-closures/{id}/rejection` | Inspector, supervisor | `{rejectionReason}` | `200`; `400`, `404`, `409` |
