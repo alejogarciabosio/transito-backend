@@ -29,8 +29,13 @@ class StreetClosureIntegrationTest extends AbstractIntegrationTest {
     private String requestClosure(String moduleCode) {
         dispatchIncoming("streetClosureRequested", "{\"closureRequestId\":\"REQ-" + UUID.randomUUID() + "\","
                 + "\"sourceModule\":\"" + moduleCode + "\","
+                + "\"sourceRef\":\"WO-1050\","
+                + "\"reason\":\"Reparación de calzada\","
+                + "\"affectedSections\":[\"Av. Cabildo entre Juramento y Mendoza\"],"
                 + "\"requestedFrom\":\"" + REQUESTED_FROM + "\","
-                + "\"requestedTo\":\"" + REQUESTED_TO + "\"}");
+                + "\"requestedTo\":\"" + REQUESTED_TO + "\","
+                + "\"closureType\":\"TOTAL\","
+                + "\"requestedAt\":\"2026-09-01T16:58:00-03:00\"}");
         return streetClosureRepository.findAll().get((int) streetClosureRepository.count() - 1).getStreetClosureId().toString();
     }
 
@@ -46,7 +51,14 @@ class StreetClosureIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("REQUESTED"))
                 .andExpect(jsonPath("$.requestingModule").value("OBRAS"))
-                .andExpect(jsonPath("$.startDate").value("2026-10-01T03:00:00Z"));
+                .andExpect(jsonPath("$.startDate").value("2026-10-01T03:00:00Z"))
+                .andExpect(jsonPath("$.affectedStreet[0]").value("Av. Cabildo entre Juramento y Mendoza"));
+        var persisted = streetClosureRepository.findById(UUID.fromString(id)).orElseThrow();
+        assertThat(persisted.getSourceRef()).isEqualTo("WO-1050");
+        assertThat(persisted.getReason()).isEqualTo("Reparación de calzada");
+        assertThat(persisted.getClosureType()).isEqualTo("TOTAL");
+        assertThat(persisted.getRequestedAt().toInstant())
+                .isEqualTo(OffsetDateTime.parse("2026-09-01T16:58:00-03:00").toInstant());
         requestClosure("M6");
         get("/street-closures", OPERADOR).andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(2)));
         assertThat(events.all()).as("crear desde solicitud no publica eventos").isEmpty();

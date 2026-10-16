@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -120,8 +121,8 @@ class MapperCoverageTests {
                 .streetClosureId(UUID.randomUUID())
                 .closureRequestId("REQ-1")
                 .requestingModule(RequestingModule.AMBIENTE)
-                .startDate(LocalDate.now())
-                .endDate(LocalDate.now().plusDays(1))
+                .startDate(OffsetDateTime.now())
+                .endDate(OffsetDateTime.now().plusDays(1))
                 .affectedStreet(List.of("Av. Corrientes"))
                 .status(StreetClosureStatus.REQUESTED)
                 .build();

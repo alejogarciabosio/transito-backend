@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -181,8 +182,8 @@ class ApiWorkflowIntegrationTests {
         StreetClosure closure = streetClosureRepository.save(StreetClosure.builder()
                 .closureRequestId("REQ-" + UUID.randomUUID())
                 .requestingModule(RequestingModule.OBRAS)
-                .startDate(LocalDate.of(2026, 10, 12))
-                .endDate(LocalDate.of(2026, 10, 13))
+                .startDate(OffsetDateTime.parse("2026-10-12T00:00:00-03:00"))
+                .endDate(OffsetDateTime.parse("2026-10-13T00:00:00-03:00"))
                 .affectedStreet(List.of("Av. Corrientes"))
                 .status(StreetClosureStatus.REQUESTED)
                 .build());

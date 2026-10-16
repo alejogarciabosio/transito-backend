@@ -14,6 +14,7 @@ import static org.mockito.Mockito.when;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -287,8 +288,8 @@ class AdditionalServiceCoverageTests {
                 .streetClosureId(id)
                 .closureRequestId("REQ-1")
                 .requestingModule(RequestingModule.OBRAS)
-                .startDate(LocalDate.now())
-                .endDate(LocalDate.now().plusDays(1))
+                .startDate(OffsetDateTime.now())
+                .endDate(OffsetDateTime.now().plusDays(1))
                 .affectedStreet(List.of("Av. Rivadavia"))
                 .status(status)
                 .build();
