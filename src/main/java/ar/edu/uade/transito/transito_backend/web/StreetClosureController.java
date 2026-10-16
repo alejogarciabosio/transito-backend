@@ -37,6 +37,12 @@ public class StreetClosureController {
         return streetClosureService.findAll().stream().map(StreetClosureMapper::toResponse).toList();
     }
 
+    // GET público (consulta ciudadana) -- permitAll ya configurado en SecurityConfig, sin @PreAuthorize.
+    @GetMapping("/current")
+    public List<StreetClosureResponse> findCurrent() {
+        return streetClosureService.findCurrent().stream().map(StreetClosureMapper::toResponse).toList();
+    }
+
     @PreAuthorize("hasAnyRole('INSPECTOR', 'OPERADOR_CONTROL', 'SUPERVISOR')")
     @GetMapping("/{id}")
     public StreetClosureResponse findById(@PathVariable UUID id) {

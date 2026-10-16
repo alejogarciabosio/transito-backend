@@ -1,0 +1,543 @@
+openapi: 3.0.3
+info:
+  title: API Tránsito — Módulo 7 (Municipalidad UADE)
+  version: "1.0.0"
+  description: |
+    Contrato REST del Módulo 7 (Tránsito, estacionamiento y seguridad vial).
+    - Versionado por URI: todos los recursos cuelgan de `/v1`.
+    - Errores en formato **Problem Details (RFC 9457)**, `Content-Type: application/problem+json`.
+    - Autenticación: `POST /v1/auth/login` valida contra el servicio SOAP `validateUser` de M1 (Usuarios)
+      y devuelve un JWT que se envía como `Authorization: Bearer <token>`.
+    - Al confirmar una infracción se publica de forma asincrónica el evento `infractionConfirmed` (consumidor: M5 Rentas).
+    - Diseño orientado a recursos: URIs con sustantivos; las acciones de negocio son sub-recursos
+      (`/confirmation`, `/appeal`, `/annulment`, `/release`).
+    - Nivel 3 de Richardson (HATEOAS) en `GET /v1/infractions/{id}`: `_links` según el estado.
+    - Fechas ISO 8601 con zona horaria; montos decimales (nunca float); enums como strings.
+servers:
+  - url: https://transito-backend-production-28d6.up.railway.app
+    description: Producción (Railway)
+  - url: http://localhost:8080
+    description: Local
+tags:
+  - name: Auth
+  - name: Infracciones
+  - name: Retenciones
+  - name: Estacionamiento
+security:
+  - bearerAuth: []
+
+paths:
+  /v1/auth/login:
+    post:
+      tags: [Auth]
+      summary: Inicia sesión (valida credenciales contra M1 vía SOAP)
+      description: |
+        Llamada sincrónica a `validateUser` de M1 con timeout de 5 s.
+        - Credenciales inválidas (`AuthenticationFault`) → 401.
+        - M1 no responde en 5 s → 503 con `Retry-After`.
+        - M1 responde con error inesperado / SOAP Fault no reconocido → 502.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+            example: { username: inspector1, password: "********" }
+      responses:
+        '200':
+          description: Autenticado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LoginResponse' }
+              example: { token: "eyJhbGciOiJIUzI1NiJ9...", role: INSPECTOR, expiresInSeconds: 7200 }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401':
+          description: Credenciales inválidas (M1 devolvió AuthenticationFault)
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetail' }
+              example:
+                type: https://transito.uade.edu.ar/problems/invalid-credentials
+                title: Credenciales inválidas
+                status: 401
+                detail: Usuario o contraseña inválidos.
+                instance: /v1/auth/login
+        '429':
+          description: Demasiados intentos de login desde el mismo origen (rate limiting)
+          headers:
+            Retry-After:
+              schema: { type: integer, example: 60 }
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetail' }
+              example:
+                type: https://transito.uade.edu.ar/problems/too-many-requests
+                title: Demasiados intentos
+                status: 429
+                detail: Superaste los 5 intentos de login por minuto. Esperá 60 segundos.
+                instance: /v1/auth/login
+        '502':
+          description: M1 respondió con un error inesperado
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetail' }
+        '503':
+          description: M1 (SOAP validateUser) no respondió en 5 s
+          headers:
+            Retry-After:
+              description: Segundos sugeridos antes de reintentar
+              schema: { type: integer, example: 30 }
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetail' }
+              example:
+                type: https://transito.uade.edu.ar/problems/auth-service-unavailable
+                title: Servicio de autenticación no disponible
+                status: 503
+                detail: El servicio de usuarios (M1) no respondió en 5 segundos. Intentá nuevamente en unos minutos.
+                instance: /v1/auth/login
+                upstream: M1-validateUser
+                timeoutMs: 5000
+
+  /v1/infractions:
+    post:
+      tags: [Infracciones]
+      summary: Registra una infracción (rol INSPECTOR)
+      description: Nace en `PENDING_APPEAL`. El `inspectorId` se toma del JWT, no del body. Publica `infractionRegistered`.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateInfractionRequest' }
+            example:
+              licensePlate: AB123CD
+              infractionType: ILLEGAL_PARKING
+              infractionDateTime: "2026-08-24T13:45:00-03:00"
+              location: { street: Av. Cabildo, crossStreet: Juramento, latitude: -34.5621, longitude: -58.4563 }
+              evidenceUrl: ["https://evidencias.uade.edu.ar/inf/foto1.jpg"]
+              offenderNationalId: "40123456"
+              debtorId: "40123456"
+              debtorIdType: DNI
+              baseAmount: 50000
+              aggravatingFactors: [REINCIDENCE]
+              finalAmount: 75000
+      responses:
+        '201':
+          description: Creada
+          headers:
+            Location:
+              schema: { type: string, example: /v1/infractions/93fd4382-2343-4f3f-a127-9328b29fc520 }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Infraction' }
+        '200':
+          description: Reintento con la misma Idempotency-Key — devuelve la infracción ya creada, sin duplicar ni republicar el evento
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Infraction' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422':
+          description: Misma Idempotency-Key con un body distinto
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetail' }
+    get:
+      tags: [Infracciones]
+      summary: Lista infracciones con filtros, orden y paginación (INSPECTOR, SUPERVISOR, AUDITOR)
+      parameters:
+        - { in: query, name: status, required: false, schema: { $ref: '#/components/schemas/InfractionStatus' } }
+        - { in: query, name: licensePlate, required: false, schema: { type: string }, example: AB123CD }
+        - { in: query, name: from, required: false, description: Desde (inclusive), schema: { type: string, format: date }, example: "2026-08-01" }
+        - { in: query, name: to, required: false, description: Hasta (inclusive), schema: { type: string, format: date }, example: "2026-08-31" }
+        - { in: query, name: sort, required: false, description: "Campo de orden; prefijo '-' = descendente", schema: { type: string, default: "-infractionDateTime" } }
+        - { in: query, name: page, required: false, schema: { type: integer, minimum: 1, default: 1 } }
+        - { in: query, name: size, required: false, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+      responses:
+        '200':
+          description: Página de infracciones
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/InfractionPage' }
+              example:
+                data: [ { infractionId: 93fd4382-2343-4f3f-a127-9328b29fc520, licensePlate: AB123CD, status: PENDING_APPEAL } ]
+                page: { number: 2, size: 20, totalElements: 137 }
+                _links:
+                  self: { href: "/v1/infractions?status=PENDING_APPEAL&page=2&size=20" }
+                  prev: { href: "/v1/infractions?status=PENDING_APPEAL&page=1&size=20" }
+                  next: { href: "/v1/infractions?status=PENDING_APPEAL&page=3&size=20" }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /v1/infractions/mine:
+    get:
+      tags: [Infracciones]
+      summary: Infracciones del ciudadano autenticado (CIUDADANO)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/Infraction' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /v1/infractions/{id}:
+    get:
+      tags: [Infracciones]
+      summary: Detalle de una infracción (con hipermedia — nivel 3 de Richardson)
+      description: |
+        CIUDADANO solo puede ver las propias. La respuesta incluye `_links` con las acciones
+        posibles **según el estado y el rol** del usuario:
+        - PENDING_APPEAL → `appeal` (ciudadano titular), `confirmation` (inspector/supervisor), `annulment` (supervisor)
+        - APPEALED → `confirmation`, `annulment`
+        - CONFIRMED / ANNULLED → solo `self` (acta cerrada)
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/InfractionWithLinks' }
+              example:
+                infractionId: 93fd4382-2343-4f3f-a127-9328b29fc520
+                licensePlate: AB123CD
+                infractionType: ILLEGAL_PARKING
+                infractionDateTime: "2026-08-24T13:45:00-03:00"
+                status: PENDING_APPEAL
+                finalAmount: 75000
+                _links:
+                  self: { href: /v1/infractions/93fd4382-2343-4f3f-a127-9328b29fc520 }
+                  confirmation: { href: /v1/infractions/93fd4382-2343-4f3f-a127-9328b29fc520/confirmation, method: POST }
+                  annulment: { href: /v1/infractions/93fd4382-2343-4f3f-a127-9328b29fc520/annulment, method: POST }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /v1/infractions/{id}/appeal:
+    post:
+      tags: [Infracciones]
+      summary: El ciudadano titular presenta descargo
+      description: PENDING_APPEAL → APPEALED. Publica `infractionAppealed`.
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason: { type: string, minLength: 1, example: "El vehículo había sido vendido." }
+      responses:
+        '200':
+          description: Apelada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Infraction' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /v1/infractions/{id}/confirmation:
+    post:
+      tags: [Infracciones]
+      summary: Confirma la infracción (INSPECTOR, SUPERVISOR) → evento asincrónico a Rentas
+      description: |
+        PENDING_APPEAL o APPEALED → CONFIRMED. Responde 200 sin esperar a Rentas y publica
+        `infractionConfirmed` (consumidor M5). Idempotente por estado: si ya está CONFIRMED devuelve 409
+        y **no** republica el evento.
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      responses:
+        '200':
+          description: Confirmada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Infraction' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: Transición inválida (ya CONFIRMED o ANNULLED)
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetail' }
+              example:
+                type: https://transito.uade.edu.ar/problems/invalid-state-transition
+                title: Transición de estado inválida
+                status: 409
+                detail: No se puede confirmar una infracción en estado ANNULLED
+                instance: /v1/infractions/93fd4382-2343-4f3f-a127-9328b29fc520/confirmation
+                currentStatus: ANNULLED
+
+  /v1/infractions/{id}/annulment:
+    post:
+      tags: [Infracciones]
+      summary: Anula la infracción (solo SUPERVISOR)
+      description: "`authorizedBy` se toma del JWT del supervisor. Publica `infractionAnulled`."
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [annulmentReason]
+              properties:
+                annulmentReason: { type: string, minLength: 1, example: "Error en la patente cargada." }
+      responses:
+        '200':
+          description: Anulada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Infraction' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /v1/impoundments/{id}/release:
+    post:
+      tags: [Retenciones]
+      summary: Libera un vehículo retenido (PERSONAL_DEPOSITO)
+      description: Exige requisitos verificados y referencia de pago. Publica `vehicleReleased`.
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [verifiedRequirements, towingAndStorageFee, paymentReference]
+              properties:
+                verifiedRequirements: { type: array, minItems: 1, items: { type: string }, example: ["Licencia vigente", "Seguro vigente"] }
+                towingAndStorageFee: { type: number, minimum: 0, example: 25000 }
+                paymentReference: { type: string, minLength: 1, example: PAY-777 }
+      responses:
+        '200':
+          description: Liberado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/VehicleImpoundment' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /v1/parking-zones:
+    get:
+      tags: [Estacionamiento]
+      summary: Lista zonas de estacionamiento (público)
+      security: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/ParkingZone' } }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    Id:
+      in: path
+      name: id
+      required: true
+      schema: { type: string, format: uuid }
+    IdempotencyKey:
+      in: header
+      name: Idempotency-Key
+      required: false
+      description: UUID generado por el cliente. Reintentos con la misma clave (24 h) no crean duplicados.
+      schema: { type: string, format: uuid }
+
+  responses:
+    BadRequest:
+      description: Request inválido (JSON mal formado, campo obligatorio faltante, enum desconocido)
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetail' }
+          example:
+            type: https://transito.uade.edu.ar/problems/validation-error
+            title: Request inválido
+            status: 400
+            detail: "El campo 'evidenceUrl' debe tener al menos un elemento."
+            instance: /v1/infractions
+            errors:
+              - { field: evidenceUrl, message: "debe tener al menos 1 elemento" }
+    Unauthorized:
+      description: Falta el token o es inválido / vencido
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetail' }
+    Forbidden:
+      description: El rol no tiene permiso, o el recurso no pertenece al ciudadano
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetail' }
+    NotFound:
+      description: El recurso no existe
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetail' }
+          example:
+            type: https://transito.uade.edu.ar/problems/not-found
+            title: Recurso no encontrado
+            status: 404
+            detail: "Infraction no encontrada: 93fd4382-2343-4f3f-a127-9328b29fc520"
+            instance: /v1/infractions/93fd4382-2343-4f3f-a127-9328b29fc520
+    Conflict:
+      description: Transición de estado inválida
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetail' }
+
+  schemas:
+    ProblemDetail:
+      type: object
+      description: RFC 9457 — Problem Details for HTTP APIs. Admite campos de extensión.
+      required: [type, title, status]
+      properties:
+        type: { type: string, format: uri }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string }
+      additionalProperties: true
+
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username: { type: string, minLength: 1 }
+        password: { type: string, minLength: 1, format: password }
+    LoginResponse:
+      type: object
+      properties:
+        token: { type: string }
+        role: { $ref: '#/components/schemas/Role' }
+        expiresInSeconds: { type: integer, example: 7200 }
+
+    Role:
+      type: string
+      enum: [INSPECTOR, SUPERVISOR, AUDITOR, OPERADOR_CONTROL, PERSONAL_DEPOSITO, ADMIN_MUNICIPAL, CIUDADANO]
+    InfractionStatus:
+      type: string
+      enum: [PENDING_APPEAL, APPEALED, CONFIRMED, ANNULLED]
+    InfractionType:
+      type: string
+      enum: [UNPAID_PARKING, SPEEDING, RED_LIGHT, ILLEGAL_PARKING, NO_LICENSE, RECKLESS_DRIVING, OTHER]
+
+    Location:
+      type: object
+      required: [street]
+      properties:
+        street: { type: string }
+        crossStreet: { type: string, nullable: true }
+        latitude: { type: number, nullable: true }
+        longitude: { type: number, nullable: true }
+
+    CreateInfractionRequest:
+      type: object
+      required: [licensePlate, infractionType, infractionDateTime, location, evidenceUrl, baseAmount, finalAmount]
+      properties:
+        licensePlate: { type: string, pattern: '^([A-Z]{3}[0-9]{3}|[A-Z]{2}[0-9]{3}[A-Z]{2})$' }
+        infractionType: { $ref: '#/components/schemas/InfractionType' }
+        infractionDateTime: { type: string, format: date-time, description: "ISO 8601 con zona horaria", example: "2026-08-24T13:45:00-03:00" }
+        location: { $ref: '#/components/schemas/Location' }
+        evidenceUrl: { type: array, minItems: 1, items: { type: string, format: uri } }
+        offenderNationalId: { type: string, nullable: true }
+        vehicleOwnerTaxId: { type: string, nullable: true }
+        debtorId: { type: string, nullable: true }
+        debtorIdType: { type: string, enum: [DNI, CUIT], nullable: true }
+        baseAmount: { type: number, format: decimal, minimum: 0, description: "Monto decimal (BigDecimal), nunca float" }
+        aggravatingFactors: { type: array, items: { type: string } }
+        finalAmount: { type: number, format: decimal, minimum: 0 }
+        originOperationId: { type: string, format: uuid, nullable: true }
+        originTicketId: { type: string, nullable: true }
+        originParkingSessionId: { type: string, format: uuid, nullable: true }
+
+    Infraction:
+      allOf:
+        - $ref: '#/components/schemas/CreateInfractionRequest'
+        - type: object
+          properties:
+            infractionId: { type: string, format: uuid }
+            inspectorId: { type: string }
+            status: { $ref: '#/components/schemas/InfractionStatus' }
+
+    Link:
+      type: object
+      required: [href]
+      properties:
+        href: { type: string }
+        method: { type: string, enum: [GET, POST, PATCH, PUT, DELETE] }
+
+    InfractionWithLinks:
+      allOf:
+        - $ref: '#/components/schemas/Infraction'
+        - type: object
+          properties:
+            _links:
+              type: object
+              properties:
+                self: { $ref: '#/components/schemas/Link' }
+                appeal: { $ref: '#/components/schemas/Link' }
+                confirmation: { $ref: '#/components/schemas/Link' }
+                annulment: { $ref: '#/components/schemas/Link' }
+
+    InfractionPage:
+      type: object
+      properties:
+        data: { type: array, items: { $ref: '#/components/schemas/Infraction' } }
+        page:
+          type: object
+          properties:
+            number: { type: integer }
+            size: { type: integer }
+            totalElements: { type: integer }
+        _links:
+          type: object
+          properties:
+            self: { $ref: '#/components/schemas/Link' }
+            prev: { $ref: '#/components/schemas/Link' }
+            next: { $ref: '#/components/schemas/Link' }
+
+    VehicleImpoundment:
+      type: object
+      properties:
+        impoundmentId: { type: string, format: uuid }
+        licensePlate: { type: string }
+        ownerNationalId: { type: string, nullable: true }
+        reason: { type: string }
+        depotLocation: { type: string }
+        entryDateTime: { type: string, format: date-time, example: "2026-08-24T23:00:00-03:00" }
+        originType: { type: string, enum: [INFRACTION, OPERATION] }
+        originId: { type: string, format: uuid }
+        status: { type: string, enum: [IMPOUNDED, RELEASED] }
+        paymentReference: { type: string, nullable: true }
+        verifiedRequirements: { type: array, items: { type: string } }
+        towingAndStorageFee: { type: number, nullable: true }
+        releasedBy: { type: string, nullable: true }
+
+    ParkingZone:
+      type: object
+      properties:
+        zoneId: { type: string, format: uuid }
+        name: { type: string }
+        boundaries: { type: string, nullable: true }
+        allowedHours: { type: string }
+        status: { type: string, enum: [ACTIVE, INACTIVE] }

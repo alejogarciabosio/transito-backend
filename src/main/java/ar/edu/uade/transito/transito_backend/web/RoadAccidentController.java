@@ -48,6 +48,13 @@ public class RoadAccidentController {
         return roadAccidentService.findAll().stream().map(RoadAccidentMapper::toResponse).toList();
     }
 
+    @PreAuthorize("hasRole('CIUDADANO')")
+    @GetMapping("/mine")
+    public List<RoadAccidentResponse> findMine() {
+        String nationalId = currentUserProvider.get().nationalId();
+        return roadAccidentService.findInvolving(nationalId).stream().map(RoadAccidentMapper::toResponse).toList();
+    }
+
     @PreAuthorize("hasAnyRole('INSPECTOR', 'SUPERVISOR', 'AUDITOR')")
     @GetMapping("/{id}")
     public RoadAccidentResponse findById(@PathVariable UUID id) {

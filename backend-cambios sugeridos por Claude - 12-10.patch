@@ -1,0 +1,326 @@
+diff --git a/docs/actividad-api-rest-entrega.md b/docs/actividad-api-rest-entrega.md
+index 2775693..f08a7fb 100644
+--- a/docs/actividad-api-rest-entrega.md
++++ b/docs/actividad-api-rest-entrega.md
+@@ -91,6 +91,7 @@ La conexión SOAP con el módulo de Usuarios, la publicación en un broker, Tran
+ |---|---|---|---|---|
+ | `POST` | `/api/v1/accidents` | Inspector, operador | `CreateRoadAccidentRequest` | `201 RoadAccidentResponse` |
+ | `GET` | `/api/v1/accidents` | Inspector, supervisor, auditor | Sin body | `200 RoadAccidentResponse[]` |
++| `GET` | `/api/v1/accidents/mine` | Ciudadano | Sin body (usa el DNI del token) | `200 RoadAccidentResponse[]` donde figura como persona o titular |
+ | `GET` | `/api/v1/accidents/{id}` | Inspector, supervisor, auditor | UUID por path | `200`; `404` |
+ | `PATCH` | `/api/v1/accidents/{id}` | Inspector | `UpdateRoadAccidentRequest` | `200`; `400`, `404`, `409` |
+ 
+@@ -100,6 +101,7 @@ La conexión SOAP con el módulo de Usuarios, la publicación en un broker, Tran
+ |---|---|---|---|---|
+ | `POST` | `/api/v1/impoundments` | Inspector, personal de depósito | `CreateVehicleImpoundmentRequest` | `201 VehicleImpoundmentResponse` |
+ | `GET` | `/api/v1/impoundments` | Inspector, depósito, supervisor | Sin body | `200 VehicleImpoundmentResponse[]` |
++| `GET` | `/api/v1/impoundments/mine` | Ciudadano | Sin body (usa el DNI del token) | `200 VehicleImpoundmentResponse[]` de vehículos propios |
+ | `GET` | `/api/v1/impoundments/{id}` | Inspector, depósito o ciudadano titular | UUID por path | `200`; `404` |
+ | `PATCH` | `/api/v1/impoundments/{id}` | Personal de depósito | `UpdateVehicleImpoundmentRequest` | `200`; `400`, `404`, `409` |
+ | `POST` | `/api/v1/impoundments/{id}/release` | Personal de depósito | `ReleaseImpoundmentRequest` | `200`; `400`, `404`, `409` |
+@@ -111,6 +113,7 @@ Los cortes se crean al consumir un evento de Obras o Ambiente, por lo que no exi
+ | Método | URI | Roles | Request | Respuesta |
+ |---|---|---|---|---|
+ | `GET` | `/api/v1/street-closures` | Inspector, operador, supervisor | Sin body | `200 StreetClosureResponse[]` |
++| `GET` | `/api/v1/street-closures/current` | **Público** | Sin body | `200 StreetClosureResponse[]` solo `APPROVED` y `ACTIVE` |
+ | `GET` | `/api/v1/street-closures/{id}` | Inspector, operador, supervisor | UUID por path | `200`; `404` |
+ | `POST` | `/api/v1/street-closures/{id}/approval` | Inspector, supervisor | `{detours, conditions}` | `200`; `400`, `404`, `409` |
+ | `POST` | `/api/v1/street-closures/{id}/rejection` | Inspector, supervisor | `{rejectionReason}` | `200`; `400`, `404`, `409` |
+diff --git a/src/main/java/ar/edu/uade/transito/transito_backend/auth/SecurityConfig.java b/src/main/java/ar/edu/uade/transito/transito_backend/auth/SecurityConfig.java
+index 7c1b6fd..1316424 100644
+--- a/src/main/java/ar/edu/uade/transito/transito_backend/auth/SecurityConfig.java
++++ b/src/main/java/ar/edu/uade/transito/transito_backend/auth/SecurityConfig.java
+@@ -53,6 +53,7 @@ public class SecurityConfig {
+                         .requestMatchers(HttpMethod.GET, "/actuator/health").permitAll()
+                         .requestMatchers(HttpMethod.GET, "/api/v1/parking-zones/**").permitAll()
+                         .requestMatchers(HttpMethod.GET, "/api/v1/parking-tariffs/**").permitAll()
++                        .requestMatchers(HttpMethod.GET, "/api/v1/street-closures/current").permitAll()
+                         .anyRequest().authenticated())
+                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+ 
+diff --git a/src/main/java/ar/edu/uade/transito/transito_backend/repository/RoadAccidentRepository.java b/src/main/java/ar/edu/uade/transito/transito_backend/repository/RoadAccidentRepository.java
+index a316936..1f497fd 100644
+--- a/src/main/java/ar/edu/uade/transito/transito_backend/repository/RoadAccidentRepository.java
++++ b/src/main/java/ar/edu/uade/transito/transito_backend/repository/RoadAccidentRepository.java
+@@ -4,6 +4,8 @@ import java.util.List;
+ import java.util.UUID;
+ 
+ import org.springframework.data.jpa.repository.JpaRepository;
++import org.springframework.data.jpa.repository.Query;
++import org.springframework.data.repository.query.Param;
+ 
+ import ar.edu.uade.transito.transito_backend.model.RoadAccident;
+ import ar.edu.uade.transito.transito_backend.model.enums.AccidentStatus;
+@@ -13,4 +15,13 @@ public interface RoadAccidentRepository extends JpaRepository<RoadAccident, UUID
+     List<RoadAccident> findByStatus(AccidentStatus status);
+ 
+     List<RoadAccident> findByOriginTicketId(String originTicketId);
++
++    /** Accidentes donde la persona figura como involucrada o como titular de alguno de los vehículos. */
++    @Query("""
++            SELECT DISTINCT a FROM RoadAccident a
++            LEFT JOIN a.persons p
++            LEFT JOIN a.vehicles v
++            WHERE p.nationalId = :nationalId OR v.ownerNationalId = :nationalId
++            """)
++    List<RoadAccident> findInvolving(@Param("nationalId") String nationalId);
+ }
+diff --git a/src/main/java/ar/edu/uade/transito/transito_backend/repository/StreetClosureRepository.java b/src/main/java/ar/edu/uade/transito/transito_backend/repository/StreetClosureRepository.java
+index 7e8daf5..46cb101 100644
+--- a/src/main/java/ar/edu/uade/transito/transito_backend/repository/StreetClosureRepository.java
++++ b/src/main/java/ar/edu/uade/transito/transito_backend/repository/StreetClosureRepository.java
+@@ -1,5 +1,6 @@
+ package ar.edu.uade.transito.transito_backend.repository;
+ 
++import java.util.Collection;
+ import java.util.List;
+ import java.util.UUID;
+ 
+@@ -13,6 +14,8 @@ public interface StreetClosureRepository extends JpaRepository<StreetClosure, UU
+ 
+     List<StreetClosure> findByStatus(StreetClosureStatus status);
+ 
++    List<StreetClosure> findByStatusInOrderByStartDateAsc(Collection<StreetClosureStatus> statuses);
++
+     List<StreetClosure> findByRequestingModule(RequestingModule requestingModule);
+ 
+     List<StreetClosure> findByClosureRequestId(String closureRequestId);
+diff --git a/src/main/java/ar/edu/uade/transito/transito_backend/service/RoadAccidentService.java b/src/main/java/ar/edu/uade/transito/transito_backend/service/RoadAccidentService.java
+index c9df8ad..af5321b 100644
+--- a/src/main/java/ar/edu/uade/transito/transito_backend/service/RoadAccidentService.java
++++ b/src/main/java/ar/edu/uade/transito/transito_backend/service/RoadAccidentService.java
+@@ -1,5 +1,6 @@
+ package ar.edu.uade.transito.transito_backend.service;
+ 
++import java.util.Comparator;
+ import java.util.List;
+ import java.util.UUID;
+ 
+@@ -46,6 +47,13 @@ public class RoadAccidentService {
+         return roadAccidentRepository.findAll();
+     }
+ 
++    @Transactional(readOnly = true)
++    public List<RoadAccident> findInvolving(String nationalId) {
++        return roadAccidentRepository.findInvolving(nationalId).stream()
++                .sorted(Comparator.comparing(RoadAccident::getAccidentDateTime).reversed())
++                .toList();
++    }
++
+     @Transactional(readOnly = true)
+     public RoadAccident findById(UUID accidentId) {
+         return roadAccidentRepository.findById(accidentId)
+diff --git a/src/main/java/ar/edu/uade/transito/transito_backend/service/StreetClosureService.java b/src/main/java/ar/edu/uade/transito/transito_backend/service/StreetClosureService.java
+index 57ec060..f1c4329 100644
+--- a/src/main/java/ar/edu/uade/transito/transito_backend/service/StreetClosureService.java
++++ b/src/main/java/ar/edu/uade/transito/transito_backend/service/StreetClosureService.java
+@@ -44,6 +44,16 @@ public class StreetClosureService {
+         return streetClosureRepository.findAll();
+     }
+ 
++    /**
++     * Cortes vigentes para la consulta ciudadana: los ya aprobados (próximos a activarse)
++     * y los activos. Los solicitados, rechazados y finalizados no se exponen al vecino.
++     */
++    @Transactional(readOnly = true)
++    public List<StreetClosure> findCurrent() {
++        return streetClosureRepository.findByStatusInOrderByStartDateAsc(
++                List.of(StreetClosureStatus.APPROVED, StreetClosureStatus.ACTIVE));
++    }
++
+     @Transactional(readOnly = true)
+     public StreetClosure findById(UUID streetClosureId) {
+         return streetClosureRepository.findById(streetClosureId)
+diff --git a/src/main/java/ar/edu/uade/transito/transito_backend/service/VehicleImpoundmentService.java b/src/main/java/ar/edu/uade/transito/transito_backend/service/VehicleImpoundmentService.java
+index 6235b6f..7ddd951 100644
+--- a/src/main/java/ar/edu/uade/transito/transito_backend/service/VehicleImpoundmentService.java
++++ b/src/main/java/ar/edu/uade/transito/transito_backend/service/VehicleImpoundmentService.java
+@@ -50,6 +50,11 @@ public class VehicleImpoundmentService {
+         return vehicleImpoundmentRepository.findAll();
+     }
+ 
++    @Transactional(readOnly = true)
++    public List<VehicleImpoundment> findByOwnerNationalId(String ownerNationalId) {
++        return vehicleImpoundmentRepository.findByOwnerNationalId(ownerNationalId);
++    }
++
+     @Transactional(readOnly = true)
+     public VehicleImpoundment findById(UUID impoundmentId) {
+         return vehicleImpoundmentRepository.findById(impoundmentId)
+diff --git a/src/main/java/ar/edu/uade/transito/transito_backend/web/RoadAccidentController.java b/src/main/java/ar/edu/uade/transito/transito_backend/web/RoadAccidentController.java
+index dd88700..dc1a48a 100644
+--- a/src/main/java/ar/edu/uade/transito/transito_backend/web/RoadAccidentController.java
++++ b/src/main/java/ar/edu/uade/transito/transito_backend/web/RoadAccidentController.java
+@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
+ import org.springframework.web.bind.annotation.RequestMapping;
+ import org.springframework.web.bind.annotation.RestController;
+ 
++import ar.edu.uade.transito.transito_backend.auth.CurrentUserProvider;
+ import ar.edu.uade.transito.transito_backend.model.RoadAccident;
+ import ar.edu.uade.transito.transito_backend.service.RoadAccidentService;
+ import ar.edu.uade.transito.transito_backend.web.dto.CreateRoadAccidentRequest;
+@@ -29,6 +30,7 @@ import lombok.RequiredArgsConstructor;
+ public class RoadAccidentController {
+ 
+     private final RoadAccidentService roadAccidentService;
++    private final CurrentUserProvider currentUserProvider;
+ 
+     @PreAuthorize("hasAnyRole('INSPECTOR', 'OPERADOR_CONTROL')")
+     @PostMapping
+@@ -44,6 +46,13 @@ public class RoadAccidentController {
+         return roadAccidentService.findAll().stream().map(RoadAccidentMapper::toResponse).toList();
+     }
+ 
++    @PreAuthorize("hasRole('CIUDADANO')")
++    @GetMapping("/mine")
++    public List<RoadAccidentResponse> findMine() {
++        String nationalId = currentUserProvider.get().nationalId();
++        return roadAccidentService.findInvolving(nationalId).stream().map(RoadAccidentMapper::toResponse).toList();
++    }
++
+     @PreAuthorize("hasAnyRole('INSPECTOR', 'SUPERVISOR', 'AUDITOR')")
+     @GetMapping("/{id}")
+     public RoadAccidentResponse findById(@PathVariable UUID id) {
+diff --git a/src/main/java/ar/edu/uade/transito/transito_backend/web/StreetClosureController.java b/src/main/java/ar/edu/uade/transito/transito_backend/web/StreetClosureController.java
+index 22a7df2..bc549ee 100644
+--- a/src/main/java/ar/edu/uade/transito/transito_backend/web/StreetClosureController.java
++++ b/src/main/java/ar/edu/uade/transito/transito_backend/web/StreetClosureController.java
+@@ -36,6 +36,12 @@ public class StreetClosureController {
+         return streetClosureService.findAll().stream().map(StreetClosureMapper::toResponse).toList();
+     }
+ 
++    // GET público (consulta ciudadana) -- permitAll ya configurado en SecurityConfig, sin @PreAuthorize.
++    @GetMapping("/current")
++    public List<StreetClosureResponse> findCurrent() {
++        return streetClosureService.findCurrent().stream().map(StreetClosureMapper::toResponse).toList();
++    }
++
+     @PreAuthorize("hasAnyRole('INSPECTOR', 'OPERADOR_CONTROL', 'SUPERVISOR')")
+     @GetMapping("/{id}")
+     public StreetClosureResponse findById(@PathVariable UUID id) {
+diff --git a/src/main/java/ar/edu/uade/transito/transito_backend/web/VehicleImpoundmentController.java b/src/main/java/ar/edu/uade/transito/transito_backend/web/VehicleImpoundmentController.java
+index ef4d9c6..6caf060 100644
+--- a/src/main/java/ar/edu/uade/transito/transito_backend/web/VehicleImpoundmentController.java
++++ b/src/main/java/ar/edu/uade/transito/transito_backend/web/VehicleImpoundmentController.java
+@@ -50,6 +50,14 @@ public class VehicleImpoundmentController {
+         return vehicleImpoundmentService.findAll().stream().map(VehicleImpoundmentMapper::toResponse).toList();
+     }
+ 
++    @PreAuthorize("hasRole('CIUDADANO')")
++    @GetMapping("/mine")
++    public List<VehicleImpoundmentResponse> findMine() {
++        String nationalId = currentUserProvider.get().nationalId();
++        return vehicleImpoundmentService.findByOwnerNationalId(nationalId).stream()
++                .map(VehicleImpoundmentMapper::toResponse).toList();
++    }
++
+     @PreAuthorize("hasAnyRole('INSPECTOR', 'PERSONAL_DEPOSITO', 'CIUDADANO')")
+     @GetMapping("/{id}")
+     public VehicleImpoundmentResponse findById(@PathVariable UUID id) {
+diff --git a/src/test/java/ar/edu/uade/transito/transito_backend/integration/RoadAccidentIntegrationTest.java b/src/test/java/ar/edu/uade/transito/transito_backend/integration/RoadAccidentIntegrationTest.java
+index 1a0f76e..008583e 100644
+--- a/src/test/java/ar/edu/uade/transito/transito_backend/integration/RoadAccidentIntegrationTest.java
++++ b/src/test/java/ar/edu/uade/transito/transito_backend/integration/RoadAccidentIntegrationTest.java
+@@ -87,4 +87,31 @@ class RoadAccidentIntegrationTest extends AbstractIntegrationTest {
+     void invalidEnum() throws Exception {
+         post("/accidents", INSPECTOR, Payloads.accident().replace("MINOR", "MUERTO")).andExpect(status().isBadRequest());
+     }
++
++    @Test
++    @DisplayName("TC-BE-ACC-CIU-01: /accidents/mine devuelve los siniestros donde el ciudadano figura, sin duplicados")
++    void mine() throws Exception {
++        // Payloads.accident() incluye al CIUDADANO como persona y como titular: debe aparecer una sola vez.
++        String id = register();
++        post("/accidents", INSPECTOR, Payloads.accident().replace("30777888", "11111111")).andExpect(status().isCreated());
++
++        get("/accidents/mine", CIUDADANO)
++                .andExpect(status().isOk())
++                .andExpect(jsonPath("$", hasSize(1)))
++                .andExpect(jsonPath("$[0].accidentId").value(id));
++        get("/accidents/mine", OTRO_CIUDADANO).andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(0)));
++        get("/accidents/mine", INSPECTOR).andExpect(status().isForbidden());
++        get("/accidents/mine", null).andExpect(status().isUnauthorized());
++    }
++
++    @Test
++    @DisplayName("TC-BE-ACC-CIU-02: /accidents/mine también encuentra al ciudadano solo como titular de un vehículo")
++    void mine_asVehicleOwnerOnly() throws Exception {
++        String soloTitular = Payloads.accident()
++                .replace("{\"nationalId\": \"30777888\", \"injuryLevel\": \"MINOR\"}", "{\"nationalId\": \"22222222\", \"injuryLevel\": \"NONE\"}");
++        assertThat(soloTitular).doesNotContain("\"nationalId\": \"30777888\"");
++        post("/accidents", INSPECTOR, soloTitular).andExpect(status().isCreated());
++
++        get("/accidents/mine", CIUDADANO).andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(1)));
++    }
+ }
+diff --git a/src/test/java/ar/edu/uade/transito/transito_backend/integration/StreetClosureIntegrationTest.java b/src/test/java/ar/edu/uade/transito/transito_backend/integration/StreetClosureIntegrationTest.java
+index 6c65f2b..cf0cce5 100644
+--- a/src/test/java/ar/edu/uade/transito/transito_backend/integration/StreetClosureIntegrationTest.java
++++ b/src/test/java/ar/edu/uade/transito/transito_backend/integration/StreetClosureIntegrationTest.java
+@@ -6,6 +6,7 @@ import ar.edu.uade.transito.transito_backend.event.payload.StreetClosureEndedPay
+ import ar.edu.uade.transito.transito_backend.event.payload.StreetClosureRejectedPayload;
+ import ar.edu.uade.transito.transito_backend.model.enums.RequestingModule;
+ import ar.edu.uade.transito.transito_backend.support.AbstractIntegrationTest;
++import static org.hamcrest.Matchers.containsInAnyOrder;
+ import org.junit.jupiter.api.DisplayName;
+ import org.junit.jupiter.api.Test;
+ 
+@@ -140,4 +141,32 @@ class StreetClosureIntegrationTest extends AbstractIntegrationTest {
+         get("/street-closures", CIUDADANO).andExpect(status().isForbidden());
+         get("/street-closures/" + UUID.randomUUID(), INSPECTOR).andExpect(status().isNotFound());
+     }
++
++    @Test
++    @DisplayName("TC-BE-SC-CIU-01: /street-closures/current es público y solo expone cortes APPROVED o ACTIVE")
++    void currentForCitizens() throws Exception {
++        String approved = requestClosure("M3");
++        post("/street-closures/" + approved + "/approval", INSPECTOR, APPROVE).andExpect(status().isOk());
++
++        String active = requestClosure("M6");
++        post("/street-closures/" + active + "/approval", SUPERVISOR, APPROVE).andExpect(status().isOk());
++        post("/street-closures/" + active + "/activation", OPERADOR, null).andExpect(status().isOk());
++
++        String rejected = requestClosure("M3");
++        post("/street-closures/" + rejected + "/rejection", INSPECTOR, "{\"rejectionReason\":\"Sin permiso\"}")
++                .andExpect(status().isOk());
++
++        requestClosure("M6"); // queda REQUESTED
++
++        get("/street-closures/current", null)
++                .andExpect(status().isOk())
++                .andExpect(jsonPath("$", hasSize(2)))
++                .andExpect(jsonPath("$[*].status", containsInAnyOrder("APPROVED", "ACTIVE")))
++                .andExpect(jsonPath("$[0].detours[0].alternateRoute").value("Av. Córdoba"));
++        get("/street-closures/current", CIUDADANO).andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(2)));
++
++        // El listado completo y el detalle siguen reservados al personal.
++        get("/street-closures", CIUDADANO).andExpect(status().isForbidden());
++        get("/street-closures/" + approved, CIUDADANO).andExpect(status().isForbidden());
++    }
+ }
+diff --git a/src/test/java/ar/edu/uade/transito/transito_backend/integration/VehicleImpoundmentIntegrationTest.java b/src/test/java/ar/edu/uade/transito/transito_backend/integration/VehicleImpoundmentIntegrationTest.java
+index a11d90d..40342a2 100644
+--- a/src/test/java/ar/edu/uade/transito/transito_backend/integration/VehicleImpoundmentIntegrationTest.java
++++ b/src/test/java/ar/edu/uade/transito/transito_backend/integration/VehicleImpoundmentIntegrationTest.java
+@@ -94,4 +94,21 @@ class VehicleImpoundmentIntegrationTest extends AbstractIntegrationTest {
+         patch("/impoundments/" + id, DEPOSITO, "{\"reason\":\"x\",\"depotLocation\":\"y\"}").andExpect(status().isConflict());
+         assertThat(events.ofType("vehicleReleased")).hasSize(1);
+     }
++
++    @Test
++    @DisplayName("TC-BE-IMP-CIU-01: /impoundments/mine devuelve solo los vehículos del ciudadano logueado")
++    void mine() throws Exception {
++        String propio = register(CIUDADANO.nationalId());
++        register(OTRO_CIUDADANO.nationalId());
++        register("1");
++
++        get("/impoundments/mine", CIUDADANO)
++                .andExpect(status().isOk())
++                .andExpect(jsonPath("$", hasSize(1)))
++                .andExpect(jsonPath("$[0].impoundmentId").value(propio))
++                .andExpect(jsonPath("$[0].status").value("IMPOUNDED"));
++        get("/impoundments/mine", OTRO_CIUDADANO).andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(1)));
++        get("/impoundments/mine", DEPOSITO).andExpect(status().isForbidden());
++        get("/impoundments/mine", null).andExpect(status().isUnauthorized());
++    }
+ }

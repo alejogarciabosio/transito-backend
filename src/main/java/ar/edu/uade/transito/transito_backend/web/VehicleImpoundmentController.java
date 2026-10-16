@@ -51,6 +51,14 @@ public class VehicleImpoundmentController {
         return vehicleImpoundmentService.findAll().stream().map(VehicleImpoundmentMapper::toResponse).toList();
     }
 
+    @PreAuthorize("hasRole('CIUDADANO')")
+    @GetMapping("/mine")
+    public List<VehicleImpoundmentResponse> findMine() {
+        String nationalId = currentUserProvider.get().nationalId();
+        return vehicleImpoundmentService.findByOwnerNationalId(nationalId).stream()
+                .map(VehicleImpoundmentMapper::toResponse).toList();
+    }
+
     @PreAuthorize("hasAnyRole('INSPECTOR', 'PERSONAL_DEPOSITO', 'CIUDADANO')")
     @GetMapping("/{id}")
     public VehicleImpoundmentResponse findById(@PathVariable UUID id) {

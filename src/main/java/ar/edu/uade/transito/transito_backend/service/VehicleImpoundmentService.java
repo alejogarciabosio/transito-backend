@@ -52,6 +52,11 @@ public class VehicleImpoundmentService {
     }
 
     @Transactional(readOnly = true)
+    public List<VehicleImpoundment> findByOwnerNationalId(String ownerNationalId) {
+        return vehicleImpoundmentRepository.findByOwnerNationalId(ownerNationalId);
+    }
+
+    @Transactional(readOnly = true)
     public VehicleImpoundment findById(UUID impoundmentId) {
         return vehicleImpoundmentRepository.findById(impoundmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("VehicleImpoundment no encontrado: " + impoundmentId));

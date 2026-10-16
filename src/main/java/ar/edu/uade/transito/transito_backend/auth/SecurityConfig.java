@@ -68,6 +68,7 @@ public class SecurityConfig {
                         .hasRole("ADMIN_MUNICIPAL")
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/parking-zones/**", "/api/v1/parking-tariffs/**")
                         .hasRole("ADMIN_MUNICIPAL")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/street-closures/current").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
