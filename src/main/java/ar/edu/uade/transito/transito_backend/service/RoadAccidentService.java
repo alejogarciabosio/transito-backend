@@ -99,7 +99,9 @@ public class RoadAccidentService {
             throw new InvalidRequestException(
                     "La descripción del daño es obligatoria cuando existe daño de infraestructura");
         }
-        if (changes.status() != null && changes.status() != AccidentStatus.VERIFIED) {
+        if (changes.status() != null
+                && changes.status() != AccidentStatus.PRELIMINARY
+                && changes.status() != AccidentStatus.VERIFIED) {
             throw new InvalidStateTransitionException(
                     "Un accidente preliminar solo puede pasar al estado " + AccidentStatus.VERIFIED);
         }

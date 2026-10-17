@@ -37,7 +37,7 @@ class RoadAccidentIntegrationTest extends AbstractIntegrationTest {
         assertThat(p.damageDescription()).isEqualTo("Semáforo derribado");
         assertThat(p.vehicles()).extracting("licensePlate").containsExactly("AB123CD");
         assertThat(p.persons()).extracting("injuryLevel").containsExactly(InjuryLevel.MINOR);
-        assertThat(p.inspectorId()).isEqualTo("u-1001");
+        assertThat(p.inspectorId()).isEqualTo(OPERADOR.userId());
         assertThat(p.location().getStreet()).isEqualTo("Av. 9 de Julio");
     }
 

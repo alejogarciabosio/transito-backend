@@ -119,14 +119,15 @@ class ParkingIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        @DisplayName("TC-BE-PT-04: borrar tarifa sin sesiones abiertas en la zona → 204 (baja física)")
+        @DisplayName("TC-BE-PT-04: borrar tarifa sin sesiones abiertas en la zona → 204 (baja lógica)")
         void deleteWithoutOpenSessions() throws Exception {
             String zone = createZone("Z");
             String tariff = createTariff(zone);
             String session = startSession(zone);
             post("/parking-sessions/" + session + "/closure", CIUDADANO, null).andExpect(status().isOk());
             delete("/parking-tariffs/" + tariff, ADMIN).andExpect(status().isNoContent());
-            get("/parking-tariffs/" + tariff, null).andExpect(status().isNotFound());
+            get("/parking-tariffs/" + tariff, null).andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status").value("INACTIVE"));
         }
 
         @Test
@@ -154,7 +155,8 @@ class ParkingIntegrationTest extends AbstractIntegrationTest {
                     .andExpect(jsonPath("$.paid").value(false))
                     .andExpect(jsonPath("$.endDateTime", nullValue()))
                     .andExpect(jsonPath("$.paymentReference", nullValue()));
-            post("/parking-sessions", OPERADOR, Payloads.session(zone)).andExpect(status().isCreated());
+            post("/parking-sessions", OPERADOR, Payloads.session(zone).replace("AB123CD", "XY987ZT"))
+                    .andExpect(status().isCreated());
             post("/parking-sessions", INSPECTOR, Payloads.session(zone)).andExpect(status().isForbidden());
         }
 

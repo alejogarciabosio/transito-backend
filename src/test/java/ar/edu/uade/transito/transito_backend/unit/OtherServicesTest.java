@@ -8,6 +8,7 @@ import ar.edu.uade.transito.transito_backend.model.ParkingTariff;
 import ar.edu.uade.transito.transito_backend.model.StreetClosure;
 import ar.edu.uade.transito.transito_backend.model.VehicleImpoundment;
 import ar.edu.uade.transito.transito_backend.model.enums.ImpoundmentStatus;
+import ar.edu.uade.transito.transito_backend.model.enums.ParkingTariffStatus;
 import ar.edu.uade.transito.transito_backend.model.enums.StreetClosureStatus;
 import ar.edu.uade.transito.transito_backend.repository.ParkingSessionRepository;
 import ar.edu.uade.transito.transito_backend.repository.ParkingTariffRepository;
@@ -76,8 +77,10 @@ class OtherServicesTest {
 
         when(sessions.findByZoneId(zone)).thenReturn(List.of(ParkingSession.builder().endDateTime(LocalDateTime.now()).build()));
         service.delete(tariffId);
-        verify(tariffs).delete(tariff);
+        verify(tariffs).save(tariff);
 
+        // Caso independiente: una tarifa aún activa no puede eliminarse si hay sesiones abiertas.
+        tariff.setStatus(ParkingTariffStatus.ACTIVE);
         when(sessions.findByZoneId(zone)).thenReturn(List.of(ParkingSession.builder().endDateTime(null).build()));
         assertThatThrownBy(() -> service.delete(tariffId)).isInstanceOf(InvalidStateTransitionException.class);
     }
