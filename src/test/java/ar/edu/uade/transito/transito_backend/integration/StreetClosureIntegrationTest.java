@@ -9,6 +9,7 @@ import ar.edu.uade.transito.transito_backend.support.AbstractIntegrationTest;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -28,10 +29,12 @@ class StreetClosureIntegrationTest extends AbstractIntegrationTest {
 
     private String requestClosure(String moduleCode) {
         dispatchIncoming("streetClosureRequested", "{\"closureRequestId\":\"REQ-" + UUID.randomUUID() + "\","
+                + "\"previousClosureRequestId\":\"REQ-ORIGINAL\","
                 + "\"sourceModule\":\"" + moduleCode + "\","
                 + "\"sourceRef\":\"WO-1050\","
                 + "\"reason\":\"Reparación de calzada\","
-                + "\"affectedSections\":[\"Av. Cabildo entre Juramento y Mendoza\"],"
+                + "\"affectedSections\":[{\"street\":\"Av. Cabildo\",\"from\":\"Juramento\","
+                + "\"to\":\"Mendoza\",\"direction\":\"BOTH\"}],"
                 + "\"requestedFrom\":\"" + REQUESTED_FROM + "\","
                 + "\"requestedTo\":\"" + REQUESTED_TO + "\","
                 + "\"closureType\":\"TOTAL\","
@@ -44,6 +47,7 @@ class StreetClosureIntegrationTest extends AbstractIntegrationTest {
             """;
 
     @Test
+    @Transactional
     @DisplayName("TC-BE-SC-01: evento streetClosureRequested (M3) crea el corte en REQUESTED con módulo OBRAS")
     void createdFromEvent() throws Exception {
         String id = requestClosure("M3");
@@ -52,13 +56,20 @@ class StreetClosureIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.status").value("REQUESTED"))
                 .andExpect(jsonPath("$.requestingModule").value("OBRAS"))
                 .andExpect(jsonPath("$.startDate").value("2026-10-01T03:00:00Z"))
-                .andExpect(jsonPath("$.affectedStreet[0]").value("Av. Cabildo entre Juramento y Mendoza"));
+                .andExpect(jsonPath("$.affectedStreet[0]").value("Av. Cabildo"));
         var persisted = streetClosureRepository.findById(UUID.fromString(id)).orElseThrow();
+        assertThat(persisted.getPreviousClosureRequestId()).isEqualTo("REQ-ORIGINAL");
         assertThat(persisted.getSourceRef()).isEqualTo("WO-1050");
         assertThat(persisted.getReason()).isEqualTo("Reparación de calzada");
         assertThat(persisted.getClosureType()).isEqualTo("TOTAL");
         assertThat(persisted.getRequestedAt().toInstant())
                 .isEqualTo(OffsetDateTime.parse("2026-09-01T16:58:00-03:00").toInstant());
+        assertThat(persisted.getAffectedSections()).singleElement().satisfies(section -> {
+            assertThat(section.getStreet()).isEqualTo("Av. Cabildo");
+            assertThat(section.getFrom()).isEqualTo("Juramento");
+            assertThat(section.getTo()).isEqualTo("Mendoza");
+            assertThat(section.getDirection().name()).isEqualTo("BOTH");
+        });
         requestClosure("M6");
         get("/street-closures", OPERADOR).andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(2)));
         assertThat(events.all()).as("crear desde solicitud no publica eventos").isEmpty();

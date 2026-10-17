@@ -40,6 +40,8 @@ public class StreetClosure {
     @Column(nullable = false)
     private String closureRequestId;
 
+    private String previousClosureRequestId;
+
     private String sourceRef;
 
     private String reason;
@@ -63,6 +65,11 @@ public class StreetClosure {
     @Column(name = "street", nullable = false)
     @Builder.Default
     private List<String> affectedStreet = new ArrayList<>();
+
+    @ElementCollection
+    @CollectionTable(name = "street_closure_affected_sections", joinColumns = @JoinColumn(name = "street_closure_id"))
+    @Builder.Default
+    private List<AffectedSection> affectedSections = new ArrayList<>();
 
     @ElementCollection
     @CollectionTable(name = "street_closure_detours", joinColumns = @JoinColumn(name = "street_closure_id"))

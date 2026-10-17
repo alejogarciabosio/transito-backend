@@ -5,10 +5,11 @@ import java.util.List;
 
 public record StreetClosureRequestedPayload(
         String closureRequestId,
+        String previousClosureRequestId,
         String sourceModule,
         String sourceRef,
         String reason,
-        List<String> affectedSections,
+        List<AffectedSectionPayload> affectedSections,
         OffsetDateTime requestedFrom,
         OffsetDateTime requestedTo,
         String closureType,

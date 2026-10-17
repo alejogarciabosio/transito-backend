@@ -554,11 +554,12 @@ Recomendación de implementación: usen el **código M-number como clave canóni
 | sourceModule | string | Sí | Módulo que origina la solicitud: M3 o M6. |
 | sourceRef | string | Sí | Referencia al elemento que originó el corte, por ejemplo una orden de trabajo o intervención. |
 | reason | string | Sí | Motivo del corte. |
-| affectedSections | array | Sí | Calles o tramos afectados. |
+| affectedSections | array<object> | Sí | Tramos afectados con `{street, from, to, direction}`. `direction` admite `FORWARD`, `REVERSE` o `BOTH`. |
 | requestedFrom | datetime | Sí | Inicio solicitado. |
 | requestedTo | datetime | Sí | Fin solicitado. |
 | closureType | string / enum | No | Tipo de corte, si aplica. |
 | requestedAt | datetime | Sí | Momento en que se generó la solicitud. |
+| previousClosureRequestId | string | No | Solicitud anterior cuando esta solicitud representa una prórroga. |
 
 **ejemplo de lo que recibimos del ambiente**
 
@@ -573,7 +574,7 @@ Recomendación de implementación: usen el **código M-number como clave canóni
     "sourceRef": "INT-025",  
     "reason": "Poda de árboles que requiere interrupción de la circulación",  
     "affectedSections": \[  
-      "Av. Rivadavia entre Av. La Plata y Muñiz"  
+      {"street": "Av. Rivadavia", "from": "Av. La Plata", "to": "Muñiz", "direction": "BOTH"}
     \],  
     "requestedFrom": "2026-09-02T08:00:00-03:00",  
     "requestedTo": "2026-09-02T12:00:00-03:00",  
@@ -595,7 +596,7 @@ Recomendación de implementación: usen el **código M-number como clave canóni
     "sourceRef": "WO-1050",  
     "reason": "Reparación de calzada",  
     "affectedSections": \[  
-      "Av. Cabildo entre Juramento y Mendoza"  
+      {"street": "Av. Cabildo", "from": "Juramento", "to": "Mendoza", "direction": "BOTH"}
     \],  
     "requestedFrom": "2026-09-04T08:00:00-03:00",  
     "requestedTo": "2026-09-04T18:00:00-03:00",  
