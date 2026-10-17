@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.JsonNode;
 
 import ar.edu.uade.transito.transito_backend.model.ProcessedEvent;
+import ar.edu.uade.transito.transito_backend.event.EventContext;
 import ar.edu.uade.transito.transito_backend.repository.ProcessedEventRepository;
 
 @Component
@@ -47,7 +48,11 @@ public class IncomingEventDispatcher {
             return;
         }
 
-        handler.handle(message.path("data"));
+        UUID correlationId = message.hasNonNull("correlationId")
+                ? UUID.fromString(message.path("correlationId").asText()) : eventId;
+        try (EventContext.Scope ignored = EventContext.open(eventId, correlationId)) {
+            handler.handle(message.path("data"));
+        }
 
         processedEventRepository.save(ProcessedEvent.builder()
                 .eventId(eventId)
