@@ -1,6 +1,7 @@
 package ar.edu.uade.transito.transito_backend.repository;
 
 import java.util.Collection;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -15,6 +16,8 @@ public interface StreetClosureRepository extends JpaRepository<StreetClosure, UU
     List<StreetClosure> findByStatus(StreetClosureStatus status);
 
     List<StreetClosure> findByStatusInOrderByStartDateAsc(Collection<StreetClosureStatus> statuses);
+
+    List<StreetClosure> findByStatusAndEndDateLessThanEqual(StreetClosureStatus status, OffsetDateTime endDate);
 
     List<StreetClosure> findByRequestingModule(RequestingModule requestingModule);
 

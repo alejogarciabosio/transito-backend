@@ -1,6 +1,7 @@
 package ar.edu.uade.transito.transito_backend.service;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -128,6 +129,14 @@ public class StreetClosureService {
                 notes)));
 
         return saved;
+    }
+
+    /** Finaliza únicamente cortes activos cuya vigencia solicitada ya terminó. */
+    public int finishExpired(OffsetDateTime now) {
+        List<StreetClosure> expired = streetClosureRepository
+                .findByStatusAndEndDateLessThanEqual(StreetClosureStatus.ACTIVE, now);
+        expired.forEach(closure -> finish(closure.getStreetClosureId(), "Cierre automático por vencimiento"));
+        return expired.size();
     }
 
     private void requireStatus(StreetClosure closure, StreetClosureStatus expected) {

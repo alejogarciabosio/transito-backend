@@ -23,11 +23,13 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -83,5 +85,28 @@ class OtherServicesTest {
         tariff.setStatus(ParkingTariffStatus.ACTIVE);
         when(sessions.findByZoneId(zone)).thenReturn(List.of(ParkingSession.builder().endDateTime(null).build()));
         assertThatThrownBy(() -> service.delete(tariffId)).isInstanceOf(InvalidStateTransitionException.class);
+    }
+
+    @Test
+    @DisplayName("TC-BE-SC-U02: un corte ACTIVE vencido se finaliza y publica streetClosureEnded")
+    void finishesExpiredActiveClosures() {
+        var repo = mock(StreetClosureRepository.class);
+        var publisher = mock(EventPublisher.class);
+        var expired = StreetClosure.builder()
+                .streetClosureId(UUID.randomUUID())
+                .closureRequestId("REQ-1")
+                .status(StreetClosureStatus.ACTIVE)
+                .endDate(OffsetDateTime.now().minusMinutes(1))
+                .build();
+        when(repo.findByStatusAndEndDateLessThanEqual(org.mockito.ArgumentMatchers.eq(StreetClosureStatus.ACTIVE), any()))
+                .thenReturn(List.of(expired));
+        when(repo.findById(expired.getStreetClosureId())).thenReturn(Optional.of(expired));
+        when(repo.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        int finished = new StreetClosureService(repo, publisher).finishExpired(OffsetDateTime.now());
+
+        assertThat(finished).isEqualTo(1);
+        assertThat(expired.getStatus()).isEqualTo(StreetClosureStatus.FINISHED);
+        verify(publisher).publish(any());
     }
 }
