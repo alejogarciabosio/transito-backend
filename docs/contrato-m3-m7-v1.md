@@ -23,6 +23,8 @@ Las fechas y horas de los eventos usan ISO 8601 con offset. Los enums se seriali
 
 ## Eventos publicados por M7
 
+El alcance de M3 en esta versión es: recibe el resultado de cada solicitud de corte (`streetClosureApproved`, `streetClosureRejected` y `streetClosureEnded`) y los accidentes con daño de infraestructura (`roadAccidentRegistered`). `streetClosureActivated` queda como evento interno de M7 y no se distribuye a Obras en la versión `1.0`.
+
 ### `streetClosureApproved`
 
 ```json
@@ -88,6 +90,8 @@ Las fechas y horas de los eventos usan ISO 8601 con offset. Los enums se seriali
 
 ### `roadAccidentRegistered`
 
+M7 lo publica a Obras **únicamente** si `involvesInfrastructureDamage` es `true`. En ese caso `damageDescription` es obligatorio.
+
 ```json
 {
   "eventId": "5e0e1434-2d0a-411f-aac1-0e6a8b2e42b3",
@@ -110,4 +114,4 @@ Las fechas y horas de los eventos usan ISO 8601 con offset. Los enums se seriali
 }
 ```
 
-`damageDescription` es obligatorio cuando `involvesInfrastructureDamage` es `true`; puede ser `null` cuando es `false`.
+En los mensajes enviados a Obras, `damageDescription` siempre es obligatorio porque `involvesInfrastructureDamage` siempre vale `true`.

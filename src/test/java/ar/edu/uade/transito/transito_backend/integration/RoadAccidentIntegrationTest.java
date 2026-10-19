@@ -42,6 +42,16 @@ class RoadAccidentIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("TC-BE-ACC-01b: accidente sin daño de infraestructura no se publica a Obras")
+    void register_withoutInfrastructureDamage_doesNotPublishEvent() throws Exception {
+        post("/accidents", INSPECTOR, Payloads.accident().replace("\"involvesInfrastructureDamage\": true",
+                "\"involvesInfrastructureDamage\": false"))
+                .andExpect(status().isCreated());
+
+        assertThat(events.all()).extracting("eventType").doesNotContain("roadAccidentRegistered");
+    }
+
+    @Test
     @DisplayName("TC-BE-ACC-02: permisos — Ciudadano no registra ni consulta")
     void permissions() throws Exception {
         post("/accidents", CIUDADANO, Payloads.accident()).andExpect(status().isForbidden());

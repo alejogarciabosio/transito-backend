@@ -32,15 +32,18 @@ public class RoadAccidentService {
         accident.setStatus(AccidentStatus.PRELIMINARY);
         RoadAccident saved = roadAccidentRepository.save(accident);
 
-        eventPublisher.publish(EventEnvelope.of("roadAccidentRegistered", new RoadAccidentRegisteredPayload(
-                saved.getAccidentId(),
-                saved.getAccidentDateTime().atZone(MUNICIPAL_TIME_ZONE).toOffsetDateTime(),
-                saved.getLocation(),
-                saved.isInvolvesInfrastructureDamage(),
-                saved.getDamageDescription(),
-                saved.getVehicles(),
-                saved.getPersons(),
-                saved.getInspectorId())));
+        // M3 Obras only needs incidents that can trigger an infrastructure repair.
+        if (saved.isInvolvesInfrastructureDamage()) {
+            eventPublisher.publish(EventEnvelope.of("roadAccidentRegistered", new RoadAccidentRegisteredPayload(
+                    saved.getAccidentId(),
+                    saved.getAccidentDateTime().atZone(MUNICIPAL_TIME_ZONE).toOffsetDateTime(),
+                    saved.getLocation(),
+                    true,
+                    saved.getDamageDescription(),
+                    saved.getVehicles(),
+                    saved.getPersons(),
+                    saved.getInspectorId())));
+        }
 
         return saved;
     }
