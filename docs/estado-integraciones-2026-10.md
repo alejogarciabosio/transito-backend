@@ -5,7 +5,7 @@
 - RabbitMQ: publicación al exchange `muni.inbox` y consumo de `q.transito`, con JSON, deduplicación por `eventId` y configuración por variables `CORE_RABBITMQ_*`.
 - Usuarios: cliente SOAP `validateUser` implementado (`dni`, `password` y respuesta `user_id`, `dni`, `role`, `auth`), con timeout de cinco segundos y errores `502`/`503`.
 - Roles: el backend usa exclusivamente `ADMINISTRADOR`, `INSPECTOR` y `CIUDADANO`.
-- Cortes: `streetClosureRequested` procesa `M3`/`M6`, conserva `sourceRef`, `reason`, `closureType` y `requestedAt`; las respuestas usan `Obras`/`Ambiente`.
+- Cortes: `streetClosureRequested` procesa `obras`/`ambiente`, conserva `sourceRef`, `reason`, `closureType`, `requestedAt`, los tramos estructurados `{street, from, to, direction}` y el vínculo opcional `previousClosureRequestId` de las prórrogas; las respuestas usan `Obras`/`Ambiente`.
 - Ventana operativa: `authorizedTo` gobierna el corte. Al vencer, un corte `ACTIVE` se finaliza y emite `streetClosureEnded`; uno `APPROVED` pasa a `EXPIRED` y no puede activarse.
 - Rentas: se procesan `paymentRegistered`, `debtSettled` y `paymentReversed` para `TRAFFIC_FINE`. `originId` e `infractionId` son el mismo UUID de la infracción confirmada por M7.
 
@@ -28,7 +28,7 @@ Entregar host, puerto, vhost, usuario, contraseña y TLS/CA de RabbitMQ. Confirm
 
 ### Obras y Ambiente
 
-Publicar la versión final de `streetClosureRequested`, incluido si las prórrogas usan `previousClosureRequestId`, y confirmar si `streetClosureActivated` se distribuye también a M3/M6 o sólo queda como evento interno.
+El payload final de `streetClosureRequested` ya fue recibido: `affectedSections` usa objetos y las prórrogas incluyen `previousClosureRequestId`. Sólo confirmar si el formato anterior con secciones como texto llegó a publicarse como versión `1.0`; si fue así, este contrato debe versionarse como `2.0`. También confirmar si `streetClosureActivated` se distribuye a Obras/Ambiente o sólo queda como evento interno.
 
 ### Rentas
 

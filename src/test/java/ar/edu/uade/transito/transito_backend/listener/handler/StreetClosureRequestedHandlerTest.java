@@ -29,10 +29,15 @@ class StreetClosureRequestedHandlerTest {
         JsonNode data = mapper.readTree("""
                 {
                   "closureRequestId": "REQ-M3-501",
-                  "sourceModule": "M3",
+                  "sourceModule": "obras",
                   "sourceRef": "WO-1050",
                   "reason": "Reparación de calzada",
-                  "affectedSections": ["Av. Cabildo entre Juramento y Mendoza"],
+                  "affectedSections": [{
+                    "street": "Av. Cabildo",
+                    "from": "Juramento",
+                    "to": "Mendoza",
+                    "direction": "BOTH"
+                  }],
                   "requestedFrom": "2026-09-04T08:00:00-03:00",
                   "requestedTo": "2026-09-04T18:00:00-03:00",
                   "closureType": "TOTAL",
@@ -53,8 +58,39 @@ class StreetClosureRequestedHandlerTest {
                     && "Reparación de calzada".equals(closure.getReason())
                     && "TOTAL".equals(closure.getClosureType())
                     && closure.getRequestedAt().isEqual(OffsetDateTime.parse("2026-09-01T16:58:00-03:00"))
-                    && List.of("Av. Cabildo entre Juramento y Mendoza").equals(closure.getAffectedStreet());
+                    && List.of("Av. Cabildo entre Juramento y Mendoza (BOTH)").equals(closure.getAffectedStreet())
+                    && closure.getPreviousClosureRequestId() == null
+                    && closure.getAffectedSections().size() == 1
+                    && "Av. Cabildo".equals(closure.getAffectedSections().get(0).getStreet())
+                    && "Juramento".equals(closure.getAffectedSections().get(0).getFrom())
+                    && "Mendoza".equals(closure.getAffectedSections().get(0).getTo())
+                    && "BOTH".equals(closure.getAffectedSections().get(0).getDirection());
         }));
+    }
+
+    @Test
+    void keepsTheReferenceToThePreviousRequestForAnExtension() {
+        StreetClosureService service = mock(StreetClosureService.class);
+        StreetClosureRequestedHandler handler = new StreetClosureRequestedHandler(mapper, service);
+        JsonNode data = mapper.readTree("""
+                {
+                  "closureRequestId": "REQ-M3-502",
+                  "previousClosureRequestId": "REQ-M3-501",
+                  "sourceModule": "obras",
+                  "sourceRef": "WO-1050",
+                  "reason": "Prórroga de obra",
+                  "affectedSections": [{"street":"Av. Cabildo","from":"Juramento","to":"Mendoza","direction":"FORWARD"}],
+                  "requestedFrom": "2026-09-04T18:00:00-03:00",
+                  "requestedTo": "2026-09-05T02:00:00-03:00",
+                  "requestedAt": "2026-09-04T16:58:00-03:00"
+                }
+                """);
+
+        handler.handle(data);
+
+        verify(service).createFromRequest(argThat(closure ->
+                "REQ-M3-501".equals(closure.getPreviousClosureRequestId())
+                        && "FORWARD".equals(closure.getAffectedSections().get(0).getDirection())));
     }
 
     @Test
@@ -62,7 +98,7 @@ class StreetClosureRequestedHandlerTest {
         StreetClosureService service = mock(StreetClosureService.class);
         StreetClosureRequestedHandler handler = new StreetClosureRequestedHandler(mapper, service);
         JsonNode data = mapper.readTree("""
-                {"closureRequestId":"REQ-M3-502","sourceModule":"M3","requestedFrom":"2026-09-04T08:00:00-03:00","requestedTo":"2026-09-04T18:00:00-03:00","requestedAt":"2026-09-01T16:58:00-03:00"}
+                {"closureRequestId":"REQ-M3-503","sourceModule":"obras","requestedFrom":"2026-09-04T08:00:00-03:00","requestedTo":"2026-09-04T18:00:00-03:00","requestedAt":"2026-09-01T16:58:00-03:00"}
                 """);
 
         assertThrows(IllegalArgumentException.class, () -> handler.handle(data));

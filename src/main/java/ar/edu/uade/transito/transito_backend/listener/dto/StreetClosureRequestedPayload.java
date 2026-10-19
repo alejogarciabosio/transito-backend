@@ -5,12 +5,16 @@ import java.util.List;
 
 public record StreetClosureRequestedPayload(
         String closureRequestId,
+        String previousClosureRequestId,
         String sourceModule,
         String sourceRef,
         String reason,
-        List<String> affectedSections,
+        List<AffectedSection> affectedSections,
         OffsetDateTime requestedFrom,
         OffsetDateTime requestedTo,
         String closureType,
         OffsetDateTime requestedAt) {
+
+    public record AffectedSection(String street, String from, String to, String direction) {
+    }
 }

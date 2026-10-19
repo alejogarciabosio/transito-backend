@@ -40,6 +40,9 @@ public class StreetClosure {
     @Column(nullable = false)
     private String closureRequestId;
 
+    /** Set only for a request that extends a prior closure request. */
+    private String previousClosureRequestId;
+
     @Column(nullable = false)
     private String sourceRef;
 
@@ -66,6 +69,12 @@ public class StreetClosure {
     @Column(name = "street", nullable = false)
     @Builder.Default
     private List<String> affectedStreet = new ArrayList<>();
+
+    /** Exact street segments from the M3/M6 streetClosureRequested contract. */
+    @ElementCollection
+    @CollectionTable(name = "street_closure_affected_sections", joinColumns = @JoinColumn(name = "street_closure_id"))
+    @Builder.Default
+    private List<StreetAffectedSection> affectedSections = new ArrayList<>();
 
     @ElementCollection
     @CollectionTable(name = "street_closure_detours", joinColumns = @JoinColumn(name = "street_closure_id"))
