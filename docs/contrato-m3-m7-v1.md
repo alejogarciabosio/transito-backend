@@ -21,7 +21,7 @@ Todos los mensajes usan el envelope Core:
 
 Las fechas y horas de los eventos usan ISO 8601 con offset. Los enums se serializan en MAYÚSCULA. El módulo de origen usa minúscula: `obras` para M3 y `transito` para M7.
 
-En la implementación actual de M7, `correlationId` se genera como UUID al publicar cada evento y `causationId` se emite como `null`. Ambos campos están siempre presentes, conforme al envelope Core.
+Para `streetClosureApproved` y `streetClosureRejected`, M7 conserva el `correlationId` recibido en `streetClosureRequested` y usa el `eventId` recibido como `causationId`. Para `streetClosureEnded`, conserva el mismo `correlationId` y usa `causationId: null` porque se origina en una acción posterior o en el vencimiento automático.
 
 ## Eventos publicados por M7
 
@@ -37,14 +37,14 @@ El alcance de M3 en esta versión es: recibe el resultado de cada solicitud de c
   "occurredAt": "2026-10-20T08:05:00-03:00",
   "sourceModule": "transito",
   "correlationId": "7fd98f1c-72a3-42fb-bbe8-047db769210e",
-  "causationId": null,
+    "causationId": "2f4f6f6e-7c10-4e5f-8f89-9c3485d0c214",
   "data": {
     "streetClosureId": "c819cfbc-9848-43cc-9172-e79201009126",
     "closureRequestId": "1f915e75-7aa3-4320-8452-0b1b457285db",
-    "requestingModule": "Obras",
+    "requestingModule": "obras",
     "startDate": "2026-10-20T08:00:00-03:00",
     "endDate": "2026-10-20T18:00:00-03:00",
-    "affectedStreet": ["Av. Rivadavia entre Av. La Plata y Muñiz (BOTH)"],
+    "affectedSections": [{"street": "Av. Rivadavia", "from": "Av. La Plata", "to": "Muñiz", "direction": "BOTH"}],
     "detours": [{"street": "Av. Rivadavia", "alternateRoute": "Av. Independencia"}],
     "conditions": ["Mantener acceso para emergencias"]
   }
@@ -61,11 +61,11 @@ El alcance de M3 en esta versión es: recibe el resultado de cada solicitud de c
   "occurredAt": "2026-10-20T08:05:00-03:00",
   "sourceModule": "transito",
   "correlationId": "7fd98f1c-72a3-42fb-bbe8-047db769210e",
-  "causationId": null,
+    "causationId": "2f4f6f6e-7c10-4e5f-8f89-9c3485d0c214",
   "data": {
     "closureRequestId": "1f915e75-7aa3-4320-8452-0b1b457285db",
     "rejectionReason": "El corte afectaría una vía principal durante horario pico.",
-    "requestingModule": "Obras"
+    "requestingModule": "obras"
   }
 }
 ```

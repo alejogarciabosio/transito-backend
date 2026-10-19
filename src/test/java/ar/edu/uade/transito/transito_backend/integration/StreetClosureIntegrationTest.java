@@ -1,6 +1,5 @@
 package ar.edu.uade.transito.transito_backend.integration;
 
-import ar.edu.uade.transito.transito_backend.event.payload.StreetClosureActivatedPayload;
 import ar.edu.uade.transito.transito_backend.event.payload.StreetClosureApprovedPayload;
 import ar.edu.uade.transito.transito_backend.event.payload.StreetClosureEndedPayload;
 import ar.edu.uade.transito.transito_backend.event.payload.StreetClosureRejectedPayload;
@@ -76,7 +75,9 @@ class StreetClosureIntegrationTest extends AbstractIntegrationTest {
         var p = events.lastPayload("streetClosureApproved", StreetClosureApprovedPayload.class);
         assertThat(p.streetClosureId()).hasToString(id);
         assertThat(p.closureRequestId()).startsWith("REQ-");
-        assertThat(p.requestingModule()).isEqualTo("Obras");
+        assertThat(p.requestingModule()).isEqualTo("obras");
+        assertThat(p.affectedSections()).hasSize(1);
+        assertThat(p.affectedSections().get(0).getDirection()).isEqualTo("BOTH");
         assertThat(p.startDate()).isEqualTo(OffsetDateTime.parse(REQUESTED_FROM));
         assertThat(p.detours()).hasSize(1);
         assertThat(p.conditions()).containsExactly("Señalización preventiva");
@@ -103,26 +104,19 @@ class StreetClosureIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("REJECTED"));
         var p = events.lastPayload("streetClosureRejected", StreetClosureRejectedPayload.class);
         assertThat(p.rejectionReason()).isEqualTo("Horario pico");
-        assertThat(p.requestingModule()).isEqualTo("Ambiente");
+        assertThat(p.requestingModule()).isEqualTo("ambiente");
         // un rechazado no se puede aprobar ni activar
         post("/street-closures/" + id + "/approval", SUPERVISOR, APPROVE).andExpect(status().isConflict());
         post("/street-closures/" + id + "/activation", OPERADOR, null).andExpect(status().isConflict());
     }
 
     @Test
-    @DisplayName("TC-BE-SC-06: flujo completo REQUESTED→APPROVED→ACTIVE→FINISHED con eventos activated/ended")
+    @DisplayName("TC-BE-SC-06: flujo completo REQUESTED→APPROVED→ACTIVE→FINISHED sin publicar la activación")
     void fullLifecycle() throws Exception {
         String id = requestClosure("obras");
         post("/street-closures/" + id + "/approval", SUPERVISOR, APPROVE).andExpect(status().isOk());
         post("/street-closures/" + id + "/activation", OPERADOR, null)
                 .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("ACTIVE"));
-        var activated = events.lastPayload("streetClosureActivated", StreetClosureActivatedPayload.class);
-        assertThat(activated.streetClosureId()).hasToString(id);
-        assertThat(activated.sourceModule()).isEqualTo("M3");
-        assertThat(activated.activatedBy()).isEqualTo(OPERADOR.userId());
-        assertThat(activated.activatedAt()).isNotNull();
-        assertThat(activated.sourceRequestId()).startsWith("REQ-");
-
         post("/street-closures/" + id + "/completion", OPERADOR, "{\"notes\":\"Circulación restablecida\"}")
                 .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("FINISHED"));
         var ended = events.lastPayload("streetClosureEnded", StreetClosureEndedPayload.class);
@@ -130,7 +124,7 @@ class StreetClosureIntegrationTest extends AbstractIntegrationTest {
         assertThat(ended.completionDateTime()).isNotNull();
 
         assertThat(events.all()).extracting("eventType")
-                .containsExactly("streetClosureApproved", "streetClosureActivated", "streetClosureEnded");
+                .containsExactly("streetClosureApproved", "streetClosureEnded");
     }
 
     @Test

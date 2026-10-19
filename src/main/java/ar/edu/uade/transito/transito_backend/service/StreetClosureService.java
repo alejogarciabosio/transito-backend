@@ -1,6 +1,5 @@
 package ar.edu.uade.transito.transito_backend.service;
 
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.List;
@@ -11,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ar.edu.uade.transito.transito_backend.event.EventEnvelope;
 import ar.edu.uade.transito.transito_backend.event.EventPublisher;
-import ar.edu.uade.transito.transito_backend.event.payload.StreetClosureActivatedPayload;
 import ar.edu.uade.transito.transito_backend.event.payload.StreetClosureApprovedPayload;
 import ar.edu.uade.transito.transito_backend.event.payload.StreetClosureEndedPayload;
 import ar.edu.uade.transito.transito_backend.event.payload.StreetClosureRejectedPayload;
@@ -82,12 +80,12 @@ public class StreetClosureService {
         eventPublisher.publish(EventEnvelope.of("streetClosureApproved", new StreetClosureApprovedPayload(
                 saved.getStreetClosureId(),
                 saved.getClosureRequestId(),
-                saved.getRequestingModule().displayName(),
+                saved.getRequestingModule().technicalName(),
                 saved.getStartDate(),
                 saved.getEndDate(),
-                saved.getAffectedStreet(),
-                saved.getDetours(),
-                saved.getConditions())));
+                List.copyOf(saved.getAffectedSections()),
+                List.copyOf(saved.getDetours()),
+                List.copyOf(saved.getConditions())), saved.getSourceCorrelationId(), saved.getSourceEventId()));
 
         return saved;
     }
@@ -102,7 +100,7 @@ public class StreetClosureService {
         eventPublisher.publish(EventEnvelope.of("streetClosureRejected", new StreetClosureRejectedPayload(
                 saved.getClosureRequestId(),
                 rejectionReason,
-                saved.getRequestingModule().displayName())));
+                saved.getRequestingModule().technicalName()), saved.getSourceCorrelationId(), saved.getSourceEventId()));
 
         return saved;
     }
@@ -113,13 +111,6 @@ public class StreetClosureService {
 
         existing.setStatus(StreetClosureStatus.ACTIVE);
         StreetClosure saved = streetClosureRepository.save(existing);
-
-        eventPublisher.publish(EventEnvelope.of("streetClosureActivated", new StreetClosureActivatedPayload(
-                saved.getStreetClosureId(),
-                saved.getClosureRequestId(),
-                saved.getRequestingModule().sourceModule(),
-                LocalDateTime.now(MUNICIPAL_TIME_ZONE),
-                activatedBy)));
 
         return saved;
     }
@@ -135,7 +126,7 @@ public class StreetClosureService {
                 saved.getStreetClosureId(),
                 saved.getClosureRequestId(),
                 OffsetDateTime.now(MUNICIPAL_TIME_ZONE),
-                notes)));
+                notes), saved.getSourceCorrelationId(), null));
 
         return saved;
     }
@@ -151,7 +142,7 @@ public class StreetClosureService {
             StreetClosure saved = streetClosureRepository.save(closure);
             eventPublisher.publish(EventEnvelope.of("streetClosureEnded", new StreetClosureEndedPayload(
                     saved.getStreetClosureId(), saved.getClosureRequestId(), OffsetDateTime.now(MUNICIPAL_TIME_ZONE),
-                    "Cierre automático al vencer el horario autorizado.")));
+                    "Cierre automático al vencer el horario autorizado."), saved.getSourceCorrelationId(), null));
         }
 
         for (StreetClosure closure : streetClosureRepository

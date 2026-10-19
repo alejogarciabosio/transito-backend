@@ -35,6 +35,9 @@ public class IncomingEventDispatcher {
     public void dispatch(JsonNode message) {
         UUID eventId = UUID.fromString(message.path("eventId").asText());
         String eventType = message.path("eventType").asText();
+        UUID correlationId = message.hasNonNull("correlationId")
+                ? UUID.fromString(message.path("correlationId").asText())
+                : eventId;
 
         if (processedEventRepository.existsById(eventId)) {
             log.info("[event] eventId={} type={} ya procesado, se descarta", eventId, eventType);
@@ -47,7 +50,11 @@ public class IncomingEventDispatcher {
             return;
         }
 
-        handler.handle(message.path("data"));
+        if (handler instanceof ContextualIncomingEventHandler contextualHandler) {
+            contextualHandler.handle(message.path("data"), eventId, correlationId);
+        } else {
+            handler.handle(message.path("data"));
+        }
 
         processedEventRepository.save(ProcessedEvent.builder()
                 .eventId(eventId)

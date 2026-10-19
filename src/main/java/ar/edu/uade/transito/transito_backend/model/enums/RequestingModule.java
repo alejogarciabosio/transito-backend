@@ -14,6 +14,11 @@ public enum RequestingModule {
         return this == OBRAS ? "Obras" : "Ambiente";
     }
 
+    /** Technical Core identifier used by integration payloads. */
+    public String technicalName() {
+        return this == OBRAS ? "obras" : "ambiente";
+    }
+
     /**
      * Acepta el código funcional del payload y los nombres de envelope para
      * mantener compatibilidad con los mensajes de transición ya intercambiados.

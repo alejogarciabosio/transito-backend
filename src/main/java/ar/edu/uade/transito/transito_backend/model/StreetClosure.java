@@ -43,6 +43,13 @@ public class StreetClosure {
     /** Set only for a request that extends a prior closure request. */
     private String previousClosureRequestId;
 
+    /** Metadata from the Core event that created this closure. */
+    @Column(nullable = false)
+    private UUID sourceEventId;
+
+    @Column(nullable = false)
+    private UUID sourceCorrelationId;
+
     @Column(nullable = false)
     private String sourceRef;
 

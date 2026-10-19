@@ -194,7 +194,7 @@ class BugReproductionTest extends AbstractIntegrationTest {
         String id = closure();
         post("/street-closures/" + id + "/approval", SUPERVISOR,
                 "{\"detours\":[{\"street\":\"A\",\"alternateRoute\":\"B\"}],\"conditions\":[\"c\"]}");
-        assertThat(events.lastPayload("streetClosureApproved", StreetClosureApprovedPayload.class).affectedStreet()).isNotEmpty();
+        assertThat(events.lastPayload("streetClosureApproved", StreetClosureApprovedPayload.class).affectedSections()).isNotEmpty();
     }
 
     @Test

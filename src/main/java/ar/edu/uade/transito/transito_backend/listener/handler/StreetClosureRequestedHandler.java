@@ -1,13 +1,14 @@
 package ar.edu.uade.transito.transito_backend.listener.handler;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.stereotype.Component;
 
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
-import ar.edu.uade.transito.transito_backend.listener.IncomingEventHandler;
+import ar.edu.uade.transito.transito_backend.listener.ContextualIncomingEventHandler;
 import ar.edu.uade.transito.transito_backend.listener.dto.StreetClosureRequestedPayload;
 import ar.edu.uade.transito.transito_backend.model.StreetClosure;
 import ar.edu.uade.transito.transito_backend.model.StreetAffectedSection;
@@ -17,7 +18,7 @@ import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-public class StreetClosureRequestedHandler implements IncomingEventHandler {
+public class StreetClosureRequestedHandler implements ContextualIncomingEventHandler {
 
     private final ObjectMapper objectMapper;
     private final StreetClosureService streetClosureService;
@@ -29,6 +30,11 @@ public class StreetClosureRequestedHandler implements IncomingEventHandler {
 
     @Override
     public void handle(JsonNode data) {
+        handle(data, UUID.randomUUID(), UUID.randomUUID());
+    }
+
+    @Override
+    public void handle(JsonNode data, UUID eventId, UUID correlationId) {
         StreetClosureRequestedPayload payload = objectMapper.convertValue(data, StreetClosureRequestedPayload.class);
         validate(payload);
         List<StreetAffectedSection> affectedSections = payload.affectedSections().stream()
@@ -47,6 +53,8 @@ public class StreetClosureRequestedHandler implements IncomingEventHandler {
         streetClosureService.createFromRequest(StreetClosure.builder()
                 .closureRequestId(payload.closureRequestId())
                 .previousClosureRequestId(payload.previousClosureRequestId())
+                .sourceEventId(eventId)
+                .sourceCorrelationId(correlationId)
                 .sourceRef(payload.sourceRef())
                 .reason(payload.reason())
                 .closureType(payload.closureType())
