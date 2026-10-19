@@ -12,10 +12,12 @@ import ar.edu.uade.transito.transito_backend.event.EventEnvelope;
 import ar.edu.uade.transito.transito_backend.event.EventPublisher;
 import ar.edu.uade.transito.transito_backend.event.payload.RoadAccidentRegisteredPayload;
 import ar.edu.uade.transito.transito_backend.exception.InvalidStateTransitionException;
+import ar.edu.uade.transito.transito_backend.exception.InvalidRequestException;
 import ar.edu.uade.transito.transito_backend.exception.ResourceNotFoundException;
 import ar.edu.uade.transito.transito_backend.model.RoadAccident;
 import ar.edu.uade.transito.transito_backend.model.enums.AccidentStatus;
 import ar.edu.uade.transito.transito_backend.repository.RoadAccidentRepository;
+import ar.edu.uade.transito.transito_backend.service.command.UpdateRoadAccidentCommand;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -28,7 +30,11 @@ public class RoadAccidentService {
     private final RoadAccidentRepository roadAccidentRepository;
     private final EventPublisher eventPublisher;
 
-    public RoadAccident register(RoadAccident accident) {
+    public RoadAccident register(RoadAccident accident, String inspectorId) {
+        if (inspectorId == null || inspectorId.isBlank()) {
+            throw new InvalidRequestException("No se pudo identificar al inspector autenticado");
+        }
+        accident.setInspectorId(inspectorId);
         if (accident.isInvolvesInfrastructureDamage()
                 && (accident.getDamageDescription() == null || accident.getDamageDescription().isBlank())) {
             throw new IllegalArgumentException(
@@ -71,20 +77,44 @@ public class RoadAccidentService {
                 .orElseThrow(() -> new ResourceNotFoundException("RoadAccident no encontrado: " + accidentId));
     }
 
-    public RoadAccident update(UUID accidentId, RoadAccident changes) {
+    public RoadAccident update(UUID accidentId, UpdateRoadAccidentCommand changes) {
         RoadAccident existing = findById(accidentId);
         if (existing.getStatus() == AccidentStatus.VERIFIED) {
             throw new InvalidStateTransitionException(
                     "El accidente " + accidentId + " ya fue verificado y no se puede modificar");
         }
 
-        existing.setAccidentDateTime(changes.getAccidentDateTime());
-        existing.setLocation(changes.getLocation());
-        existing.setInvolvesInfrastructureDamage(changes.isInvolvesInfrastructureDamage());
-        existing.setDamageDescription(changes.getDamageDescription());
-        existing.setVehicles(changes.getVehicles());
-        existing.setPersons(changes.getPersons());
-        if (changes.getStatus() == AccidentStatus.VERIFIED) {
+        if (changes.accidentDateTime() != null) {
+            existing.setAccidentDateTime(changes.accidentDateTime());
+        }
+        if (changes.location() != null) {
+            existing.setLocation(changes.location());
+        }
+        if (changes.involvesInfrastructureDamage() != null) {
+            existing.setInvolvesInfrastructureDamage(changes.involvesInfrastructureDamage());
+            if (!changes.involvesInfrastructureDamage()) {
+                existing.setDamageDescription(null);
+            }
+        }
+        if (changes.damageDescription() != null) {
+            existing.setDamageDescription(changes.damageDescription());
+        }
+        if (changes.vehicles() != null) {
+            existing.setVehicles(changes.vehicles());
+        }
+        if (changes.persons() != null) {
+            existing.setPersons(changes.persons());
+        }
+        if (existing.isInvolvesInfrastructureDamage()
+                && (existing.getDamageDescription() == null || existing.getDamageDescription().isBlank())) {
+            throw new InvalidRequestException(
+                    "La descripción del daño es obligatoria cuando existe daño de infraestructura");
+        }
+        if (changes.status() != null && changes.status() != AccidentStatus.VERIFIED) {
+            throw new InvalidStateTransitionException(
+                    "Un accidente preliminar solo puede pasar al estado " + AccidentStatus.VERIFIED);
+        }
+        if (changes.status() == AccidentStatus.VERIFIED) {
             existing.setStatus(AccidentStatus.VERIFIED);
         }
 

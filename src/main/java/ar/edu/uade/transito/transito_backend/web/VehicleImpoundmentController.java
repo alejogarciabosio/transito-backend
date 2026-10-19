@@ -26,6 +26,7 @@ import ar.edu.uade.transito.transito_backend.web.dto.ReleaseImpoundmentRequest;
 import ar.edu.uade.transito.transito_backend.web.dto.UpdateVehicleImpoundmentRequest;
 import ar.edu.uade.transito.transito_backend.web.dto.VehicleImpoundmentResponse;
 import ar.edu.uade.transito.transito_backend.web.mapper.VehicleImpoundmentMapper;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -38,7 +39,7 @@ public class VehicleImpoundmentController {
 
     @PreAuthorize("hasRole('INSPECTOR')")
     @PostMapping
-    public ResponseEntity<VehicleImpoundmentResponse> register(@RequestBody CreateVehicleImpoundmentRequest request) {
+    public ResponseEntity<VehicleImpoundmentResponse> register(@Valid @RequestBody CreateVehicleImpoundmentRequest request) {
         VehicleImpoundment created = vehicleImpoundmentService.register(VehicleImpoundmentMapper.toEntity(request));
         return ResponseEntity.created(URI.create("/api/v1/impoundments/" + created.getImpoundmentId()))
                 .body(VehicleImpoundmentMapper.toResponse(created));
@@ -72,14 +73,14 @@ public class VehicleImpoundmentController {
 
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     @PatchMapping("/{id}")
-    public VehicleImpoundmentResponse update(@PathVariable UUID id, @RequestBody UpdateVehicleImpoundmentRequest request) {
+    public VehicleImpoundmentResponse update(@PathVariable UUID id, @Valid @RequestBody UpdateVehicleImpoundmentRequest request) {
         VehicleImpoundment updated = vehicleImpoundmentService.update(id, VehicleImpoundmentMapper.toEntity(request));
         return VehicleImpoundmentMapper.toResponse(updated);
     }
 
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     @PostMapping("/{id}/release")
-    public VehicleImpoundmentResponse release(@PathVariable UUID id, @RequestBody ReleaseImpoundmentRequest request) {
+    public VehicleImpoundmentResponse release(@PathVariable UUID id, @Valid @RequestBody ReleaseImpoundmentRequest request) {
         String releasedBy = currentUserProvider.get().userId();
         VehicleImpoundment released = vehicleImpoundmentService.release(
                 id, request.verifiedRequirements(), request.towingAndStorageFee(), request.paymentReference(), releasedBy);

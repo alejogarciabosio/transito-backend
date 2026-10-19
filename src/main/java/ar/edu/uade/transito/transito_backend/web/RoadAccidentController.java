@@ -22,6 +22,7 @@ import ar.edu.uade.transito.transito_backend.web.dto.CreateRoadAccidentRequest;
 import ar.edu.uade.transito.transito_backend.web.dto.RoadAccidentResponse;
 import ar.edu.uade.transito.transito_backend.web.dto.UpdateRoadAccidentRequest;
 import ar.edu.uade.transito.transito_backend.web.mapper.RoadAccidentMapper;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -34,8 +35,9 @@ public class RoadAccidentController {
 
     @PreAuthorize("hasRole('INSPECTOR')")
     @PostMapping
-    public ResponseEntity<RoadAccidentResponse> register(@RequestBody CreateRoadAccidentRequest request) {
-        RoadAccident created = roadAccidentService.register(RoadAccidentMapper.toEntity(request));
+    public ResponseEntity<RoadAccidentResponse> register(@Valid @RequestBody CreateRoadAccidentRequest request) {
+        RoadAccident created = roadAccidentService.register(
+                RoadAccidentMapper.toEntity(request), currentUserProvider.get().userId());
         return ResponseEntity.created(URI.create("/api/v1/accidents/" + created.getAccidentId()))
                 .body(RoadAccidentMapper.toResponse(created));
     }
@@ -61,8 +63,8 @@ public class RoadAccidentController {
 
     @PreAuthorize("hasRole('INSPECTOR')")
     @PatchMapping("/{id}")
-    public RoadAccidentResponse update(@PathVariable UUID id, @RequestBody UpdateRoadAccidentRequest request) {
-        RoadAccident updated = roadAccidentService.update(id, RoadAccidentMapper.toEntity(request));
+    public RoadAccidentResponse update(@PathVariable UUID id, @Valid @RequestBody UpdateRoadAccidentRequest request) {
+        RoadAccident updated = roadAccidentService.update(id, RoadAccidentMapper.toCommand(request));
         return RoadAccidentMapper.toResponse(updated);
     }
 }

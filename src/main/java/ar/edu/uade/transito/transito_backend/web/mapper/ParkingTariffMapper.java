@@ -33,6 +33,7 @@ public final class ParkingTariffMapper {
                 tariff.getZoneId(),
                 tariff.getPricePerHour(),
                 tariff.getValidFrom(),
-                tariff.getValidTo());
+                tariff.getValidTo(),
+                tariff.getStatus());
     }
 }

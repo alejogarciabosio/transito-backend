@@ -88,7 +88,7 @@ class StreetClosureIntegrationTest extends AbstractIntegrationTest {
     void approvalCanSetAuthorizedWindow() throws Exception {
         String id = requestClosure("obras");
         post("/street-closures/" + id + "/approval", SUPERVISOR, """
-                {"authorizedTo":"2026-10-02T03:00:00-03:00"}
+                {"detours":[],"conditions":["Señalización preventiva"],"authorizedTo":"2026-10-02T03:00:00-03:00"}
                 """)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.endDate").value("2026-10-02T06:00:00Z"));

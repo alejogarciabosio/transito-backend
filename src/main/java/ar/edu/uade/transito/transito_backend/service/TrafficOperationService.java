@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ar.edu.uade.transito.transito_backend.event.EventEnvelope;
 import ar.edu.uade.transito.transito_backend.event.EventPublisher;
 import ar.edu.uade.transito.transito_backend.event.payload.TrafficOperationCreatedPayload;
+import ar.edu.uade.transito.transito_backend.exception.InvalidRequestException;
 import ar.edu.uade.transito.transito_backend.exception.InvalidStateTransitionException;
 import ar.edu.uade.transito.transito_backend.exception.ResourceNotFoundException;
 import ar.edu.uade.transito.transito_backend.model.TrafficOperation;
@@ -58,10 +59,22 @@ public class TrafficOperationService {
         TrafficOperation existing = findById(operationId);
         requireOpen(existing);
 
-        existing.setZone(changes.getZone());
-        existing.setAssignedInspectors(changes.getAssignedInspectors());
-        existing.setAssignedUnits(changes.getAssignedUnits());
-        existing.setEndDateTime(changes.getEndDateTime());
+        if (changes.getZone() != null) {
+            existing.setZone(changes.getZone());
+        }
+        if (changes.getAssignedInspectors() != null) {
+            existing.setAssignedInspectors(changes.getAssignedInspectors());
+        }
+        if (changes.getAssignedUnits() != null) {
+            existing.setAssignedUnits(changes.getAssignedUnits());
+        }
+        if (changes.getEndDateTime() != null) {
+            if (changes.getEndDateTime().isBefore(existing.getStartDateTime())) {
+                throw new InvalidRequestException(
+                        "La fecha de finalización no puede ser anterior a la fecha de inicio");
+            }
+            existing.setEndDateTime(changes.getEndDateTime());
+        }
 
         return trafficOperationRepository.save(existing);
     }

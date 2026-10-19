@@ -13,6 +13,7 @@ import ar.edu.uade.transito.transito_backend.event.payload.InfractionAnulledPayl
 import ar.edu.uade.transito.transito_backend.event.payload.InfractionAppealedPayload;
 import ar.edu.uade.transito.transito_backend.event.payload.InfractionConfirmedPayload;
 import ar.edu.uade.transito.transito_backend.event.payload.InfractionRegisteredPayload;
+import ar.edu.uade.transito.transito_backend.exception.InvalidRequestException;
 import ar.edu.uade.transito.transito_backend.exception.InvalidStateTransitionException;
 import ar.edu.uade.transito.transito_backend.exception.ResourceNotFoundException;
 import ar.edu.uade.transito.transito_backend.model.Infraction;
@@ -67,16 +68,38 @@ public class InfractionService {
         Infraction existing = findById(infractionId);
         requireNotFinal(existing);
 
-        existing.setLicensePlate(changes.getLicensePlate());
-        existing.setLocation(changes.getLocation());
-        existing.setEvidenceUrl(changes.getEvidenceUrl());
-        existing.setOffenderNationalId(changes.getOffenderNationalId());
-        existing.setVehicleOwnerTaxId(changes.getVehicleOwnerTaxId());
-        existing.setDebtorId(changes.getDebtorId());
-        existing.setDebtorIdType(changes.getDebtorIdType());
-        existing.setBaseAmount(changes.getBaseAmount());
-        existing.setAggravatingFactors(changes.getAggravatingFactors());
-        existing.setFinalAmount(changes.getFinalAmount());
+        if (changes.getLicensePlate() != null) {
+            existing.setLicensePlate(changes.getLicensePlate());
+        }
+        if (changes.getLocation() != null) {
+            existing.setLocation(changes.getLocation());
+        }
+        if (changes.getEvidenceUrl() != null) {
+            existing.setEvidenceUrl(changes.getEvidenceUrl());
+        }
+        if (changes.getOffenderNationalId() != null) {
+            existing.setOffenderNationalId(changes.getOffenderNationalId());
+        }
+        if (changes.getVehicleOwnerTaxId() != null) {
+            existing.setVehicleOwnerTaxId(changes.getVehicleOwnerTaxId());
+        }
+        if (changes.getDebtorId() != null) {
+            existing.setDebtorId(changes.getDebtorId());
+            existing.setDebtorIdType(changes.getDebtorIdType());
+        }
+        if (changes.getBaseAmount() != null) {
+            existing.setBaseAmount(changes.getBaseAmount());
+        }
+        if (changes.getAggravatingFactors() != null) {
+            existing.setAggravatingFactors(changes.getAggravatingFactors());
+        }
+        if (changes.getFinalAmount() != null) {
+            existing.setFinalAmount(changes.getFinalAmount());
+        }
+
+        if (existing.getFinalAmount().compareTo(existing.getBaseAmount()) < 0) {
+            throw new InvalidRequestException("El importe final no puede ser menor que el importe base");
+        }
 
         return infractionRepository.save(existing);
     }

@@ -51,7 +51,7 @@ class ParkingIntegrationTest extends AbstractIntegrationTest {
         void forbidden() throws Exception {
             String id = createZone("Z");
             post("/parking-zones", INSPECTOR, Payloads.zone("X")).andExpect(status().isForbidden());
-            put("/parking-zones/" + id, INSPECTOR, "{\"name\":\"X\",\"allowedHours\":\"1\",\"status\":\"ACTIVE\"}").andExpect(status().isForbidden());
+            put("/parking-zones/" + id, INSPECTOR, "{\"name\":\"X\",\"boundaries\":\"b\",\"allowedHours\":\"1\",\"status\":\"ACTIVE\"}").andExpect(status().isForbidden());
             delete("/parking-zones/" + id, CIUDADANO).andExpect(status().isForbidden());
         }
 
@@ -115,18 +115,19 @@ class ParkingIntegrationTest extends AbstractIntegrationTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.pricePerHour").value(2000))
                     .andExpect(jsonPath("$.validTo", nullValue()));
-            put("/parking-tariffs/" + tariff, OPERADOR, "{\"pricePerHour\":1}").andExpect(status().isForbidden());
+            put("/parking-tariffs/" + tariff, OPERADOR, "{\"pricePerHour\":1,\"validFrom\":\"2026-02-01\"}").andExpect(status().isForbidden());
         }
 
         @Test
-        @DisplayName("TC-BE-PT-04: borrar tarifa sin sesiones abiertas en la zona → 204 (baja física)")
+        @DisplayName("TC-BE-PT-04: borrar tarifa sin sesiones abiertas en la zona → 204 (baja lógica, status INACTIVE)")
         void deleteWithoutOpenSessions() throws Exception {
             String zone = createZone("Z");
             String tariff = createTariff(zone);
             String session = startSession(zone);
             post("/parking-sessions/" + session + "/closure", CIUDADANO, null).andExpect(status().isOk());
             delete("/parking-tariffs/" + tariff, ADMIN).andExpect(status().isNoContent());
-            get("/parking-tariffs/" + tariff, null).andExpect(status().isNotFound());
+            get("/parking-tariffs/" + tariff, null).andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status").value("INACTIVE"));
         }
 
         @Test

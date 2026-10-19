@@ -4,8 +4,11 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
+import ar.edu.uade.transito.transito_backend.model.enums.ParkingTariffStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -39,4 +42,9 @@ public class ParkingTariff {
     private LocalDate validFrom;
 
     private LocalDate validTo;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, columnDefinition = "varchar(20) default 'ACTIVE'")
+    @Builder.Default
+    private ParkingTariffStatus status = ParkingTariffStatus.ACTIVE;
 }

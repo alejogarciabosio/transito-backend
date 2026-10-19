@@ -3,9 +3,12 @@ package ar.edu.uade.transito.transito_backend.web.dto;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
 public record UpdateTrafficOperationRequest(
-        String zone,
+        @Size(min = 1, max = 200, message = "La zona debe tener entre 1 y 200 caracteres") String zone,
         LocalDateTime endDateTime,
-        List<String> assignedInspectors,
-        List<String> assignedUnits) {
+        List<@NotBlank(message = "Los identificadores de inspector no pueden estar vacíos") String> assignedInspectors,
+        List<@NotBlank(message = "Los identificadores de móvil no pueden estar vacíos") String> assignedUnits) {
 }

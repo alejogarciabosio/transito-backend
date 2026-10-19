@@ -20,4 +20,6 @@ public interface InfractionRepository extends JpaRepository<Infraction, UUID> {
     List<Infraction> findByOffenderNationalId(String offenderNationalId);
 
     List<Infraction> findByOriginOperationId(UUID originOperationId);
+
+    boolean existsByOriginParkingSessionId(UUID originParkingSessionId);
 }
