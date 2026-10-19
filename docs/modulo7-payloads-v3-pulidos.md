@@ -1,5 +1,7 @@
 **MODULO 7 \- Transito** 
 
+> Histórico. Para contratos externos vigentes con envelope Core, usar [modulo7-payloads-v4-core.md](modulo7-payloads-v4-core.md). Esta versión conserva formatos y ejemplos anteriores.
+
 El documento del TPO exige que todo evento tenga como mínimo: tipo de evento, ID único, fecha/hora de generación, módulo de origen, y los datos del evento. 
 
 Por ello, se envuelve todos los payloads así, y documentar los campos de abajo (`infractionId`, `licensePlate`, etc.) como el contenido de `data`: 
