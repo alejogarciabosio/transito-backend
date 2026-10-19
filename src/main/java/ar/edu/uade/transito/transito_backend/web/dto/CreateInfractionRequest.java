@@ -8,21 +8,44 @@ import java.util.UUID;
 import ar.edu.uade.transito.transito_backend.model.Location;
 import ar.edu.uade.transito.transito_backend.model.enums.DebtorIdType;
 import ar.edu.uade.transito.transito_backend.model.enums.InfractionType;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Size;
 
 public record CreateInfractionRequest(
-        String licensePlate,
-        InfractionType infractionType,
-        LocalDateTime infractionDateTime,
-        Location location,
-        List<String> evidenceUrl,
+        @NotBlank(message = "La patente es obligatoria")
+        @Size(max = 15, message = "La patente no puede superar 15 caracteres") String licensePlate,
+        @NotNull(message = "El tipo de infracción es obligatorio") InfractionType infractionType,
+        @NotNull(message = "La fecha de la infracción es obligatoria")
+        @PastOrPresent(message = "La fecha de la infracción no puede estar en el futuro") LocalDateTime infractionDateTime,
+        @NotNull(message = "La ubicación es obligatoria") @Valid Location location,
+        @NotNull(message = "La lista de evidencias es obligatoria")
+        List<@NotBlank(message = "Las URL de evidencia no pueden estar vacías") String> evidenceUrl,
         String offenderNationalId,
         String vehicleOwnerTaxId,
         String debtorId,
         DebtorIdType debtorIdType,
-        BigDecimal baseAmount,
-        List<String> aggravatingFactors,
-        BigDecimal finalAmount,
+        @NotNull(message = "El importe base es obligatorio")
+        @DecimalMin(value = "0.0", inclusive = true, message = "El importe base no puede ser negativo") BigDecimal baseAmount,
+        @NotNull(message = "La lista de agravantes es obligatoria")
+        List<@NotBlank(message = "Los agravantes no pueden estar vacíos") String> aggravatingFactors,
+        @NotNull(message = "El importe final es obligatorio")
+        @DecimalMin(value = "0.0", inclusive = true, message = "El importe final no puede ser negativo") BigDecimal finalAmount,
         UUID originOperationId,
         String originTicketId,
         UUID originParkingSessionId) {
+
+    @AssertTrue(message = "debtorId y debtorIdType deben informarse juntos")
+    public boolean isDebtorIdentificationComplete() {
+        return (debtorId == null || debtorId.isBlank()) == (debtorIdType == null);
+    }
+
+    @AssertTrue(message = "El importe final no puede ser menor que el importe base")
+    public boolean isFinalAmountValid() {
+        return baseAmount == null || finalAmount == null || finalAmount.compareTo(baseAmount) >= 0;
+    }
 }

@@ -22,6 +22,7 @@ import ar.edu.uade.transito.transito_backend.web.dto.CreateParkingZoneRequest;
 import ar.edu.uade.transito.transito_backend.web.dto.ParkingZoneResponse;
 import ar.edu.uade.transito.transito_backend.web.dto.UpdateParkingZoneRequest;
 import ar.edu.uade.transito.transito_backend.web.mapper.ParkingZoneMapper;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -33,7 +34,7 @@ public class ParkingZoneController {
 
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     @PostMapping
-    public ResponseEntity<ParkingZoneResponse> create(@RequestBody CreateParkingZoneRequest request) {
+    public ResponseEntity<ParkingZoneResponse> create(@Valid @RequestBody CreateParkingZoneRequest request) {
         ParkingZone created = parkingZoneService.create(ParkingZoneMapper.toEntity(request));
         return ResponseEntity.created(URI.create("/api/v1/parking-zones/" + created.getZoneId()))
                 .body(ParkingZoneMapper.toResponse(created));
@@ -52,7 +53,7 @@ public class ParkingZoneController {
 
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     @PutMapping("/{id}")
-    public ParkingZoneResponse update(@PathVariable UUID id, @RequestBody UpdateParkingZoneRequest request) {
+    public ParkingZoneResponse update(@PathVariable UUID id, @Valid @RequestBody UpdateParkingZoneRequest request) {
         ParkingZone updated = parkingZoneService.update(id, ParkingZoneMapper.toEntity(request));
         return ParkingZoneMapper.toResponse(updated);
     }

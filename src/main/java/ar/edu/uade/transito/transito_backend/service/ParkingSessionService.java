@@ -13,6 +13,7 @@ import ar.edu.uade.transito.transito_backend.exception.ResourceNotFoundException
 import ar.edu.uade.transito.transito_backend.model.Infraction;
 import ar.edu.uade.transito.transito_backend.model.ParkingSession;
 import ar.edu.uade.transito.transito_backend.model.enums.InfractionType;
+import ar.edu.uade.transito.transito_backend.repository.InfractionRepository;
 import ar.edu.uade.transito.transito_backend.repository.ParkingSessionRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -22,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 public class ParkingSessionService {
 
     private final ParkingSessionRepository parkingSessionRepository;
+    private final InfractionRepository infractionRepository;
     private final InfractionService infractionService;
 
     public ParkingSession start(ParkingSession session) {
@@ -59,6 +61,10 @@ public class ParkingSessionService {
         ParkingSession session = findById(sessionId);
         if (session.isPaid()) {
             throw new InvalidStateTransitionException("La sesión " + sessionId + " ya está paga");
+        }
+        if (infractionRepository.existsByOriginParkingSessionId(sessionId)) {
+            throw new InvalidStateTransitionException(
+                    "La sesión " + sessionId + " ya tiene una infracción por falta de pago");
         }
 
         Infraction infraction = Infraction.builder()

@@ -14,4 +14,6 @@ public interface ParkingSessionRepository extends JpaRepository<ParkingSession, 
     List<ParkingSession> findByLicensePlate(String licensePlate);
 
     List<ParkingSession> findByPaid(boolean paid);
+
+    boolean existsByLicensePlateIgnoreCaseAndEndDateTimeIsNull(String licensePlate);
 }

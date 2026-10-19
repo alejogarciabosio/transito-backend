@@ -23,6 +23,7 @@ import ar.edu.uade.transito.transito_backend.web.dto.CreateParkingTariffRequest;
 import ar.edu.uade.transito.transito_backend.web.dto.ParkingTariffResponse;
 import ar.edu.uade.transito.transito_backend.web.dto.UpdateParkingTariffRequest;
 import ar.edu.uade.transito.transito_backend.web.mapper.ParkingTariffMapper;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -34,7 +35,7 @@ public class ParkingTariffController {
 
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     @PostMapping
-    public ResponseEntity<ParkingTariffResponse> create(@RequestBody CreateParkingTariffRequest request) {
+    public ResponseEntity<ParkingTariffResponse> create(@Valid @RequestBody CreateParkingTariffRequest request) {
         ParkingTariff created = parkingTariffService.create(ParkingTariffMapper.toEntity(request));
         return ResponseEntity.created(URI.create("/api/v1/parking-tariffs/" + created.getTariffId()))
                 .body(ParkingTariffMapper.toResponse(created));
@@ -53,7 +54,7 @@ public class ParkingTariffController {
 
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     @PutMapping("/{id}")
-    public ParkingTariffResponse update(@PathVariable UUID id, @RequestBody UpdateParkingTariffRequest request) {
+    public ParkingTariffResponse update(@PathVariable UUID id, @Valid @RequestBody UpdateParkingTariffRequest request) {
         ParkingTariff updated = parkingTariffService.update(id, ParkingTariffMapper.toEntity(request));
         return ParkingTariffMapper.toResponse(updated);
     }
