@@ -52,6 +52,16 @@ class RoadAccidentIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("TC-BE-ACC-01c: daño de infraestructura sin descripción se rechaza")
+    void register_withInfrastructureDamageWithoutDescription_isRejected() throws Exception {
+        post("/accidents", INSPECTOR, Payloads.accident().replace("\"damageDescription\": \"Semáforo derribado\"",
+                "\"damageDescription\": \"\""))
+                .andExpect(status().isBadRequest());
+
+        assertThat(events.all()).isEmpty();
+    }
+
+    @Test
     @DisplayName("TC-BE-ACC-02: permisos — Ciudadano no registra ni consulta")
     void permissions() throws Exception {
         post("/accidents", CIUDADANO, Payloads.accident()).andExpect(status().isForbidden());

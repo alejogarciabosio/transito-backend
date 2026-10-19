@@ -61,6 +61,12 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.BAD_REQUEST, "invalid-request", "El cuerpo de la solicitud es inválido", request);
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidArgument(IllegalArgumentException ex,
+            HttpServletRequest request) {
+        return build(HttpStatus.BAD_REQUEST, "invalid-request", ex.getMessage(), request);
+    }
+
     private ResponseEntity<ProblemDetail> build(HttpStatus status, String problemType, String detail,
             HttpServletRequest request) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(status, detail);

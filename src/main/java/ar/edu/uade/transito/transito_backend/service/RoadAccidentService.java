@@ -29,6 +29,11 @@ public class RoadAccidentService {
     private final EventPublisher eventPublisher;
 
     public RoadAccident register(RoadAccident accident) {
+        if (accident.isInvolvesInfrastructureDamage()
+                && (accident.getDamageDescription() == null || accident.getDamageDescription().isBlank())) {
+            throw new IllegalArgumentException(
+                    "damageDescription es obligatorio cuando involvesInfrastructureDamage es true");
+        }
         accident.setStatus(AccidentStatus.PRELIMINARY);
         RoadAccident saved = roadAccidentRepository.save(accident);
 

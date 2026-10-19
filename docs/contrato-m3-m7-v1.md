@@ -21,6 +21,8 @@ Todos los mensajes usan el envelope Core:
 
 Las fechas y horas de los eventos usan ISO 8601 con offset. Los enums se serializan en MAYÚSCULA. El módulo de origen usa minúscula: `obras` para M3 y `transito` para M7.
 
+En la implementación actual de M7, `correlationId` se genera como UUID al publicar cada evento y `causationId` se emite como `null`. Ambos campos están siempre presentes, conforme al envelope Core.
+
 ## Eventos publicados por M7
 
 El alcance de M3 en esta versión es: recibe el resultado de cada solicitud de corte (`streetClosureApproved`, `streetClosureRejected` y `streetClosureEnded`) y los accidentes con daño de infraestructura (`roadAccidentRegistered`). `streetClosureActivated` queda como evento interno de M7 y no se distribuye a Obras en la versión `1.0`.
@@ -35,7 +37,7 @@ El alcance de M3 en esta versión es: recibe el resultado de cada solicitud de c
   "occurredAt": "2026-10-20T08:05:00-03:00",
   "sourceModule": "transito",
   "correlationId": "7fd98f1c-72a3-42fb-bbe8-047db769210e",
-  "causationId": "2f4f6f6e-7c10-4e5f-8f89-9c3485d0c214",
+  "causationId": null,
   "data": {
     "streetClosureId": "c819cfbc-9848-43cc-9172-e79201009126",
     "closureRequestId": "1f915e75-7aa3-4320-8452-0b1b457285db",
@@ -59,7 +61,7 @@ El alcance de M3 en esta versión es: recibe el resultado de cada solicitud de c
   "occurredAt": "2026-10-20T08:05:00-03:00",
   "sourceModule": "transito",
   "correlationId": "7fd98f1c-72a3-42fb-bbe8-047db769210e",
-  "causationId": "2f4f6f6e-7c10-4e5f-8f89-9c3485d0c214",
+  "causationId": null,
   "data": {
     "closureRequestId": "1f915e75-7aa3-4320-8452-0b1b457285db",
     "rejectionReason": "El corte afectaría una vía principal durante horario pico.",
