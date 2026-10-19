@@ -1,6 +1,6 @@
 # Contrato de integración M3 Obras ↔ M7 Tránsito — versión 1.0
 
-Estado: propuesto para congelar con Obras el 19 de octubre de 2026.
+Estado: acordado por M3 y M7 el 19 de octubre de 2026. Pendiente únicamente la validación de Core para el nombre registrado de `streetClosureEnded`.
 
 ## Convenciones comunes
 
@@ -23,6 +23,61 @@ Las fechas y horas de los eventos usan ISO 8601 con offset. Los enums se seriali
 
 Para `streetClosureApproved` y `streetClosureRejected`, M7 conserva el `correlationId` recibido en `streetClosureRequested` y usa el `eventId` recibido como `causationId`. Para `streetClosureEnded`, conserva el mismo `correlationId` y usa `causationId: null` porque se origina en una acción posterior o en el vencimiento automático.
 
+## Evento recibido por M7
+
+### `streetClosureRequested` — caso normal
+
+```json
+{
+  "eventId": "2f4f6f6e-7c10-4e5f-8f89-9c3485d0c214",
+  "eventType": "streetClosureRequested",
+  "eventVersion": "1.0",
+  "occurredAt": "2026-10-17T10:00:00-03:00",
+  "sourceModule": "obras",
+  "correlationId": "7fd98f1c-72a3-42fb-bbe8-047db769210e",
+  "causationId": null,
+  "data": {
+    "closureRequestId": "1f915e75-7aa3-4320-8452-0b1b457285db",
+    "sourceModule": "obras",
+    "sourceRef": "OT-2401",
+    "reason": "Reparación de calzada",
+    "affectedSections": [{"street": "Av. Rivadavia", "from": "Av. La Plata", "to": "Muñiz", "direction": "BOTH"}],
+    "requestedFrom": "2026-10-20T08:00:00-03:00",
+    "requestedTo": "2026-10-20T18:00:00-03:00",
+    "closureType": "PARTIAL",
+    "requestedAt": "2026-10-17T10:00:00-03:00"
+  }
+}
+```
+
+### `streetClosureRequested` — prórroga
+
+```json
+{
+  "eventId": "c8e7b24b-5945-4d91-9828-330182567eab",
+  "eventType": "streetClosureRequested",
+  "eventVersion": "1.0",
+  "occurredAt": "2026-10-20T15:00:00-03:00",
+  "sourceModule": "obras",
+  "correlationId": "7fd98f1c-72a3-42fb-bbe8-047db769210e",
+  "causationId": null,
+  "data": {
+    "closureRequestId": "c6bfb292-79fb-4f80-8ace-6cbe0aee46bc",
+    "previousClosureRequestId": "1f915e75-7aa3-4320-8452-0b1b457285db",
+    "sourceModule": "obras",
+    "sourceRef": "OT-2401",
+    "reason": "Prórroga por demora en la reparación de la calzada",
+    "affectedSections": [{"street": "Av. Rivadavia", "from": "Av. La Plata", "to": "Muñiz", "direction": "BOTH"}],
+    "requestedFrom": "2026-10-20T18:00:00-03:00",
+    "requestedTo": "2026-10-21T02:00:00-03:00",
+    "closureType": "PARTIAL",
+    "requestedAt": "2026-10-20T15:00:00-03:00"
+  }
+}
+```
+
+`affectedSections` es obligatorio y cada elemento requiere `street`, `from`, `to` y `direction`, con `direction` en `FORWARD`, `REVERSE` o `BOTH`. En una prórroga, `previousClosureRequestId` es obligatorio.
+
 ## Eventos publicados por M7
 
 El alcance de M3 en esta versión es: recibe el resultado de cada solicitud de corte (`streetClosureApproved`, `streetClosureRejected` y `streetClosureEnded`) y los accidentes con daño de infraestructura (`roadAccidentRegistered`). `streetClosureActivated` queda como evento interno de M7 y no se distribuye a Obras en la versión `1.0`.
@@ -37,7 +92,7 @@ El alcance de M3 en esta versión es: recibe el resultado de cada solicitud de c
   "occurredAt": "2026-10-20T08:05:00-03:00",
   "sourceModule": "transito",
   "correlationId": "7fd98f1c-72a3-42fb-bbe8-047db769210e",
-    "causationId": "2f4f6f6e-7c10-4e5f-8f89-9c3485d0c214",
+  "causationId": "2f4f6f6e-7c10-4e5f-8f89-9c3485d0c214",
   "data": {
     "streetClosureId": "c819cfbc-9848-43cc-9172-e79201009126",
     "closureRequestId": "1f915e75-7aa3-4320-8452-0b1b457285db",
@@ -61,7 +116,7 @@ El alcance de M3 en esta versión es: recibe el resultado de cada solicitud de c
   "occurredAt": "2026-10-20T08:05:00-03:00",
   "sourceModule": "transito",
   "correlationId": "7fd98f1c-72a3-42fb-bbe8-047db769210e",
-    "causationId": "2f4f6f6e-7c10-4e5f-8f89-9c3485d0c214",
+  "causationId": "2f4f6f6e-7c10-4e5f-8f89-9c3485d0c214",
   "data": {
     "closureRequestId": "1f915e75-7aa3-4320-8452-0b1b457285db",
     "rejectionReason": "El corte afectaría una vía principal durante horario pico.",
