@@ -1,6 +1,6 @@
 package ar.edu.uade.transito.transito_backend.event.payload;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -10,7 +10,7 @@ import ar.edu.uade.transito.transito_backend.model.Location;
 
 public record RoadAccidentRegisteredPayload(
         UUID accidentId,
-        LocalDateTime accidentDateTime,
+        OffsetDateTime accidentDateTime,
         Location location,
         boolean involvesInfrastructureDamage,
         String damageDescription,

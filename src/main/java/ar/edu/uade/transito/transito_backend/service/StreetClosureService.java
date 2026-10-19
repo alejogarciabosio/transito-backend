@@ -2,6 +2,7 @@ package ar.edu.uade.transito.transito_backend.service;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 
@@ -31,6 +32,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Transactional
 public class StreetClosureService {
+
+    private static final ZoneId MUNICIPAL_TIME_ZONE = ZoneId.of("America/Argentina/Buenos_Aires");
 
     private final StreetClosureRepository streetClosureRepository;
     private final EventPublisher eventPublisher;
@@ -115,7 +118,7 @@ public class StreetClosureService {
                 saved.getStreetClosureId(),
                 saved.getClosureRequestId(),
                 saved.getRequestingModule().sourceModule(),
-                LocalDateTime.now(),
+                LocalDateTime.now(MUNICIPAL_TIME_ZONE),
                 activatedBy)));
 
         return saved;
@@ -131,7 +134,7 @@ public class StreetClosureService {
         eventPublisher.publish(EventEnvelope.of("streetClosureEnded", new StreetClosureEndedPayload(
                 saved.getStreetClosureId(),
                 saved.getClosureRequestId(),
-                LocalDateTime.now(),
+                OffsetDateTime.now(MUNICIPAL_TIME_ZONE),
                 notes)));
 
         return saved;
@@ -147,7 +150,7 @@ public class StreetClosureService {
             closure.setStatus(StreetClosureStatus.FINISHED);
             StreetClosure saved = streetClosureRepository.save(closure);
             eventPublisher.publish(EventEnvelope.of("streetClosureEnded", new StreetClosureEndedPayload(
-                    saved.getStreetClosureId(), saved.getClosureRequestId(), LocalDateTime.now(),
+                    saved.getStreetClosureId(), saved.getClosureRequestId(), OffsetDateTime.now(MUNICIPAL_TIME_ZONE),
                     "Cierre automático al vencer el horario autorizado.")));
         }
 

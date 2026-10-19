@@ -3,6 +3,7 @@ package ar.edu.uade.transito.transito_backend.service;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
+import java.time.ZoneId;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +23,8 @@ import lombok.RequiredArgsConstructor;
 @Transactional
 public class RoadAccidentService {
 
+    private static final ZoneId MUNICIPAL_TIME_ZONE = ZoneId.of("America/Argentina/Buenos_Aires");
+
     private final RoadAccidentRepository roadAccidentRepository;
     private final EventPublisher eventPublisher;
 
@@ -31,7 +34,7 @@ public class RoadAccidentService {
 
         eventPublisher.publish(EventEnvelope.of("roadAccidentRegistered", new RoadAccidentRegisteredPayload(
                 saved.getAccidentId(),
-                saved.getAccidentDateTime(),
+                saved.getAccidentDateTime().atZone(MUNICIPAL_TIME_ZONE).toOffsetDateTime(),
                 saved.getLocation(),
                 saved.isInvolvesInfrastructureDamage(),
                 saved.getDamageDescription(),
