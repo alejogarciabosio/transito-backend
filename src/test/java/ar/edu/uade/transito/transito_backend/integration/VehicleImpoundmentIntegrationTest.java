@@ -25,10 +25,10 @@ class VehicleImpoundmentIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("TC-BE-IMP-01: registrar → IMPOUNDED, sin referencia de pago, y evento vehicleImpounded")
+    @DisplayName("TC-BE-IMP-01: Inspector registra → IMPOUNDED, sin referencia de pago, y evento vehicleImpounded")
     void register_publishesEvent() throws Exception {
         String body = Payloads.impoundment(CIUDADANO.nationalId()).replace("{", "{\"paymentReference\":\"TRAMPA\",\"status\":\"RELEASED\",");
-        post("/impoundments", DEPOSITO, body)
+        post("/impoundments", INSPECTOR, body)
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.status").value("IMPOUNDED"))
                 .andExpect(jsonPath("$.paymentReference", nullValue()));

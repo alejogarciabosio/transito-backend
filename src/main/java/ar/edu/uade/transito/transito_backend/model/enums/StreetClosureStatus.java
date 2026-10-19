@@ -5,5 +5,6 @@ public enum StreetClosureStatus {
     APPROVED,
     REJECTED,
     ACTIVE,
-    FINISHED
+    FINISHED,
+    EXPIRED
 }

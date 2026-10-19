@@ -22,11 +22,13 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -47,6 +49,30 @@ class OtherServicesTest {
         assertThatThrownBy(() -> service.approve(id, new StreetClosure())).isInstanceOf(InvalidStateTransitionException.class);
         assertThatThrownBy(() -> service.reject(id, "x")).isInstanceOf(InvalidStateTransitionException.class);
         verify(publisher, never()).publish(any());
+    }
+
+    @Test
+    @DisplayName("TC-BE-SC-U02: al vencer el horario autorizado, un ACTIVE finaliza y un APPROVED expira")
+    void expireDueClosures() {
+        var repo = mock(StreetClosureRepository.class);
+        var publisher = mock(EventPublisher.class);
+        var service = new StreetClosureService(repo, publisher);
+        OffsetDateTime now = OffsetDateTime.parse("2026-10-18T12:00:00-03:00");
+        StreetClosure active = StreetClosure.builder().streetClosureId(UUID.randomUUID()).closureRequestId("A")
+                .status(StreetClosureStatus.ACTIVE).build();
+        StreetClosure approved = StreetClosure.builder().streetClosureId(UUID.randomUUID()).closureRequestId("B")
+                .status(StreetClosureStatus.APPROVED).build();
+        when(repo.findByStatusAndEndDateLessThanEqual(StreetClosureStatus.ACTIVE, now)).thenReturn(List.of(active));
+        when(repo.findByStatusAndEndDateLessThanEqual(StreetClosureStatus.APPROVED, now)).thenReturn(List.of(approved));
+        when(repo.save(any(StreetClosure.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        service.expireDueClosures(now);
+
+        assertThat(active.getStatus()).isEqualTo(StreetClosureStatus.FINISHED);
+        assertThat(approved.getStatus()).isEqualTo(StreetClosureStatus.EXPIRED);
+        verify(repo).save(active);
+        verify(repo).save(approved);
+        verify(publisher).publish(any());
     }
 
     @Test

@@ -23,7 +23,7 @@ Este documento presenta el contrato objetivo de la API REST del módulo de Trán
 
 Actualmente están implementados los controladores REST, autenticación JWT mediante un proveedor de identidad local, autorización por roles, validación de titularidad en los recursos que cuentan con esa información, respuestas `application/problem+json`, versionado `/api/v1`, documentación Swagger/OpenAPI y el login integrado con el frontend.
 
-La conexión SOAP con el módulo de Usuarios, la publicación en un broker, Transactional Outbox, idempotencia persistida, paginación e integración completa del frontend constituyen la evolución propuesta. Esta distinción permite mantener un contrato estable sin presentar como finalizadas funciones que todavía están en desarrollo.
+La conexión SOAP con el módulo de Usuarios y el Transactional Outbox continúan pendientes de definición externa. El consumo/publicación por RabbitMQ, la idempotencia de eventos entrantes y los contratos actuales de Cortes/Rentas ya están implementados y se habilitan mediante configuración de Core.
 
 ## 2. Códigos HTTP generales
 
@@ -112,13 +112,13 @@ Los cortes se crean al consumir un evento de Obras o Ambiente, por lo que no exi
 
 | Método | URI | Roles | Request | Respuesta |
 |---|---|---|---|---|
-| `GET` | `/api/v1/street-closures` | Inspector, operador, supervisor | Sin body | `200 StreetClosureResponse[]` |
+| `GET` | `/api/v1/street-closures` | Inspector, Administrador | Sin body | `200 StreetClosureResponse[]` |
 | `GET` | `/api/v1/street-closures/current` | **Público** | Sin body | `200 StreetClosureResponse[]` solo `APPROVED` y `ACTIVE` |
-| `GET` | `/api/v1/street-closures/{id}` | Inspector, operador, supervisor | UUID por path | `200`; `404` |
-| `POST` | `/api/v1/street-closures/{id}/approval` | Inspector, supervisor | `{detours, conditions}` | `200`; `400`, `404`, `409` |
-| `POST` | `/api/v1/street-closures/{id}/rejection` | Inspector, supervisor | `{rejectionReason}` | `200`; `400`, `404`, `409` |
-| `POST` | `/api/v1/street-closures/{id}/activation` | Operador | Sin body | `200`; `404`, `409` |
-| `POST` | `/api/v1/street-closures/{id}/completion` | Operador | `{notes}` | `200`; `400`, `404`, `409` |
+| `GET` | `/api/v1/street-closures/{id}` | Inspector, Administrador | UUID por path | `200`; `404` |
+| `POST` | `/api/v1/street-closures/{id}/approval` | Administrador | `{detours, conditions, authorizedFrom?, authorizedTo?}` | `200`; `400`, `404`, `409` |
+| `POST` | `/api/v1/street-closures/{id}/rejection` | Administrador | `{rejectionReason}` | `200`; `400`, `404`, `409` |
+| `POST` | `/api/v1/street-closures/{id}/activation` | Inspector | Sin body | `200`; `404`, `409` |
+| `POST` | `/api/v1/street-closures/{id}/completion` | Inspector | `{notes}` | `200`; `400`, `404`, `409` |
 
 ### 4.7 Zonas de estacionamiento
 
@@ -279,15 +279,15 @@ Se utiliza `/api/v1` porque el versionado por URI es visible en documentación y
 
 La implementación utiliza Spring Security, JWT, sesiones stateless, autorización por roles, CORS configurable y secretos mediante variables de entorno. El token tiene una duración de dos horas.
 
-Roles definidos: `INSPECTOR`, `SUPERVISOR`, `AUDITOR`, `OPERADOR_CONTROL`, `PERSONAL_DEPOSITO`, `ADMIN_MUNICIPAL` y `CIUDADANO`.
+Roles definidos: `ADMINISTRADOR`, `INSPECTOR` y `CIUDADANO`.
 
 ### Idempotencia — evolución propuesta
 
 Las consultas, reemplazos y eliminaciones son idempotentes. Las transiciones verifican el estado actual y devuelven `409` cuando no pueden repetirse. Para las creaciones se propone aceptar `Idempotency-Key`, conservando la clave y la respuesta durante 24 horas.
 
-### Comunicación asíncrona — evolución propuesta
+### Comunicación asíncrona
 
-La confirmación de una infracción no debe esperar a que Rentas cree la deuda. Se propone publicar `infractionConfirmed` mediante un broker y utilizar Transactional Outbox para persistir el cambio de estado y el evento en una misma transacción.
+La confirmación de una infracción no espera a que Rentas cree la deuda: publica `infractionConfirmed` en RabbitMQ cuando Core habilita la integración. Los eventos entrantes se deduplican mediante `processed_events`. Queda pendiente incorporar Transactional Outbox para garantizar atomicidad entre la transacción de dominio y la publicación.
 
 ### Indisponibilidad del servicio de Usuarios — evolución propuesta
 

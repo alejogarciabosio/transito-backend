@@ -31,7 +31,7 @@ public class TrafficOperationController {
 
     private final TrafficOperationService trafficOperationService;
 
-    @PreAuthorize("hasAnyRole('INSPECTOR', 'OPERADOR_CONTROL')")
+    @PreAuthorize("hasRole('INSPECTOR')")
     @PostMapping
     public ResponseEntity<TrafficOperationResponse> create(@RequestBody CreateTrafficOperationRequest request) {
         TrafficOperation created = trafficOperationService.create(TrafficOperationMapper.toEntity(request));
@@ -39,13 +39,13 @@ public class TrafficOperationController {
                 .body(TrafficOperationMapper.toResponse(created));
     }
 
-    @PreAuthorize("hasAnyRole('INSPECTOR', 'SUPERVISOR', 'AUDITOR')")
+    @PreAuthorize("hasAnyRole('INSPECTOR', 'ADMINISTRADOR')")
     @GetMapping
     public List<TrafficOperationResponse> findAll() {
         return trafficOperationService.findAll().stream().map(TrafficOperationMapper::toResponse).toList();
     }
 
-    @PreAuthorize("hasAnyRole('INSPECTOR', 'SUPERVISOR', 'AUDITOR')")
+    @PreAuthorize("hasAnyRole('INSPECTOR', 'ADMINISTRADOR')")
     @GetMapping("/{id}")
     public TrafficOperationResponse findById(@PathVariable UUID id) {
         return TrafficOperationMapper.toResponse(trafficOperationService.findById(id));

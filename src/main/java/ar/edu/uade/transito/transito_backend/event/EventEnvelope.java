@@ -18,9 +18,15 @@ public class EventEnvelope<T> {
 
     private String eventType;
 
+    private String eventVersion;
+
     private OffsetDateTime occurredAt;
 
     private String sourceModule;
+
+    private UUID correlationId;
+
+    private UUID causationId;
 
     private T data;
 
@@ -28,8 +34,10 @@ public class EventEnvelope<T> {
         return EventEnvelope.<T>builder()
                 .eventId(UUID.randomUUID())
                 .eventType(eventType)
+                .eventVersion("1.0")
                 .occurredAt(OffsetDateTime.now())
                 .sourceModule("transito")
+                .correlationId(UUID.randomUUID())
                 .data(data)
                 .build();
     }

@@ -15,7 +15,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class JwtServiceTest {
 
     private static final String SECRET = "test-secret-de-al-menos-32-bytes-para-hs256-0123456789";
-    private final AuthenticatedUser user = new AuthenticatedUser("u-1", "30111222", Role.SUPERVISOR);
+    private final AuthenticatedUser user = new AuthenticatedUser("u-1", "30111222", Role.ADMINISTRADOR);
 
     @Test
     @DisplayName("TC-BE-JWT-01: genera y parsea un token con subject, nationalId y role")
@@ -24,7 +24,7 @@ class JwtServiceTest {
         var claims = service.parseClaims(service.generateToken(user));
         assertThat(service.extractUserId(claims)).isEqualTo("u-1");
         assertThat(service.extractNationalId(claims)).isEqualTo("30111222");
-        assertThat(service.extractRole(claims)).isEqualTo(Role.SUPERVISOR);
+        assertThat(service.extractRole(claims)).isEqualTo(Role.ADMINISTRADOR);
         assertThat(claims.getExpiration()).isAfter(claims.getIssuedAt());
     }
 

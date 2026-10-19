@@ -31,7 +31,7 @@ public class ParkingZoneController {
 
     private final ParkingZoneService parkingZoneService;
 
-    @PreAuthorize("hasRole('ADMIN_MUNICIPAL')")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     @PostMapping
     public ResponseEntity<ParkingZoneResponse> create(@RequestBody CreateParkingZoneRequest request) {
         ParkingZone created = parkingZoneService.create(ParkingZoneMapper.toEntity(request));
@@ -50,14 +50,14 @@ public class ParkingZoneController {
         return ParkingZoneMapper.toResponse(parkingZoneService.findById(id));
     }
 
-    @PreAuthorize("hasRole('ADMIN_MUNICIPAL')")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     @PutMapping("/{id}")
     public ParkingZoneResponse update(@PathVariable UUID id, @RequestBody UpdateParkingZoneRequest request) {
         ParkingZone updated = parkingZoneService.update(id, ParkingZoneMapper.toEntity(request));
         return ParkingZoneMapper.toResponse(updated);
     }
 
-    @PreAuthorize("hasRole('ADMIN_MUNICIPAL')")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         parkingZoneService.delete(id);

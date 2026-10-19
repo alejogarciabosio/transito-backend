@@ -1,6 +1,7 @@
 package ar.edu.uade.transito.transito_backend.web;
 
 import java.util.List;
+import java.util.ArrayList;
 import java.util.UUID;
 
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -30,7 +31,7 @@ public class StreetClosureController {
     private final StreetClosureService streetClosureService;
     private final CurrentUserProvider currentUserProvider;
 
-    @PreAuthorize("hasAnyRole('INSPECTOR', 'OPERADOR_CONTROL', 'SUPERVISOR')")
+    @PreAuthorize("hasAnyRole('INSPECTOR', 'ADMINISTRADOR')")
     @GetMapping
     public List<StreetClosureResponse> findAll() {
         return streetClosureService.findAll().stream().map(StreetClosureMapper::toResponse).toList();
@@ -42,36 +43,38 @@ public class StreetClosureController {
         return streetClosureService.findCurrent().stream().map(StreetClosureMapper::toResponse).toList();
     }
 
-    @PreAuthorize("hasAnyRole('INSPECTOR', 'OPERADOR_CONTROL', 'SUPERVISOR')")
+    @PreAuthorize("hasAnyRole('INSPECTOR', 'ADMINISTRADOR')")
     @GetMapping("/{id}")
     public StreetClosureResponse findById(@PathVariable UUID id) {
         return StreetClosureMapper.toResponse(streetClosureService.findById(id));
     }
 
-    @PreAuthorize("hasAnyRole('INSPECTOR', 'SUPERVISOR')")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     @PostMapping("/{id}/approval")
     public StreetClosureResponse approve(@PathVariable UUID id, @RequestBody ApproveClosureRequest request) {
         StreetClosure changes = StreetClosure.builder()
-                .detours(request.detours() != null ? request.detours() : List.<Detour>of())
-                .conditions(request.conditions() != null ? request.conditions() : List.<String>of())
+                .detours(request.detours() != null ? new ArrayList<>(request.detours()) : new ArrayList<>())
+                .conditions(request.conditions() != null ? new ArrayList<>(request.conditions()) : new ArrayList<>())
+                .startDate(request.authorizedFrom())
+                .endDate(request.authorizedTo())
                 .build();
         return StreetClosureMapper.toResponse(streetClosureService.approve(id, changes));
     }
 
-    @PreAuthorize("hasAnyRole('INSPECTOR', 'SUPERVISOR')")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     @PostMapping("/{id}/rejection")
     public StreetClosureResponse reject(@PathVariable UUID id, @RequestBody RejectClosureRequest request) {
         return StreetClosureMapper.toResponse(streetClosureService.reject(id, request.rejectionReason()));
     }
 
-    @PreAuthorize("hasRole('OPERADOR_CONTROL')")
+    @PreAuthorize("hasRole('INSPECTOR')")
     @PostMapping("/{id}/activation")
     public StreetClosureResponse activate(@PathVariable UUID id) {
         String activatedBy = currentUserProvider.get().userId();
         return StreetClosureMapper.toResponse(streetClosureService.activate(id, activatedBy));
     }
 
-    @PreAuthorize("hasRole('OPERADOR_CONTROL')")
+    @PreAuthorize("hasRole('INSPECTOR')")
     @PostMapping("/{id}/completion")
     public StreetClosureResponse finish(@PathVariable UUID id, @RequestBody FinishClosureRequest request) {
         return StreetClosureMapper.toResponse(streetClosureService.finish(id, request.notes()));

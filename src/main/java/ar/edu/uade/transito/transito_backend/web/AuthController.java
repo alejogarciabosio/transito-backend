@@ -22,7 +22,8 @@ public class AuthController {
 
     @PostMapping("/login")
     public LoginResponse login(@RequestBody LoginRequest request) {
-        AuthenticatedUser user = identityValidator.validate(request.username(), request.password());
+        String identity = request.dni() != null && !request.dni().isBlank() ? request.dni() : request.username();
+        AuthenticatedUser user = identityValidator.validate(identity, request.password());
         String token = jwtService.generateToken(user);
         return new LoginResponse(token, user.role(), jwtService.getExpirationSeconds());
     }

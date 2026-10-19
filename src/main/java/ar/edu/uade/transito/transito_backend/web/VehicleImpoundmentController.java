@@ -36,7 +36,7 @@ public class VehicleImpoundmentController {
     private final VehicleImpoundmentService vehicleImpoundmentService;
     private final CurrentUserProvider currentUserProvider;
 
-    @PreAuthorize("hasAnyRole('INSPECTOR', 'PERSONAL_DEPOSITO')")
+    @PreAuthorize("hasRole('INSPECTOR')")
     @PostMapping
     public ResponseEntity<VehicleImpoundmentResponse> register(@RequestBody CreateVehicleImpoundmentRequest request) {
         VehicleImpoundment created = vehicleImpoundmentService.register(VehicleImpoundmentMapper.toEntity(request));
@@ -44,7 +44,7 @@ public class VehicleImpoundmentController {
                 .body(VehicleImpoundmentMapper.toResponse(created));
     }
 
-    @PreAuthorize("hasAnyRole('INSPECTOR', 'PERSONAL_DEPOSITO', 'SUPERVISOR')")
+    @PreAuthorize("hasAnyRole('INSPECTOR', 'ADMINISTRADOR')")
     @GetMapping
     public List<VehicleImpoundmentResponse> findAll() {
         return vehicleImpoundmentService.findAll().stream().map(VehicleImpoundmentMapper::toResponse).toList();
@@ -58,7 +58,7 @@ public class VehicleImpoundmentController {
                 .map(VehicleImpoundmentMapper::toResponse).toList();
     }
 
-    @PreAuthorize("hasAnyRole('INSPECTOR', 'PERSONAL_DEPOSITO', 'CIUDADANO')")
+    @PreAuthorize("hasAnyRole('INSPECTOR', 'ADMINISTRADOR', 'CIUDADANO')")
     @GetMapping("/{id}")
     public VehicleImpoundmentResponse findById(@PathVariable UUID id) {
         VehicleImpoundment impoundment = vehicleImpoundmentService.findById(id);
@@ -70,14 +70,14 @@ public class VehicleImpoundmentController {
         return VehicleImpoundmentMapper.toResponse(impoundment);
     }
 
-    @PreAuthorize("hasRole('PERSONAL_DEPOSITO')")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     @PatchMapping("/{id}")
     public VehicleImpoundmentResponse update(@PathVariable UUID id, @RequestBody UpdateVehicleImpoundmentRequest request) {
         VehicleImpoundment updated = vehicleImpoundmentService.update(id, VehicleImpoundmentMapper.toEntity(request));
         return VehicleImpoundmentMapper.toResponse(updated);
     }
 
-    @PreAuthorize("hasRole('PERSONAL_DEPOSITO')")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     @PostMapping("/{id}/release")
     public VehicleImpoundmentResponse release(@PathVariable UUID id, @RequestBody ReleaseImpoundmentRequest request) {
         String releasedBy = currentUserProvider.get().userId();

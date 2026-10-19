@@ -28,9 +28,9 @@ class AuthComponentsTest {
     @DisplayName("TC-BE-AUTH-04: StubIdentityValidator valida usuario y contraseña")
     void stubValidator() {
         var validator = new StubIdentityValidator();
-        AuthenticatedUser user = validator.validate("deposito1", "deposito123");
-        assertThat(user.userId()).isEqualTo("u-1005");
-        assertThat(user.role()).isEqualTo(Role.PERSONAL_DEPOSITO);
+        AuthenticatedUser user = validator.validate("admin1", "admin123");
+        assertThat(user.userId()).isEqualTo("u-1002");
+        assertThat(user.role()).isEqualTo(Role.ADMINISTRADOR);
         assertThatThrownBy(() -> validator.validate("deposito1", "x")).isInstanceOf(InvalidCredentialsException.class);
         assertThatThrownBy(() -> validator.validate("nadie", "x")).isInstanceOf(InvalidCredentialsException.class);
     }

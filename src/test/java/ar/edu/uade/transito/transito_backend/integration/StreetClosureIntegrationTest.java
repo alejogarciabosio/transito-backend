@@ -29,8 +29,11 @@ class StreetClosureIntegrationTest extends AbstractIntegrationTest {
     private String requestClosure(String moduleCode) {
         dispatchIncoming("streetClosureRequested", "{\"closureRequestId\":\"REQ-" + UUID.randomUUID() + "\","
                 + "\"sourceModule\":\"" + moduleCode + "\","
+                + "\"sourceRef\":\"INT-025\",\"reason\":\"Intervención planificada\","
+                + "\"affectedSections\":[\"Av. Rivadavia entre Av. La Plata y Muñiz\"],"
                 + "\"requestedFrom\":\"" + REQUESTED_FROM + "\","
-                + "\"requestedTo\":\"" + REQUESTED_TO + "\"}");
+                + "\"requestedTo\":\"" + REQUESTED_TO + "\","
+                + "\"requestedAt\":\"2026-09-01T15:58:00-03:00\"}");
         return streetClosureRepository.findAll().get((int) streetClosureRepository.count() - 1).getStreetClosureId().toString();
     }
 
@@ -39,7 +42,7 @@ class StreetClosureIntegrationTest extends AbstractIntegrationTest {
             """;
 
     @Test
-    @DisplayName("TC-BE-SC-01: evento streetClosureRequested (M3) crea el corte en REQUESTED con módulo OBRAS")
+    @DisplayName("TC-BE-SC-01: evento streetClosureRequested (obras) crea el corte en REQUESTED con módulo OBRAS")
     void createdFromEvent() throws Exception {
         String id = requestClosure("M3");
         get("/street-closures/" + id, SUPERVISOR)
@@ -65,7 +68,7 @@ class StreetClosureIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("TC-BE-SC-03: aprobar → APPROVED con desvíos/condiciones y evento streetClosureApproved")
     void approve() throws Exception {
         String id = requestClosure("M3");
-        post("/street-closures/" + id + "/approval", INSPECTOR, APPROVE)
+        post("/street-closures/" + id + "/approval", SUPERVISOR, APPROVE)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("APPROVED"))
                 .andExpect(jsonPath("$.detours[0].alternateRoute").value("Av. Córdoba"))
@@ -73,10 +76,23 @@ class StreetClosureIntegrationTest extends AbstractIntegrationTest {
         var p = events.lastPayload("streetClosureApproved", StreetClosureApprovedPayload.class);
         assertThat(p.streetClosureId()).hasToString(id);
         assertThat(p.closureRequestId()).startsWith("REQ-");
-        assertThat(p.requestingModule()).isEqualTo(RequestingModule.OBRAS);
+        assertThat(p.requestingModule()).isEqualTo("Obras");
         assertThat(p.startDate()).isEqualTo(OffsetDateTime.parse(REQUESTED_FROM));
         assertThat(p.detours()).hasSize(1);
         assertThat(p.conditions()).containsExactly("Señalización preventiva");
+    }
+
+    @Test
+    @DisplayName("TC-BE-SC-04: el horario autorizado en la aprobación reemplaza la ventana solicitada")
+    void approvalCanSetAuthorizedWindow() throws Exception {
+        String id = requestClosure("M3");
+        post("/street-closures/" + id + "/approval", SUPERVISOR, """
+                {"authorizedTo":"2026-10-02T03:00:00-03:00"}
+                """)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.endDate").value("2026-10-02T06:00:00Z"));
+        assertThat(events.lastPayload("streetClosureApproved", StreetClosureApprovedPayload.class).endDate())
+                .isEqualTo(OffsetDateTime.parse("2026-10-02T03:00:00-03:00"));
     }
 
     @Test
@@ -87,7 +103,7 @@ class StreetClosureIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("REJECTED"));
         var p = events.lastPayload("streetClosureRejected", StreetClosureRejectedPayload.class);
         assertThat(p.rejectionReason()).isEqualTo("Horario pico");
-        assertThat(p.requestingModule()).isEqualTo(RequestingModule.AMBIENTE);
+        assertThat(p.requestingModule()).isEqualTo("Ambiente");
         // un rechazado no se puede aprobar ni activar
         post("/street-closures/" + id + "/approval", SUPERVISOR, APPROVE).andExpect(status().isConflict());
         post("/street-closures/" + id + "/activation", OPERADOR, null).andExpect(status().isConflict());
@@ -131,12 +147,12 @@ class StreetClosureIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("TC-BE-SC-08: permisos — activar/finalizar solo OPERADOR_CONTROL; aprobar no OPERADOR; consultar no CIUDADANO")
+    @DisplayName("TC-BE-SC-08: permisos — Administrador aprueba/rechaza; Inspector activa/finaliza; ciudadano no consulta personal")
     void permissions() throws Exception {
         String id = requestClosure("M3");
         post("/street-closures/" + id + "/approval", OPERADOR, APPROVE).andExpect(status().isForbidden());
         post("/street-closures/" + id + "/approval", SUPERVISOR, APPROVE);
-        post("/street-closures/" + id + "/activation", INSPECTOR, null).andExpect(status().isForbidden());
+        post("/street-closures/" + id + "/activation", INSPECTOR, null).andExpect(status().isOk());
         post("/street-closures/" + id + "/completion", SUPERVISOR, "{\"notes\":\"x\"}").andExpect(status().isForbidden());
         get("/street-closures", CIUDADANO).andExpect(status().isForbidden());
         get("/street-closures/" + UUID.randomUUID(), INSPECTOR).andExpect(status().isNotFound());
@@ -146,14 +162,14 @@ class StreetClosureIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("TC-BE-SC-CIU-01: /street-closures/current es público y solo expone cortes APPROVED o ACTIVE")
     void currentForCitizens() throws Exception {
         String approved = requestClosure("M3");
-        post("/street-closures/" + approved + "/approval", INSPECTOR, APPROVE).andExpect(status().isOk());
+        post("/street-closures/" + approved + "/approval", SUPERVISOR, APPROVE).andExpect(status().isOk());
 
         String active = requestClosure("M6");
         post("/street-closures/" + active + "/approval", SUPERVISOR, APPROVE).andExpect(status().isOk());
         post("/street-closures/" + active + "/activation", OPERADOR, null).andExpect(status().isOk());
 
         String rejected = requestClosure("M3");
-        post("/street-closures/" + rejected + "/rejection", INSPECTOR, "{\"rejectionReason\":\"Sin permiso\"}")
+        post("/street-closures/" + rejected + "/rejection", SUPERVISOR, "{\"rejectionReason\":\"Sin permiso\"}")
                 .andExpect(status().isOk());
 
         requestClosure("M6"); // queda REQUESTED

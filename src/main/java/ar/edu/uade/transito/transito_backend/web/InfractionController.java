@@ -48,7 +48,7 @@ public class InfractionController {
                 .body(InfractionMapper.toResponse(created));
     }
 
-    @PreAuthorize("hasAnyRole('INSPECTOR', 'SUPERVISOR', 'AUDITOR')")
+    @PreAuthorize("hasAnyRole('INSPECTOR', 'ADMINISTRADOR')")
     @GetMapping
     public List<InfractionResponse> findAll() {
         return infractionService.findAll().stream().map(InfractionMapper::toResponse).toList();
@@ -61,7 +61,7 @@ public class InfractionController {
         return infractionService.findByOffenderNationalId(nationalId).stream().map(InfractionMapper::toResponse).toList();
     }
 
-    @PreAuthorize("hasAnyRole('INSPECTOR', 'AUDITOR', 'CIUDADANO')")
+    @PreAuthorize("hasAnyRole('INSPECTOR', 'ADMINISTRADOR', 'CIUDADANO')")
     @GetMapping("/{id}")
     public InfractionResponse findById(@PathVariable UUID id) {
         Infraction infraction = infractionService.findById(id);
@@ -91,14 +91,14 @@ public class InfractionController {
         return InfractionMapper.toResponse(appealed);
     }
 
-    @PreAuthorize("hasAnyRole('INSPECTOR', 'SUPERVISOR')")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     @PostMapping("/{id}/confirmation")
     public InfractionResponse confirm(@PathVariable UUID id) {
         Infraction confirmed = infractionService.confirm(id);
         return InfractionMapper.toResponse(confirmed);
     }
 
-    @PreAuthorize("hasRole('SUPERVISOR')")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     @PostMapping("/{id}/annulment")
     public InfractionResponse annul(@PathVariable UUID id, @RequestBody AnnulRequest request) {
         String authorizedBy = currentUserProvider.get().userId();

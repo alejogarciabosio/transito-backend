@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ar.edu.uade.transito.transito_backend.exception.InvalidCredentialsException;
 import ar.edu.uade.transito.transito_backend.exception.InvalidStateTransitionException;
 import ar.edu.uade.transito.transito_backend.exception.ResourceNotFoundException;
+import ar.edu.uade.transito.transito_backend.exception.UsersServiceBadGatewayException;
+import ar.edu.uade.transito.transito_backend.exception.UsersServiceUnavailableException;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestControllerAdvice
@@ -37,6 +39,20 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<ProblemDetail> handleInvalidCredentials(InvalidCredentialsException ex, HttpServletRequest request) {
         return build(HttpStatus.UNAUTHORIZED, "invalid-credentials", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(UsersServiceBadGatewayException.class)
+    public ResponseEntity<ProblemDetail> handleUsersBadGateway(UsersServiceBadGatewayException ex,
+            HttpServletRequest request) {
+        return build(HttpStatus.BAD_GATEWAY, "users-service-invalid-response",
+                "El servicio de Usuarios devolvió una respuesta inválida", request);
+    }
+
+    @ExceptionHandler(UsersServiceUnavailableException.class)
+    public ResponseEntity<ProblemDetail> handleUsersUnavailable(UsersServiceUnavailableException ex,
+            HttpServletRequest request) {
+        return build(HttpStatus.SERVICE_UNAVAILABLE, "users-service-unavailable",
+                "El servicio de autenticación no está disponible", request);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)

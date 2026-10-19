@@ -1,6 +1,7 @@
 package ar.edu.uade.transito.transito_backend.service;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -67,12 +68,18 @@ public class StreetClosureService {
         existing.setStatus(StreetClosureStatus.APPROVED);
         existing.setDetours(changes.getDetours());
         existing.setConditions(changes.getConditions());
+        if (changes.getStartDate() != null) {
+            existing.setStartDate(changes.getStartDate());
+        }
+        if (changes.getEndDate() != null) {
+            existing.setEndDate(changes.getEndDate());
+        }
         StreetClosure saved = streetClosureRepository.save(existing);
 
         eventPublisher.publish(EventEnvelope.of("streetClosureApproved", new StreetClosureApprovedPayload(
                 saved.getStreetClosureId(),
                 saved.getClosureRequestId(),
-                saved.getRequestingModule(),
+                saved.getRequestingModule().displayName(),
                 saved.getStartDate(),
                 saved.getEndDate(),
                 saved.getAffectedStreet(),
@@ -92,7 +99,7 @@ public class StreetClosureService {
         eventPublisher.publish(EventEnvelope.of("streetClosureRejected", new StreetClosureRejectedPayload(
                 saved.getClosureRequestId(),
                 rejectionReason,
-                saved.getRequestingModule())));
+                saved.getRequestingModule().displayName())));
 
         return saved;
     }
@@ -107,7 +114,7 @@ public class StreetClosureService {
         eventPublisher.publish(EventEnvelope.of("streetClosureActivated", new StreetClosureActivatedPayload(
                 saved.getStreetClosureId(),
                 saved.getClosureRequestId(),
-                saved.getRequestingModule().code(),
+                saved.getRequestingModule().sourceModule(),
                 LocalDateTime.now(),
                 activatedBy)));
 
@@ -128,6 +135,27 @@ public class StreetClosureService {
                 notes)));
 
         return saved;
+    }
+
+    /**
+     * Applies the operational window agreed with Obras. ACTIVE closures are ended and
+     * APPROVED closures which never activated become EXPIRED, so they cannot activate later.
+     */
+    public void expireDueClosures(OffsetDateTime now) {
+        for (StreetClosure closure : streetClosureRepository
+                .findByStatusAndEndDateLessThanEqual(StreetClosureStatus.ACTIVE, now)) {
+            closure.setStatus(StreetClosureStatus.FINISHED);
+            StreetClosure saved = streetClosureRepository.save(closure);
+            eventPublisher.publish(EventEnvelope.of("streetClosureEnded", new StreetClosureEndedPayload(
+                    saved.getStreetClosureId(), saved.getClosureRequestId(), LocalDateTime.now(),
+                    "Cierre automático al vencer el horario autorizado.")));
+        }
+
+        for (StreetClosure closure : streetClosureRepository
+                .findByStatusAndEndDateLessThanEqual(StreetClosureStatus.APPROVED, now)) {
+            closure.setStatus(StreetClosureStatus.EXPIRED);
+            streetClosureRepository.save(closure);
+        }
     }
 
     private void requireStatus(StreetClosure closure, StreetClosureStatus expected) {

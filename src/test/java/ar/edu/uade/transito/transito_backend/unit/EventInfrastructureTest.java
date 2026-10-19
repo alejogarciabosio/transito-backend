@@ -23,6 +23,9 @@ class EventInfrastructureTest {
         assertThat(e.getEventId()).isNotNull();
         assertThat(e.getEventType()).isEqualTo("algoPaso");
         assertThat(e.getSourceModule()).isEqualTo("transito");
+        assertThat(e.getEventVersion()).isEqualTo("1.0");
+        assertThat(e.getCorrelationId()).isNotNull();
+        assertThat(e.getCausationId()).isNull();
         assertThat(e.getOccurredAt()).isAfterOrEqualTo(before);
         assertThat(e.getData()).isEqualTo("payload");
         assertThat(EventEnvelope.of("x", 1).getEventId()).isNotEqualTo(e.getEventId());
@@ -36,12 +39,16 @@ class EventInfrastructureTest {
     }
 
     @Test
-    @DisplayName("TC-BE-EVT-06: RequestingModule mapea M3↔OBRAS y M6↔AMBIENTE; código desconocido falla")
+    @DisplayName("TC-BE-EVT-06: RequestingModule usa M3/M6 dentro de data y mantiene alias de envelope")
     void requestingModule() {
-        assertThat(RequestingModule.OBRAS.code()).isEqualTo("M3");
-        assertThat(RequestingModule.AMBIENTE.code()).isEqualTo("M6");
-        assertThat(RequestingModule.fromCode("M3")).isEqualTo(RequestingModule.OBRAS);
-        assertThat(RequestingModule.fromCode("M6")).isEqualTo(RequestingModule.AMBIENTE);
-        assertThatThrownBy(() -> RequestingModule.fromCode("M1")).isInstanceOf(IllegalArgumentException.class);
+        assertThat(RequestingModule.OBRAS.sourceModule()).isEqualTo("M3");
+        assertThat(RequestingModule.AMBIENTE.sourceModule()).isEqualTo("M6");
+        assertThat(RequestingModule.OBRAS.displayName()).isEqualTo("Obras");
+        assertThat(RequestingModule.AMBIENTE.displayName()).isEqualTo("Ambiente");
+        assertThat(RequestingModule.fromSourceModule("M3")).isEqualTo(RequestingModule.OBRAS);
+        assertThat(RequestingModule.fromSourceModule("M6")).isEqualTo(RequestingModule.AMBIENTE);
+        assertThat(RequestingModule.fromSourceModule("obras")).isEqualTo(RequestingModule.OBRAS);
+        assertThat(RequestingModule.fromSourceModule("ambiente")).isEqualTo(RequestingModule.AMBIENTE);
+        assertThatThrownBy(() -> RequestingModule.fromSourceModule("M9")).isInstanceOf(IllegalArgumentException.class);
     }
 }

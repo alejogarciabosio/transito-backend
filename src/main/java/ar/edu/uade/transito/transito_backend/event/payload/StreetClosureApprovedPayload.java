@@ -5,12 +5,10 @@ import java.util.List;
 import java.util.UUID;
 
 import ar.edu.uade.transito.transito_backend.model.Detour;
-import ar.edu.uade.transito.transito_backend.model.enums.RequestingModule;
-
 public record StreetClosureApprovedPayload(
         UUID streetClosureId,
         String closureRequestId,
-        RequestingModule requestingModule,
+        String requestingModule,
         OffsetDateTime startDate,
         OffsetDateTime endDate,
         List<String> affectedStreet,

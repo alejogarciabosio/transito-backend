@@ -40,6 +40,17 @@ public class StreetClosure {
     @Column(nullable = false)
     private String closureRequestId;
 
+    @Column(nullable = false)
+    private String sourceRef;
+
+    @Column(nullable = false)
+    private String reason;
+
+    private String closureType;
+
+    @Column(nullable = false)
+    private OffsetDateTime requestedAt;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private RequestingModule requestingModule;

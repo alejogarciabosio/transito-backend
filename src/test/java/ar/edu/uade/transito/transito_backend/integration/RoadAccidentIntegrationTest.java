@@ -42,14 +42,14 @@ class RoadAccidentIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("TC-BE-ACC-02: permisos — SUPERVISOR no registra; CIUDADANO no consulta")
+    @DisplayName("TC-BE-ACC-02: permisos — Ciudadano no registra ni consulta")
     void permissions() throws Exception {
-        post("/accidents", SUPERVISOR, Payloads.accident()).andExpect(status().isForbidden());
+        post("/accidents", CIUDADANO, Payloads.accident()).andExpect(status().isForbidden());
         String id = register();
         get("/accidents", AUDITOR).andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(1)));
         get("/accidents/" + id, SUPERVISOR).andExpect(status().isOk());
         get("/accidents", CIUDADANO).andExpect(status().isForbidden());
-        patch("/accidents/" + id, OPERADOR, Payloads.accidentUpdate(null)).andExpect(status().isForbidden());
+        patch("/accidents/" + id, ADMIN, Payloads.accidentUpdate(null)).andExpect(status().isForbidden());
         get("/accidents/" + UUID.randomUUID(), INSPECTOR).andExpect(status().isNotFound());
     }
 

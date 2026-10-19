@@ -19,11 +19,7 @@ class AuthAndSecurityIntegrationTest extends AbstractIntegrationTest {
     @ParameterizedTest(name = "TC-BE-AUTH-01: login {0} → rol {1}")
     @CsvSource({
             "inspector1,inspector123,INSPECTOR",
-            "supervisor1,supervisor123,SUPERVISOR",
-            "auditor1,auditor123,AUDITOR",
-            "operador1,operador123,OPERADOR_CONTROL",
-            "deposito1,deposito123,PERSONAL_DEPOSITO",
-            "admin1,admin123,ADMIN_MUNICIPAL",
+            "admin1,admin123,ADMINISTRADOR",
             "ciudadano1,ciudadano123,CIUDADANO"})
     void loginOk(String user, String pass, String role) throws Exception {
         var result = post("/auth/login", null, "{\"username\":\"" + user + "\",\"password\":\"" + pass + "\"}")

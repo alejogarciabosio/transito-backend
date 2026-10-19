@@ -4,23 +4,25 @@ public enum RequestingModule {
     OBRAS,
     AMBIENTE;
 
-    /**
-     * Código M-number canónico (M3/M6), usado como clave interna en eventos como
-     * streetClosureActivated, según el mapeo único de identidad de módulo acordado con el equipo.
-     */
-    public String code() {
+    /** Código funcional acordado dentro de data para los eventos de cortes. */
+    public String sourceModule() {
         return this == OBRAS ? "M3" : "M6";
     }
 
+    /** Nombre funcional publicado hacia el módulo que originó la solicitud. */
+    public String displayName() {
+        return this == OBRAS ? "Obras" : "Ambiente";
+    }
+
     /**
-     * Camino inverso de {@link #code()} -- lo usan los listeners que reciben el código M-number
-     * (ej. streetClosureRequested) y necesitan el enum interno.
+     * Acepta el código funcional del payload y los nombres de envelope para
+     * mantener compatibilidad con los mensajes de transición ya intercambiados.
      */
-    public static RequestingModule fromCode(String code) {
-        return switch (code) {
-            case "M3" -> OBRAS;
-            case "M6" -> AMBIENTE;
-            default -> throw new IllegalArgumentException("Código de módulo desconocido: " + code);
+    public static RequestingModule fromSourceModule(String sourceModule) {
+        return switch (sourceModule) {
+            case "M3", "obras" -> OBRAS;
+            case "M6", "ambiente" -> AMBIENTE;
+            default -> throw new IllegalArgumentException("sourceModule desconocido: " + sourceModule);
         };
     }
 }

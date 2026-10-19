@@ -32,7 +32,7 @@ public class RoadAccidentController {
     private final RoadAccidentService roadAccidentService;
     private final CurrentUserProvider currentUserProvider;
 
-    @PreAuthorize("hasAnyRole('INSPECTOR', 'OPERADOR_CONTROL')")
+    @PreAuthorize("hasRole('INSPECTOR')")
     @PostMapping
     public ResponseEntity<RoadAccidentResponse> register(@RequestBody CreateRoadAccidentRequest request) {
         RoadAccident created = roadAccidentService.register(RoadAccidentMapper.toEntity(request));
@@ -40,7 +40,7 @@ public class RoadAccidentController {
                 .body(RoadAccidentMapper.toResponse(created));
     }
 
-    @PreAuthorize("hasAnyRole('INSPECTOR', 'SUPERVISOR', 'AUDITOR')")
+    @PreAuthorize("hasAnyRole('INSPECTOR', 'ADMINISTRADOR')")
     @GetMapping
     public List<RoadAccidentResponse> findAll() {
         return roadAccidentService.findAll().stream().map(RoadAccidentMapper::toResponse).toList();
@@ -53,7 +53,7 @@ public class RoadAccidentController {
         return roadAccidentService.findInvolving(nationalId).stream().map(RoadAccidentMapper::toResponse).toList();
     }
 
-    @PreAuthorize("hasAnyRole('INSPECTOR', 'SUPERVISOR', 'AUDITOR')")
+    @PreAuthorize("hasAnyRole('INSPECTOR', 'ADMINISTRADOR')")
     @GetMapping("/{id}")
     public RoadAccidentResponse findById(@PathVariable UUID id) {
         return RoadAccidentMapper.toResponse(roadAccidentService.findById(id));

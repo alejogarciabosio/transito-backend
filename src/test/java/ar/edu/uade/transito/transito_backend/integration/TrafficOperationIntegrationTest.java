@@ -44,13 +44,13 @@ class TrafficOperationIntegrationTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("TC-BE-OP-02: permisos de alta/consulta/edición")
     void permissions() throws Exception {
-        post("/operations", SUPERVISOR, Payloads.operation()).andExpect(status().isForbidden());
+        post("/operations", CIUDADANO, Payloads.operation()).andExpect(status().isForbidden());
         String id = create();
         get("/operations", AUDITOR).andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(1)));
         get("/operations/" + id, SUPERVISOR).andExpect(status().isOk());
-        get("/operations", OPERADOR).andExpect(status().isForbidden());
-        patch("/operations/" + id, OPERADOR, "{\"zone\":\"x\"}").andExpect(status().isForbidden());
-        post("/operations/" + id + "/closure", SUPERVISOR, "{\"resolution\":\"NO_ACTION\"}").andExpect(status().isForbidden());
+        get("/operations", CIUDADANO).andExpect(status().isForbidden());
+        patch("/operations/" + id, ADMIN, "{\"zone\":\"x\"}").andExpect(status().isForbidden());
+        post("/operations/" + id + "/closure", ADMIN, "{\"resolution\":\"NO_ACTION\"}").andExpect(status().isForbidden());
         get("/operations/" + UUID.randomUUID(), INSPECTOR).andExpect(status().isNotFound());
     }
 

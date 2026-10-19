@@ -50,6 +50,8 @@ En Windows:
 
 - Autenticación JWT y autorización por roles: implementadas.
 - Proveedor local de identidad: implementado para desarrollo.
-- Integración SOAP con Usuarios: planificada.
-- Publicación real mediante broker y Transactional Outbox: planificada.
+- Integración SOAP con Usuarios: cliente `validateUser` implementado; se habilita con `USERS_SOAP_ENABLED=true` y `USERS_SOAP_URL`.
+- RabbitMQ con Core: implementado y configurable; queda habilitarlo con las credenciales reales de Core.
+- Consumo de eventos: cortes de Obras/Ambiente y pagos de Rentas implementados con idempotencia persistida.
+- Cierre automático de cortes: implementado al vencer el horario autorizado.
 - Frontend: login integrado; pantallas restantes en etapa de prototipo mock.

@@ -32,7 +32,7 @@ public class ParkingTariffController {
 
     private final ParkingTariffService parkingTariffService;
 
-    @PreAuthorize("hasRole('ADMIN_MUNICIPAL')")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     @PostMapping
     public ResponseEntity<ParkingTariffResponse> create(@RequestBody CreateParkingTariffRequest request) {
         ParkingTariff created = parkingTariffService.create(ParkingTariffMapper.toEntity(request));
@@ -51,14 +51,14 @@ public class ParkingTariffController {
         return ParkingTariffMapper.toResponse(parkingTariffService.findById(id));
     }
 
-    @PreAuthorize("hasRole('ADMIN_MUNICIPAL')")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     @PutMapping("/{id}")
     public ParkingTariffResponse update(@PathVariable UUID id, @RequestBody UpdateParkingTariffRequest request) {
         ParkingTariff updated = parkingTariffService.update(id, ParkingTariffMapper.toEntity(request));
         return ParkingTariffMapper.toResponse(updated);
     }
 
-    @PreAuthorize("hasRole('ADMIN_MUNICIPAL')")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         parkingTariffService.delete(id);

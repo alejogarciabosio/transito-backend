@@ -34,7 +34,7 @@ public class ParkingSessionController {
     private final ParkingSessionService parkingSessionService;
     private final CurrentUserProvider currentUserProvider;
 
-    @PreAuthorize("hasAnyRole('CIUDADANO', 'OPERADOR_CONTROL')")
+    @PreAuthorize("hasAnyRole('CIUDADANO', 'INSPECTOR')")
     @PostMapping
     public ResponseEntity<ParkingSessionResponse> start(@RequestBody CreateParkingSessionRequest request) {
         ParkingSession created = parkingSessionService.start(ParkingSessionMapper.toEntity(request));
@@ -42,7 +42,7 @@ public class ParkingSessionController {
                 .body(ParkingSessionMapper.toResponse(created));
     }
 
-    @PreAuthorize("hasAnyRole('INSPECTOR', 'OPERADOR_CONTROL', 'SUPERVISOR')")
+    @PreAuthorize("hasAnyRole('INSPECTOR', 'ADMINISTRADOR')")
     @GetMapping
     public List<ParkingSessionResponse> findAll() {
         return parkingSessionService.findAll().stream().map(ParkingSessionMapper::toResponse).toList();
@@ -57,7 +57,7 @@ public class ParkingSessionController {
         return ParkingSessionMapper.toResponse(parkingSessionService.findById(id));
     }
 
-    @PreAuthorize("hasAnyRole('CIUDADANO', 'OPERADOR_CONTROL')")
+    @PreAuthorize("hasAnyRole('CIUDADANO', 'INSPECTOR')")
     @PostMapping("/{id}/closure")
     public ParkingSessionResponse close(@PathVariable UUID id) {
         return ParkingSessionMapper.toResponse(parkingSessionService.close(id));
