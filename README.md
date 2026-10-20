@@ -55,3 +55,23 @@ En Windows:
 - Consumo de eventos: cortes de Obras/Ambiente y pagos de Rentas implementados con idempotencia persistida.
 - Cierre automático de cortes: implementado al vencer el horario autorizado.
 - Frontend: login integrado; pantallas restantes en etapa de prototipo mock.
+
+### RabbitMQ de Core
+
+La integración permanece desactivada por defecto. Para el ambiente compartido de Core,
+una vez que Core habilite la IP pública de salida y entregue la contraseña por un canal
+privado, configurar estas variables fuera del repositorio:
+
+```dotenv
+CORE_RABBITMQ_ENABLED=true
+CORE_RABBITMQ_HOST=core-uade-2026.duckdns.org
+CORE_RABBITMQ_PORT=5671
+CORE_RABBITMQ_VHOST=core
+CORE_RABBITMQ_USERNAME=module_transito
+CORE_RABBITMQ_PASSWORD=<entregada-por-core>
+CORE_RABBITMQ_TLS_ENABLED=true
+```
+
+M7 usa AMQPS con validación del certificado y del hostname activadas. No requiere
+certificado de cliente. La cola `q.transito` se verifica mediante acceso pasivo: M7 no
+crea colas, bindings ni suscripciones en Core.

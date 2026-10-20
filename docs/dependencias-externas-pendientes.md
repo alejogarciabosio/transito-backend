@@ -9,12 +9,23 @@
 - **Impacto visible:** el login **siempre** valida contra esa lista fija, nunca contra una base de usuarios real. No hay manera de que un usuario nuevo se registre y pueda loguearse — solo funcionan los 7 usuarios de prueba documentados en `docs/guia-integracion-frontend.md`.
 - **Quién lo destraba:** el equipo de Usuarios (o Core, si coordina esa interfaz).
 
-## 2. Broker de eventos (RabbitMQ) — ninguna integración está conectada
+## 2. Broker de eventos (RabbitMQ) — listo para conexión, pendiente de habilitación externa
 
-- **Qué hay hoy:** `event/LoggingEventPublisher.java` (único implementador de `EventPublisher`) solo hace `log.info(...)`, no publica a ningún broker real. `listener/IncomingEventDispatcher.java` existe y funciona correctamente, pero **solo se invoca desde tests** — no hay ningún `@RabbitListener` ni conexión real a una cola.
-- **Qué falta:** definición de la cola (ej. `q.transito`), URL y credenciales del broker. Depende de que Core (Módulo 9) las entregue — está documentado como pendiente en `docs/arquitectura-backend-guia.md`.
-- **Impacto visible:** ningún evento entrante se procesa solo. Los handlers (`StreetClosureRequestedHandler`, `TicketUpdatedHandler`, etc.) están completos y testeados, pero en producción **no les llega nada** hasta que haya un broker real conectado. Tampoco salen eventos hacia Rentas, Obras, Ambiente ni Atención Ciudadana — se loguean y nada más.
-- **Confirmado además:** no existe ningún otro cliente HTTP (ni `WebClient`, ni `RestTemplate`, ni `@FeignClient`) hacia Rentas o Atención Ciudadana en todo el código. Toda la comunicación prevista con esos módulos depende exclusivamente de este broker — no hay un "plan B" simulado para ellos.
+- **Qué hay hoy:** `RabbitMqEventPublisher` publica al exchange `muni.inbox` y
+  `RabbitMqIncomingEventListener` consume `q.transito`. La integración se habilita con
+  `CORE_RABBITMQ_ENABLED=true`; cuando está apagada, `LoggingEventPublisher` conserva el
+  comportamiento local. La cola se comprueba con `queueDeclarePassive`, sin declararla ni
+  crear bindings.
+- **Configuración confirmada por Core:** host `core-uade-2026.duckdns.org`, puerto `5671`,
+  virtual host `core`, usuario `module_transito` y AMQPS. La validación del certificado y
+  del hostname están activadas en la configuración; no se requiere certificado de cliente.
+- **Qué falta para operar:** Core debe entregar la contraseña AMQP de forma privada y
+  habilitar la IP pública de salida del backend M7 (y de cualquier red de prueba). Luego
+  corresponde ejecutar la prueba bilateral de consumo y publicación.
+- **Registros en Core:** M7 no hace POST automáticos de publicaciones o suscripciones, por
+  lo que no reactiva pausas configuradas en el dashboard. `streetClosureRequested` ya está
+  suscripto con `maxAttempts: 4`. Core debe registrar/corregir la publicación
+  `streetClosureEnded`: el registro histórico `streetClousureEnded` no es un alias válido.
 
 ## 3. Discrepancia de formato con Rentas (no bloquea hoy, pero va a romper cuando se conecte el broker)
 
@@ -28,7 +39,7 @@
 | Dependencia | Estado hoy | Bloqueado por | Si no se resuelve |
 |---|---|---|---|
 | Identidad (login) | Stub con 7 usuarios fijos | Contrato del Módulo Usuarios | No hay registro/login real |
-| Broker (RabbitMQ) | Nada conectado, solo logs | Config de Core (Módulo 9) | Ningún evento entra ni sale en producción |
+| Broker (RabbitMQ) | Código y AMQPS configurados; desactivado hasta habilitación | Contraseña, allowlist de IP y prueba con Core | No hay tráfico real hasta habilitarlo |
 | Formato de Rentas | Sin confirmar | Respuesta de Rentas | Eventos de Rentas fallarían al llegar, una vez conectado el broker |
 
 Ninguno de estos tres puntos es arreglable solo con código de Tránsito — los tres dependen de que otro equipo entregue información o decida algo.
