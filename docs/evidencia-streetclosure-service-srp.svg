@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1000" viewBox="0 0 1500 1000">
+  <rect width="1500" height="1000" fill="#0f172a"/>
+  <rect x="28" y="28" width="1444" height="944" rx="14" fill="#111827" stroke="#334155" stroke-width="2"/>
+  <text x="66" y="82" fill="#f8fafc" font-family="Arial" font-size="27" font-weight="700">Evidencia SRP - StreetClosureService</text>
+  <text x="66" y="112" fill="#94a3b8" font-family="Arial" font-size="16">src/main/java/.../service/StreetClosureService.java</text>
+  <rect x="54" y="142" width="1392" height="246" rx="9" fill="#172554" stroke="#3b82f6"/>
+  <text x="76" y="174" fill="#93c5fd" font-family="Arial" font-size="16" font-weight="700">1. Transición de estado + 2. Persistencia + 3. Publicación de evento</text>
+  <g font-family="Consolas, monospace" font-size="17" fill="#e5e7eb">
+    <text x="76" y="212"><tspan fill="#94a3b8">65</tspan><tspan x="115">public StreetClosure approve(UUID streetClosureId, StreetClosure changes) {</tspan></text>
+    <text x="76" y="241"><tspan fill="#94a3b8">66</tspan><tspan x="115">    StreetClosure existing = findById(streetClosureId);</tspan></text>
+    <text x="76" y="270"><tspan fill="#94a3b8">67</tspan><tspan x="115">    requireStatus(existing, StreetClosureStatus.REQUESTED);</tspan></text>
+    <text x="76" y="299"><tspan fill="#94a3b8">69</tspan><tspan x="115">    existing.setStatus(StreetClosureStatus.APPROVED);</tspan></text>
+    <text x="76" y="328"><tspan fill="#94a3b8">78</tspan><tspan x="115">    StreetClosure saved = streetClosureRepository.save(existing);</tspan></text>
+    <text x="76" y="357"><tspan fill="#94a3b8">80</tspan><tspan x="115">    eventPublisher.publish(EventEnvelope.of(</tspan><tspan fill="#fbbf24">"streetClosureApproved"</tspan><tspan>, ...));</tspan></text>
+  </g>
+  <rect x="54" y="420" width="1392" height="226" rx="9" fill="#172554" stroke="#3b82f6"/>
+  <text x="76" y="452" fill="#93c5fd" font-family="Arial" font-size="16" font-weight="700">Las mismas responsabilidades reaparecen al finalizar el corte</text>
+  <g font-family="Consolas, monospace" font-size="17" fill="#e5e7eb">
+    <text x="76" y="490"><tspan fill="#94a3b8">118</tspan><tspan x="125">public StreetClosure finish(UUID streetClosureId, String notes) {</tspan></text>
+    <text x="76" y="519"><tspan fill="#94a3b8">119</tspan><tspan x="125">    StreetClosure existing = findById(streetClosureId);</tspan></text>
+    <text x="76" y="548"><tspan fill="#94a3b8">120</tspan><tspan x="125">    requireStatus(existing, StreetClosureStatus.ACTIVE);</tspan></text>
+    <text x="76" y="577"><tspan fill="#94a3b8">122</tspan><tspan x="125">    existing.setStatus(StreetClosureStatus.FINISHED);</tspan></text>
+    <text x="76" y="606"><tspan fill="#94a3b8">123</tspan><tspan x="125">    StreetClosure saved = streetClosureRepository.save(existing);</tspan></text>
+    <text x="76" y="635"><tspan fill="#94a3b8">125</tspan><tspan x="125">    eventPublisher.publish(EventEnvelope.of(</tspan><tspan fill="#fbbf24">"streetClosureEnded"</tspan><tspan>, ...));</tspan></text>
+  </g>
+  <rect x="54" y="678" width="1392" height="222" rx="9" fill="#3f1d2e" stroke="#fb7185"/>
+  <text x="76" y="710" fill="#fda4af" font-family="Arial" font-size="16" font-weight="700">4. Gestión de vencimiento automático</text>
+  <g font-family="Consolas, monospace" font-size="17" fill="#e5e7eb">
+    <text x="76" y="748"><tspan fill="#fda4af">138</tspan><tspan x="125">public void expireDueClosures(OffsetDateTime now) {</tspan></text>
+    <text x="76" y="777"><tspan fill="#fda4af">139</tspan><tspan x="125">    for (StreetClosure closure : streetClosureRepository</tspan></text>
+    <text x="76" y="806"><tspan fill="#fda4af">140</tspan><tspan x="125">        .findByStatusAndEndDateLessThanEqual(ACTIVE, now)) {</tspan></text>
+    <text x="76" y="835"><tspan fill="#fda4af">141</tspan><tspan x="125">        closure.setStatus(StreetClosureStatus.FINISHED);</tspan></text>
+    <text x="76" y="864"><tspan fill="#fda4af">143</tspan><tspan x="125">        eventPublisher.publish(EventEnvelope.of(</tspan><tspan fill="#fbbf24">"streetClosureEnded"</tspan><tspan>, ...));</tspan></text>
+  </g>
+  <text x="76" y="938" fill="#cbd5e1" font-family="Arial" font-size="17">Conclusión: una sola clase cambia por reglas de estado, persistencia, contrato de eventos y vencimientos.</text>
+</svg>
