@@ -42,6 +42,17 @@ Todo evento externo de M7 usa exactamente este sobre:
 
 ## Cortes de calle: schema acordado M3/M7
 
+### Convención de origen M3/M6
+
+El envelope identifica al productor ante Core con el nombre técnico en minúscula, mientras que `data.sourceModule` identifica al módulo solicitante:
+
+| Módulo solicitante | `sourceModule` del envelope | `data.sourceModule` | `requestingModule` en respuesta M7 |
+| --- | --- | --- | --- |
+| M3 Obras | `obras` | `M3` | `obras` |
+| M6 Ambiente | `ambiente` | `M6` | `ambiente` |
+
+M7 determina quién solicitó el corte leyendo `data.sourceModule`. Las respuestas se correlacionan por `closureRequestId` y conservan el `correlationId` del evento recibido. El envelope de toda respuesta emitida por M7 usa `sourceModule: "transito"`.
+
 `affectedSections` es siempre una lista estructurada; no se usa la variante histórica `affectedStreet` textual:
 
 ```json
@@ -58,6 +69,10 @@ En `streetClosureRequested`, una prórroga se identifica con `previousClosureReq
 Un corte ACTIVE se cierra automáticamente al vencer `endDate` y publica `streetClosureEnded`. Uno APPROVED que no se activó pasa a `EXPIRED` sin publicar finalización. `streetClosureActivated` es interno y no se publica a M3/M6.
 
 Los ejemplos JSON completos —normal, prórroga y respuestas— están en [contrato-m3-m7-v1.md](contrato-m3-m7-v1.md).
+
+### Eventos de Ambiente aún no consumidos por M7
+
+Los catálogos `ServiceOrigin`, `TreeHealthStatus`, `TreeInterventionType` y el campo opcional `location.neighborhoodId` corresponden a eventos de servicios y arbolado de M6 que M7 no consume actualmente. Por lo tanto, sus valores no modifican el contrato de `streetClosureRequested` ni bloquean la integración M3/M6–M7.
 
 ## Versionado
 
