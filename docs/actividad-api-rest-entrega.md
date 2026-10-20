@@ -4,53 +4,57 @@
 
 **Ingeniería en Informática**  
 **Desarrollo de Aplicaciones II — Grupo 9**  
-**Actividad API REST**
+**Actividad API REST — versión vigente al 20 de octubre de 2026**
 
 **Profesor:** Ruiz, Matías Gabriel
 
-**Integrantes:**
-
-- Abdala, Fernando — LU 1155644
-- Abrego, Lautaro Elías — LU 1152414
-- Fabian, Romina Betiana — LU 1168948
-- García, Alejo — LU 1167615
+**Integrantes:** Abdala, Fernando · Abrego, Lautaro Elías · Fabian, Romina Betiana · García, Alejo
 
 ---
 
-## 1. Alcance de la entrega
+## 1. Alcance
 
-Este documento presenta el contrato objetivo de la API REST del módulo de Tránsito, Estacionamiento y Seguridad Vial, junto con el estado actual de su implementación.
+Este documento describe la API REST que está implementada en M7 — Tránsito,
+Estacionamiento y Seguridad Vial. Los controladores y DTOs del backend son la fuente de
+verdad; las evoluciones pendientes se señalan de forma explícita.
 
-Actualmente están implementados los controladores REST, autenticación JWT mediante un proveedor de identidad local, autorización por roles, validación de titularidad en los recursos que cuentan con esa información, respuestas `application/problem+json`, versionado `/api/v1`, documentación Swagger/OpenAPI y el login integrado con el frontend.
+- URL local: `http://localhost:8080`
+- Prefijo obligatorio: `/api/v1`
+- Swagger UI: `/swagger-ui/index.html`
+- OpenAPI generado: `/v3/api-docs`
 
-La conexión SOAP con el módulo de Usuarios y el Transactional Outbox continúan pendientes de definición externa. El consumo/publicación por RabbitMQ, la idempotencia de eventos entrantes y los contratos actuales de Cortes/Rentas ya están implementados y se habilitan mediante configuración de Core.
+La API tiene JWT, autorización por rol, validaciones de entrada, controles de titularidad,
+errores `application/problem+json`, SOAP configurable con Usuarios y RabbitMQ configurable
+con Core.
 
 ## 2. Códigos HTTP generales
 
 | Código | Significado |
 |---|---|
-| `200 OK` | Consulta o transición exitosa |
-| `201 Created` | Recurso creado; incluye el encabezado `Location` |
-| `204 No Content` | Baja lógica o eliminación exitosa |
-| `400 Bad Request` | Solicitud inválida o JSON mal formado |
-| `401 Unauthorized` | Token ausente, inválido o credenciales incorrectas |
-| `403 Forbidden` | Usuario autenticado sin permisos |
-| `404 Not Found` | Recurso inexistente |
-| `409 Conflict` | Regla de negocio o transición de estado inválida |
-| `429 Too Many Requests` | Límite de intentos de autenticación excedido — evolución propuesta |
-| `502 Bad Gateway` | Respuesta inválida del servicio de identidad — evolución propuesta |
-| `503 Service Unavailable` | Servicio de identidad no disponible — evolución propuesta |
-| `500 Internal Server Error` | Error no controlado |
+| `200` | Consulta o acción exitosa. |
+| `201` | Recurso creado; incluye encabezado `Location`. |
+| `204` | Eliminación exitosa de zona o tarifa. |
+| `400` | Request inválido, JSON mal formado o validación incumplida. |
+| `401` | Credenciales incorrectas, token ausente, inválido o vencido. |
+| `403` | Rol sin permiso o ciudadano que accede a un recurso ajeno. |
+| `404` | Recurso inexistente. |
+| `409` | Transición de estado inválida. |
+| `502` | SOAP de Usuarios respondió Fault, HTTP no exitoso o XML inválido. |
+| `503` | Timeout o indisponibilidad de Usuarios. |
+| `500` | Error no previsto. |
 
-## 3. Convenciones del contrato
+No están implementados `429`, `Retry-After`, paginación, filtros, hipermedia ni
+`Idempotency-Key`.
 
-- URL base local: `http://localhost:8080`.
-- Prefijo estable de la primera versión: `/api/v1`.
-- Recursos expresados como sustantivos plurales.
-- Transiciones expresadas como subrecursos nominales: `confirmation`, `annulment`, `closure`, etc.
-- Autenticación mediante `Authorization: Bearer <jwt>`.
-- Errores mediante `Content-Type: application/problem+json`.
-- No se eliminan físicamente infracciones, accidentes, operativos ni retenciones porque forman parte del historial auditable.
+## 3. Convenciones y seguridad
+
+- Roles existentes: `ADMINISTRADOR`, `INSPECTOR` y `CIUDADANO`.
+- Token: `Authorization: Bearer <jwt>`, con vigencia de dos horas.
+- Los errores usan Problem Details: `type`, `title`, `status`, `detail` e `instance`.
+- `inspectorId`, quien anula una infracción y quien libera un vehículo se obtienen del JWT,
+  no del body.
+- Los endpoints de dominio usan `LocalDateTime` o `LocalDate`; los eventos Core usan ISO 8601
+  con offset.
 
 ## 4. Endpoints
 
@@ -58,156 +62,127 @@ La conexión SOAP con el módulo de Usuarios y el Transactional Outbox continúa
 
 | Método | URI | Acceso | Request | Respuesta |
 |---|---|---|---|---|
-| `POST` | `/api/v1/auth/login` | Público | `{username, password}` | `200 LoginResponse`; `400`, `401`; a futuro `429`, `502`, `503` |
+| `POST` | `/api/v1/auth/login` | Público | `{ "username"?: "...", "dni"?: "...", "password": "..." }` | `200 LoginResponse`; `400`, `401`, `502`, `503` |
+
+Si `dni` está presente se utiliza como identidad; de lo contrario se usa `username`.
 
 ### 4.2 Operativos
 
-| Método | URI | Roles | Request | Respuesta |
-|---|---|---|---|---|
-| `POST` | `/api/v1/operations` | Inspector, operador | `CreateTrafficOperationRequest` | `201 TrafficOperationResponse` |
-| `GET` | `/api/v1/operations` | Inspector, supervisor, auditor | Sin body | `200 TrafficOperationResponse[]` |
-| `GET` | `/api/v1/operations/{id}` | Inspector, supervisor, auditor | UUID por path | `200`; `404` |
-| `PATCH` | `/api/v1/operations/{id}` | Inspector | `UpdateTrafficOperationRequest` | `200`; `400`, `404`, `409` |
-| `POST` | `/api/v1/operations/{id}/closure` | Inspector | `{resolution}` | `200`; `400`, `404`, `409` |
+| Método | URI | Rol | Request |
+|---|---|---|---|
+| `POST` | `/api/v1/operations` | INSPECTOR | `CreateTrafficOperationRequest` |
+| `GET` | `/api/v1/operations` | INSPECTOR, ADMINISTRADOR | — |
+| `GET` | `/api/v1/operations/{id}` | INSPECTOR, ADMINISTRADOR | UUID path |
+| `PATCH` | `/api/v1/operations/{id}` | INSPECTOR | `UpdateTrafficOperationRequest` |
+| `POST` | `/api/v1/operations/{id}/closure` | INSPECTOR | `{ "resolution": "..." }` |
 
 ### 4.3 Infracciones
 
-| Método | URI | Roles | Request | Respuesta |
-|---|---|---|---|---|
-| `POST` | `/api/v1/infractions` | Inspector | `CreateInfractionRequest` | `201 InfractionResponse` |
-| `GET` | `/api/v1/infractions` | Inspector, supervisor, auditor | Sin body | `200 InfractionResponse[]` |
-| `GET` | `/api/v1/infractions/mine` | Ciudadano | Sin body | `200 InfractionResponse[]` |
-| `GET` | `/api/v1/infractions/{id}` | Inspector, auditor o ciudadano titular | UUID por path | `200`; `404` |
-| `PATCH` | `/api/v1/infractions/{id}` | Inspector | `UpdateInfractionRequest` | `200`; `400`, `404`, `409` |
-| `POST` | `/api/v1/infractions/{id}/appeal` | Ciudadano titular | `{reason}` | `200`; `400`, `404`, `409` |
-| `POST` | `/api/v1/infractions/{id}/confirmation` | Inspector, supervisor | Sin body | `200`; `404`, `409` |
-| `POST` | `/api/v1/infractions/{id}/annulment` | Supervisor | `{annulmentReason}` | `200`; `400`, `404`, `409` |
+| Método | URI | Rol | Request |
+|---|---|---|---|
+| `POST` | `/api/v1/infractions` | INSPECTOR | `CreateInfractionRequest` |
+| `GET` | `/api/v1/infractions` | INSPECTOR, ADMINISTRADOR | — |
+| `GET` | `/api/v1/infractions/mine` | CIUDADANO | — |
+| `GET` | `/api/v1/infractions/{id}` | INSPECTOR, ADMINISTRADOR o titular | UUID path |
+| `PATCH` | `/api/v1/infractions/{id}` | INSPECTOR | `UpdateInfractionRequest` |
+| `POST` | `/api/v1/infractions/{id}/appeal` | CIUDADANO titular | `{ "reason": "..." }` |
+| `POST` | `/api/v1/infractions/{id}/confirmation` | ADMINISTRADOR | sin body |
+| `POST` | `/api/v1/infractions/{id}/annulment` | ADMINISTRADOR | `{ "annulmentReason": "..." }` |
 
-`inspectorId` y el responsable de la anulación se obtienen del JWT. No se aceptan desde el body.
+`confirmation` sólo admite infracciones `PENDING_APPEAL` o `APPEALED`. Cambia el estado a
+`CONFIRMED` y emite `infractionConfirmed` para Rentas.
 
 ### 4.4 Accidentes viales
 
-| Método | URI | Roles | Request | Respuesta |
-|---|---|---|---|---|
-| `POST` | `/api/v1/accidents` | Inspector, operador | `CreateRoadAccidentRequest` | `201 RoadAccidentResponse` |
-| `GET` | `/api/v1/accidents` | Inspector, supervisor, auditor | Sin body | `200 RoadAccidentResponse[]` |
-| `GET` | `/api/v1/accidents/mine` | Ciudadano | Sin body (usa el DNI del token) | `200 RoadAccidentResponse[]` donde figura como persona o titular |
-| `GET` | `/api/v1/accidents/{id}` | Inspector, supervisor, auditor | UUID por path | `200`; `404` |
-| `PATCH` | `/api/v1/accidents/{id}` | Inspector | `UpdateRoadAccidentRequest` | `200`; `400`, `404`, `409` |
+| Método | URI | Rol | Request |
+|---|---|---|---|
+| `POST` | `/api/v1/accidents` | INSPECTOR | `CreateRoadAccidentRequest` |
+| `GET` | `/api/v1/accidents` | INSPECTOR, ADMINISTRADOR | — |
+| `GET` | `/api/v1/accidents/mine` | CIUDADANO | — |
+| `GET` | `/api/v1/accidents/{id}` | INSPECTOR, ADMINISTRADOR | UUID path |
+| `PATCH` | `/api/v1/accidents/{id}` | INSPECTOR | `UpdateRoadAccidentRequest` |
+
+Cuando `involvesInfrastructureDamage` vale `true`, `damageDescription` es obligatorio. Sólo
+en ese caso se publica `roadAccidentRegistered` a Obras.
 
 ### 4.5 Vehículos retenidos
 
-| Método | URI | Roles | Request | Respuesta |
-|---|---|---|---|---|
-| `POST` | `/api/v1/impoundments` | Inspector, personal de depósito | `CreateVehicleImpoundmentRequest` | `201 VehicleImpoundmentResponse` |
-| `GET` | `/api/v1/impoundments` | Inspector, depósito, supervisor | Sin body | `200 VehicleImpoundmentResponse[]` |
-| `GET` | `/api/v1/impoundments/mine` | Ciudadano | Sin body (usa el DNI del token) | `200 VehicleImpoundmentResponse[]` de vehículos propios |
-| `GET` | `/api/v1/impoundments/{id}` | Inspector, depósito o ciudadano titular | UUID por path | `200`; `404` |
-| `PATCH` | `/api/v1/impoundments/{id}` | Personal de depósito | `UpdateVehicleImpoundmentRequest` | `200`; `400`, `404`, `409` |
-| `POST` | `/api/v1/impoundments/{id}/release` | Personal de depósito | `ReleaseImpoundmentRequest` | `200`; `400`, `404`, `409` |
+| Método | URI | Rol | Request |
+|---|---|---|---|
+| `POST` | `/api/v1/impoundments` | INSPECTOR | `CreateVehicleImpoundmentRequest` |
+| `GET` | `/api/v1/impoundments` | INSPECTOR, ADMINISTRADOR | — |
+| `GET` | `/api/v1/impoundments/mine` | CIUDADANO | — |
+| `GET` | `/api/v1/impoundments/{id}` | INSPECTOR, ADMINISTRADOR o titular | UUID path |
+| `PATCH` | `/api/v1/impoundments/{id}` | ADMINISTRADOR | `UpdateVehicleImpoundmentRequest` |
+| `POST` | `/api/v1/impoundments/{id}/release` | ADMINISTRADOR | `ReleaseImpoundmentRequest` |
+
+Liberación: `verifiedRequirements` no puede ser vacío; `towingAndStorageFee` es obligatorio;
+si el costo es mayor a cero, también lo es `paymentReference`.
 
 ### 4.6 Cortes de calle
 
-Los cortes se crean al consumir un evento de Obras o Ambiente, por lo que no existe un endpoint público de creación.
+Los cortes se crean sólo a partir de `streetClosureRequested` de Obras/Ambiente, no mediante
+un endpoint REST de alta.
 
-| Método | URI | Roles | Request | Respuesta |
-|---|---|---|---|---|
-| `GET` | `/api/v1/street-closures` | Inspector, Administrador | Sin body | `200 StreetClosureResponse[]` |
-| `GET` | `/api/v1/street-closures/current` | **Público** | Sin body | `200 StreetClosureResponse[]` solo `APPROVED` y `ACTIVE` |
-| `GET` | `/api/v1/street-closures/{id}` | Inspector, Administrador | UUID por path | `200`; `404` |
-| `POST` | `/api/v1/street-closures/{id}/approval` | Administrador | `{detours, conditions, authorizedFrom?, authorizedTo?}` | `200`; `400`, `404`, `409` |
-| `POST` | `/api/v1/street-closures/{id}/rejection` | Administrador | `{rejectionReason}` | `200`; `400`, `404`, `409` |
-| `POST` | `/api/v1/street-closures/{id}/activation` | Inspector | Sin body | `200`; `404`, `409` |
-| `POST` | `/api/v1/street-closures/{id}/completion` | Inspector | `{notes}` | `200`; `400`, `404`, `409` |
+| Método | URI | Rol | Request |
+|---|---|---|---|
+| `GET` | `/api/v1/street-closures` | INSPECTOR, ADMINISTRADOR | — |
+| `GET` | `/api/v1/street-closures/current` | Público | — |
+| `GET` | `/api/v1/street-closures/{id}` | INSPECTOR, ADMINISTRADOR | UUID path |
+| `POST` | `/api/v1/street-closures/{id}/approval` | ADMINISTRADOR | `ApproveClosureRequest` |
+| `POST` | `/api/v1/street-closures/{id}/rejection` | ADMINISTRADOR | `{ "rejectionReason": "..." }` |
+| `POST` | `/api/v1/street-closures/{id}/activation` | INSPECTOR | sin body |
+| `POST` | `/api/v1/street-closures/{id}/completion` | INSPECTOR | `{ "notes": "..." }` |
 
-### 4.7 Zonas de estacionamiento
+En aprobación, `detours` y `conditions` son obligatorios; `authorizedFrom` y `authorizedTo`
+son opcionales. El fin autorizado gobierna el cierre automático. Un corte `ACTIVE` publica
+`streetClosureEnded` al finalizar; uno aprobado que nunca se activó pasa a `EXPIRED` sin
+publicar finalización. `streetClosureActivated` es interno de M7.
 
-| Método | URI | Acceso | Request | Respuesta |
-|---|---|---|---|---|
-| `POST` | `/api/v1/parking-zones` | Administrador municipal | `CreateParkingZoneRequest` | `201 ParkingZoneResponse` |
-| `GET` | `/api/v1/parking-zones` | Público | Sin body | `200 ParkingZoneResponse[]` |
-| `GET` | `/api/v1/parking-zones/{id}` | Público | UUID por path | `200`; `404` |
-| `PUT` | `/api/v1/parking-zones/{id}` | Administrador municipal | `UpdateParkingZoneRequest` | `200`; `400`, `404` |
-| `DELETE` | `/api/v1/parking-zones/{id}` | Administrador municipal | UUID por path | `204`; `404` |
+### 4.7 Estacionamiento medido
 
-### 4.8 Tarifas
+| Método | URI | Rol | Request |
+|---|---|---|---|
+| `POST` | `/api/v1/parking-zones` | ADMINISTRADOR | `CreateParkingZoneRequest` |
+| `GET` | `/api/v1/parking-zones` | Público | — |
+| `GET` | `/api/v1/parking-zones/{id}` | Público | UUID path |
+| `PUT` | `/api/v1/parking-zones/{id}` | ADMINISTRADOR | `UpdateParkingZoneRequest` |
+| `DELETE` | `/api/v1/parking-zones/{id}` | ADMINISTRADOR | — |
+| `POST` | `/api/v1/parking-tariffs` | ADMINISTRADOR | `CreateParkingTariffRequest` |
+| `GET` | `/api/v1/parking-tariffs?zoneId={uuid}` | Público | `zoneId` query |
+| `GET` | `/api/v1/parking-tariffs/{id}` | Público | UUID path |
+| `PUT` | `/api/v1/parking-tariffs/{id}` | ADMINISTRADOR | `UpdateParkingTariffRequest` |
+| `DELETE` | `/api/v1/parking-tariffs/{id}` | ADMINISTRADOR | — |
+| `POST` | `/api/v1/parking-sessions` | CIUDADANO, INSPECTOR | `CreateParkingSessionRequest` |
+| `GET` | `/api/v1/parking-sessions` | INSPECTOR, ADMINISTRADOR | — |
+| `GET` | `/api/v1/parking-sessions/{id}` | CIUDADANO, INSPECTOR | UUID path |
+| `POST` | `/api/v1/parking-sessions/{id}/closure` | CIUDADANO, INSPECTOR | sin body |
+| `POST` | `/api/v1/parking-sessions/{id}/unpaid-flag` | INSPECTOR | `{ "baseAmount": 0 }` |
 
-| Método | URI | Acceso | Request | Respuesta |
-|---|---|---|---|---|
-| `POST` | `/api/v1/parking-tariffs` | Administrador municipal | `CreateParkingTariffRequest` | `201 ParkingTariffResponse` |
-| `GET` | `/api/v1/parking-tariffs?zoneId={uuid}` | Público | `zoneId` por query | `200 ParkingTariffResponse[]` |
-| `GET` | `/api/v1/parking-tariffs/{id}` | Público | UUID por path | `200`; `404` |
-| `PUT` | `/api/v1/parking-tariffs/{id}` | Administrador municipal | `UpdateParkingTariffRequest` | `200`; `400`, `404` |
-| `DELETE` | `/api/v1/parking-tariffs/{id}` | Administrador municipal | UUID por path | `204`; `404`, `409` |
+## 5. Ejemplos JSON
 
-### 4.9 Sesiones de estacionamiento
-
-| Método | URI | Roles | Request | Respuesta |
-|---|---|---|---|---|
-| `POST` | `/api/v1/parking-sessions` | Ciudadano, operador | `CreateParkingSessionRequest` | `201 ParkingSessionResponse` |
-| `GET` | `/api/v1/parking-sessions` | Inspector, operador, supervisor | Sin body | `200 ParkingSessionResponse[]` |
-| `GET` | `/api/v1/parking-sessions/{id}` | Inspector, ciudadano | UUID por path | `200`; `404` |
-| `POST` | `/api/v1/parking-sessions/{id}/closure` | Ciudadano, operador | Sin body | `200`; `404`, `409` |
-| `POST` | `/api/v1/parking-sessions/{id}/unpaid-flag` | Inspector | `{baseAmount}` | `200 InfractionResponse`; `400`, `404`, `409` |
-
-## 5. Contrato OpenAPI
-
-Se incluye un contrato OpenAPI 3.0.3 con diez operaciones representativas de autenticación, infracciones y operativos. El archivo fuente se encuentra en `src/main/resources/static/openapi.yaml`.
-
-Con el backend levantado se publica en:
-
-- Swagger UI: `http://localhost:8080/swagger-ui/index.html`
-- Contrato estático: `http://localhost:8080/openapi.yaml`
-- Especificación generada desde el código: `http://localhost:8080/v3/api-docs`
-
-## 6. Ejemplos JSON
-
-### Registro exitoso
-
-```http
-POST /api/v1/infractions HTTP/1.1
-Authorization: Bearer <jwt>
-Content-Type: application/json
-```
+### Registro de infracción
 
 ```json
 {
   "licensePlate": "AB123CD",
   "infractionType": "ILLEGAL_PARKING",
-  "infractionDateTime": "2026-10-06T14:30:00",
-  "location": {
-    "street": "Av. Cabildo",
-    "crossStreet": "Juramento",
-    "latitude": -34.5621,
-    "longitude": -58.4563
-  },
-  "evidenceUrl": ["https://evidencias.uade.edu.ar/infractions/foto-123.jpg"],
+  "infractionDateTime": "2026-10-20T14:30:00",
+  "location": {"street": "Av. Cabildo", "crossStreet": "Juramento", "latitude": -34.5621, "longitude": -58.4563},
+  "evidenceUrl": ["https://evidencias.example/acta-123.jpg"],
   "offenderNationalId": "40123456",
   "debtorId": "40123456",
   "debtorIdType": "DNI",
   "baseAmount": 50000,
   "aggravatingFactors": ["REINCIDENCE"],
   "finalAmount": 75000,
-  "originOperationId": "d06b75bf-b2fe-4318-93a2-d2e22320fa83"
+  "originOperationId": null,
+  "originTicketId": null,
+  "originParkingSessionId": null
 }
 ```
 
-Respuesta:
-
-```http
-HTTP/1.1 201 Created
-Location: /api/v1/infractions/93fd4382-2343-4f3f-a127-9328b29fc520
-Content-Type: application/json
-```
-
-El backend incorpora `infractionId`, `inspectorId` y `status: "PENDING_APPEAL"` en la respuesta.
-
-### Error mediante Problem Details
-
-```http
-HTTP/1.1 409 Conflict
-Content-Type: application/problem+json
-```
+### Error de transición
 
 ```json
 {
@@ -219,95 +194,26 @@ Content-Type: application/problem+json
 }
 ```
 
-## 7. Diagramas de secuencia
+## 6. Integraciones
 
-### 7.1 Autenticación objetivo
+### Usuarios — SOAP síncrono
 
-```mermaid
-sequenceDiagram
-    actor Usuario
-    participant FE as Frontend
-    participant API as API Tránsito
-    participant USR as Usuarios (SOAP)
-    Usuario->>FE: Ingresa usuario y contraseña
-    FE->>API: POST /api/v1/auth/login
-    API->>USR: Validar credenciales (timeout 5 s)
-    alt Credenciales válidas
-        USR-->>API: Identidad y rol
-        API-->>FE: 200 + JWT
-        FE-->>Usuario: Acceso habilitado
-    else Credenciales inválidas
-        USR-->>API: Rechazo
-        API-->>FE: 401 Problem Details
-    else Usuarios no responde
-        API-->>FE: 503 + Retry-After: 30
-    end
-```
+`SoapIdentityValidator` implementa `validateUser` con `dni`, `password`, `user_id`, `role`
+y `auth`, con timeout de cinco segundos. Se activa con `USERS_SOAP_ENABLED=true` y
+`USERS_SOAP_URL`. La URL final y la prueba bilateral con M1 aún son externas; mientras tanto
+se utiliza el proveedor local de desarrollo.
 
-Actualmente `Usuarios (SOAP)` está reemplazado por un proveedor local detrás de la interfaz `IdentityValidator`.
+### Core/Rentas — mensajería asíncrona
 
-### 7.2 Confirmación de una infracción — arquitectura objetivo
+Al confirmar una infracción, M7 publica `infractionConfirmed` en el envelope Core `1.0` al
+exchange `muni.inbox` cuando RabbitMQ está habilitado. Faltan credenciales, allowlist de IP y
+la prueba M7 → Core → M5. Core/M5 también deben confirmar publicación y suscripción activas.
 
-```mermaid
-sequenceDiagram
-    actor Inspector
-    participant FE as Frontend
-    participant API as API Tránsito
-    participant DB as PostgreSQL
-    participant OUT as Outbox
-    participant MQ as Broker
-    participant RENTAS as Rentas
-    Inspector->>FE: Confirma infracción
-    FE->>API: POST /api/v1/infractions/{id}/confirmation
-    API->>DB: Actualizar estado a CONFIRMED
-    API->>OUT: Guardar infractionConfirmed
-    DB-->>API: Commit
-    API-->>FE: 200 InfractionResponse
-    OUT->>MQ: Publicar evento
-    MQ->>RENTAS: infractionConfirmed
-```
+## 7. Estado y hoja de ruta
 
-Actualmente los eventos se publican mediante `LoggingEventPublisher`; broker y Outbox quedan como evolución.
-
-## 8. Decisiones justificadas
-
-### Versionado
-
-Se utiliza `/api/v1` porque el versionado por URI es visible en documentación y logs, simplifica el enrutamiento y permite mantener versiones incompatibles durante una migración.
-
-### Seguridad
-
-La implementación utiliza Spring Security, JWT, sesiones stateless, autorización por roles, CORS configurable y secretos mediante variables de entorno. El token tiene una duración de dos horas.
-
-Roles definidos: `ADMINISTRADOR`, `INSPECTOR` y `CIUDADANO`.
-
-### Idempotencia — evolución propuesta
-
-Las consultas, reemplazos y eliminaciones son idempotentes. Las transiciones verifican el estado actual y devuelven `409` cuando no pueden repetirse. Para las creaciones se propone aceptar `Idempotency-Key`, conservando la clave y la respuesta durante 24 horas.
-
-### Comunicación asíncrona
-
-La confirmación de una infracción no espera a que Rentas cree la deuda: publica `infractionConfirmed` en RabbitMQ cuando Core habilita la integración. Los eventos entrantes se deduplican mediante `processed_events`. Queda pendiente incorporar Transactional Outbox para garantizar atomicidad entre la transacción de dominio y la publicación.
-
-### Indisponibilidad del servicio de Usuarios — evolución propuesta
-
-La llamada de autenticación tendrá un timeout de cinco segundos. Si el servicio no responde, no se generará el JWT y se devolverá `503 Service Unavailable`, `application/problem+json` y `Retry-After: 30`.
-
-## 9. Estado del frontend
-
-El frontend implementa el login real contra `/api/v1/auth/login`, almacenamiento de la sesión, envío automático del JWT y lectura de Problem Details. El resto de las pantallas constituye un prototipo navegable con datos mock. La integración de cada módulo con los endpoints REST es la siguiente etapa del proyecto.
-
-## 10. Hoja de ruta
-
-- [ ] Reemplazar el proveedor local de identidad por el cliente SOAP.
-- [ ] Implementar timeout, `429`, `502`, `503` y `Retry-After` para autenticación.
-- [ ] Incorporar paginación, filtros, orden y enlaces hipermedia en infracciones.
-- [ ] Normalizar las fechas de dominio con zona horaria.
-- [ ] Implementar `Idempotency-Key` con persistencia y vencimiento.
-- [ ] Incorporar broker y Transactional Outbox.
-- [ ] Conectar las pantallas restantes del frontend con la API.
-- [ ] Añadir pruebas de contrato, autorización, titularidad y transiciones de estado.
-
-## 11. Respuesta a la pregunta clave
-
-En la arquitectura objetivo, si el servicio legado de Usuarios no responde dentro de cinco segundos, la API devolverá `503 Service Unavailable`, `Content-Type: application/problem+json` y `Retry-After: 30`. No se generará el token y el usuario deberá reintentar cuando el servicio vuelva a estar disponible.
+- Implementado: API `/api/v1`, JWT, roles, autorizaciones, validaciones, Problem Details,
+  SOAP configurable, RabbitMQ configurable, eventos y deduplicación de mensajes entrantes.
+- Pendiente externo: URL/prueba SOAP con M1; contraseña e IP para Core; corrección del registro
+  `streetClousureEnded` a `streetClosureEnded`; prueba bilateral con M5.
+- Evolución no implementada: Transactional Outbox, `Idempotency-Key`, rate limiting,
+  paginación/filtros e hipermedia.
