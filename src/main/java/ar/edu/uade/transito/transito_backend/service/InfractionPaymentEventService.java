@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 public class InfractionPaymentEventService {
 
     private static final String TRAFFIC_FINE = "TRAFFIC_FINE";
+    private static final String TRAFFIC_INFRACTION = "TRAFFIC_INFRACTION";
 
     private final InfractionRepository infractionRepository;
     private final InfractionPaymentEventRepository paymentEventRepository;
@@ -55,24 +56,27 @@ public class InfractionPaymentEventService {
 
     private void validateRequiredFields(String eventType, RentasPaymentPayload payload) {
         requireText(payload.debtId(), "debtId");
+        requireUuid(payload.debtId(), "debtId");
         switch (eventType) {
             case "paymentRegistered" -> {
                 requireText(payload.paymentId(), "paymentId");
-                requireAmount(payload.amountApplied(), "amountApplied");
+                requireUuid(payload.paymentId(), "paymentId");
+                requirePositiveAmount(payload.amountApplied(), "amountApplied");
                 requireDate(payload.paidAt(), "paidAt");
-                requireAmount(payload.remainingBalance(), "remainingBalance");
+                requireNonNegativeAmount(payload.remainingBalance(), "remainingBalance");
             }
             case "debtSettled" -> {
-                requireText(payload.conceptCode(), "conceptCode");
+                requireConceptCode(payload.conceptCode());
                 requireDate(payload.settledAt(), "settledAt");
-                requireAmount(payload.remainingBalance(), "remainingBalance");
-                requireAmount(payload.outstandingBalance(), "outstandingBalance");
+                requireZeroAmount(payload.remainingBalance(), "remainingBalance");
+                requireZeroAmount(payload.outstandingBalance(), "outstandingBalance");
             }
             case "paymentReversed" -> {
                 requireText(payload.paymentId(), "paymentId");
-                requireAmount(payload.reversedAmount(), "reversedAmount");
+                requireUuid(payload.paymentId(), "paymentId");
+                requirePositiveAmount(payload.reversedAmount(), "reversedAmount");
                 requireDate(payload.reversedAt(), "reversedAt");
-                requireAmount(payload.remainingBalance(), "remainingBalance");
+                requireNonNegativeAmount(payload.remainingBalance(), "remainingBalance");
                 requireText(payload.reason(), "reason");
             }
             default -> throw new IllegalArgumentException("Evento de Rentas no soportado: " + eventType);
@@ -85,9 +89,35 @@ public class InfractionPaymentEventService {
         }
     }
 
-    private void requireAmount(java.math.BigDecimal value, String field) {
+    private void requirePositiveAmount(java.math.BigDecimal value, String field) {
+        if (value == null || value.signum() <= 0) {
+            throw new IllegalArgumentException(field + " debe ser un importe positivo");
+        }
+    }
+
+    private void requireNonNegativeAmount(java.math.BigDecimal value, String field) {
         if (value == null || value.signum() < 0) {
             throw new IllegalArgumentException(field + " debe ser un importe no negativo");
+        }
+    }
+
+    private void requireZeroAmount(java.math.BigDecimal value, String field) {
+        if (value == null || value.signum() != 0) {
+            throw new IllegalArgumentException(field + " debe ser exactamente 0 para debtSettled");
+        }
+    }
+
+    private void requireUuid(String value, String field) {
+        try {
+            UUID.fromString(value);
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalArgumentException(field + " debe ser un UUID válido", ex);
+        }
+    }
+
+    private void requireConceptCode(String value) {
+        if (!TRAFFIC_INFRACTION.equals(value)) {
+            throw new IllegalArgumentException("conceptCode debe ser TRAFFIC_INFRACTION para debtSettled");
         }
     }
 

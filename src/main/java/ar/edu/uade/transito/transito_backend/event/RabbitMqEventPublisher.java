@@ -24,4 +24,9 @@ public class RabbitMqEventPublisher implements EventPublisher {
         // A fanout exchange ignores the routing key; Core routes by registered subscriptions.
         rabbitTemplate.convertAndSend(exchange, "", event);
     }
+
+    @Override
+    public void publish(TicketStatusEnvelope event) {
+        rabbitTemplate.convertAndSend(exchange, "", event);
+    }
 }

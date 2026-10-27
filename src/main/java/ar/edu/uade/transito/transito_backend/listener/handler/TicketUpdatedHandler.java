@@ -8,6 +8,8 @@ import org.springframework.stereotype.Component;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
+import ar.edu.uade.transito.transito_backend.event.EventPublisher;
+import ar.edu.uade.transito.transito_backend.event.TicketStatusEnvelope;
 import ar.edu.uade.transito.transito_backend.listener.IncomingEventHandler;
 import ar.edu.uade.transito.transito_backend.listener.dto.TicketUpdatedPayload;
 import ar.edu.uade.transito.transito_backend.model.TrafficOperation;
@@ -24,6 +26,7 @@ public class TicketUpdatedHandler implements IncomingEventHandler {
 
     private final ObjectMapper objectMapper;
     private final TrafficOperationService trafficOperationService;
+    private final EventPublisher eventPublisher;
 
     @Override
     public String eventType() {
@@ -45,7 +48,9 @@ public class TicketUpdatedHandler implements IncomingEventHandler {
                 .type(OperationType.COMPLAINT_VERIFICATION)
                 .zone(zone)
                 .startDateTime(LocalDateTime.now())
-                .ticketId(String.valueOf(payload.ticketId()))
+                .ticketId(payload.ticketId().toString())
                 .build());
+
+        eventPublisher.publish(TicketStatusEnvelope.started(payload.ticketId()));
     }
 }
