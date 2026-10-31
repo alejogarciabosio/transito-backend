@@ -19,6 +19,7 @@ import ar.edu.uade.transito.transito_backend.exception.InvalidRequestException;
 import ar.edu.uade.transito.transito_backend.exception.InvalidStateTransitionException;
 import ar.edu.uade.transito.transito_backend.exception.ResourceNotFoundException;
 import ar.edu.uade.transito.transito_backend.exception.UsersServiceBadGatewayException;
+import ar.edu.uade.transito.transito_backend.exception.UsersAccountForbiddenException;
 import ar.edu.uade.transito.transito_backend.exception.UsersServiceUnavailableException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
@@ -44,6 +45,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<ProblemDetail> handleInvalidCredentials(InvalidCredentialsException ex, HttpServletRequest request) {
         return build(HttpStatus.UNAUTHORIZED, "invalid-credentials", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(UsersAccountForbiddenException.class)
+    public ResponseEntity<ProblemDetail> handleUsersAccountForbidden(UsersAccountForbiddenException ex,
+            HttpServletRequest request) {
+        return build(HttpStatus.FORBIDDEN, "users-account-forbidden", ex.getMessage(), request);
     }
 
     @ExceptionHandler(UsersServiceBadGatewayException.class)

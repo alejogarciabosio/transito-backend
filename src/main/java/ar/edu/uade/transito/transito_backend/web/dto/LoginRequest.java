@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 
 public record LoginRequest(
         String username,
+        String gmail,
         String dni,
         @NotBlank(message = "La contraseña es obligatoria") String password) {
 }

@@ -332,10 +332,15 @@ components:
   schemas:
     LoginRequest:
       type: object
-      required: [username, password]
+      required: [gmail, password]
       properties:
+        gmail:
+          type: string
+          format: email
         username:
           type: string
+          deprecated: true
+          description: Alias transitorio para entornos locales; la integración con M1 utiliza gmail.
         password:
           type: string
           format: password

@@ -39,7 +39,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 AuthenticatedUser principal = new AuthenticatedUser(
                         jwtService.extractUserId(claims),
                         jwtService.extractNationalId(claims),
-                        jwtService.extractRole(claims));
+                        jwtService.extractRole(claims),
+                        jwtService.extractActorType(claims),
+                        jwtService.extractCitizenId(claims));
 
                 var authentication = new UsernamePasswordAuthenticationToken(
                         principal, null,

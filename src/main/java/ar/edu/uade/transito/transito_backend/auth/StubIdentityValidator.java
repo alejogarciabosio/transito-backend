@@ -8,9 +8,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import ar.edu.uade.transito.transito_backend.exception.InvalidCredentialsException;
 import ar.edu.uade.transito.transito_backend.model.enums.Role;
 
-// ATENCIÓN: hay reemplazar por un cliente REST al módulo de Usuarios cuando definan el contrato de validación de identidad.
+// Se utiliza únicamente en desarrollo local. En integración se activa RestIdentityValidator.
 @Component
-@ConditionalOnProperty(name = "users.soap.enabled", havingValue = "false", matchIfMissing = true)
+@ConditionalOnProperty(name = "users.rest.enabled", havingValue = "false", matchIfMissing = true)
 public class StubIdentityValidator implements IdentityValidator {
 
     private record StubUser(String password, String userId, String nationalId, Role role) {

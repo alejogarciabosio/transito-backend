@@ -29,14 +29,19 @@ public class JwtService {
 
     public String generateToken(AuthenticatedUser user) {
         Instant now = Instant.now();
-        return Jwts.builder()
+        var builder = Jwts.builder()
                 .subject(user.userId())
                 .claim("nationalId", user.nationalId())
                 .claim("role", user.role().name())
                 .issuedAt(Date.from(now))
-                .expiration(Date.from(now.plus(expirationMinutes, ChronoUnit.MINUTES)))
-                .signWith(signingKey)
-                .compact();
+                .expiration(Date.from(now.plus(expirationMinutes, ChronoUnit.MINUTES)));
+        if (user.actorType() != null) {
+            builder.claim("actorType", user.actorType());
+        }
+        if (user.citizenId() != null) {
+            builder.claim("citizenId", user.citizenId());
+        }
+        return builder.signWith(signingKey).compact();
     }
 
     public long getExpirationSeconds() {
@@ -61,5 +66,13 @@ public class JwtService {
 
     public Role extractRole(Claims claims) {
         return Role.valueOf(claims.get("role", String.class));
+    }
+
+    public String extractActorType(Claims claims) {
+        return claims.get("actorType", String.class);
+    }
+
+    public String extractCitizenId(Claims claims) {
+        return claims.get("citizenId", String.class);
     }
 }
