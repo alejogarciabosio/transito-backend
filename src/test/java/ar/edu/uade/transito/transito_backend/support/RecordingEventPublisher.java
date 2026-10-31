@@ -2,7 +2,6 @@ package ar.edu.uade.transito.transito_backend.support;
 
 import ar.edu.uade.transito.transito_backend.event.EventEnvelope;
 import ar.edu.uade.transito.transito_backend.event.EventPublisher;
-import ar.edu.uade.transito.transito_backend.event.TicketStatusEnvelope;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -14,16 +13,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class RecordingEventPublisher implements EventPublisher {
 
     private final List<EventEnvelope<?>> events = new CopyOnWriteArrayList<>();
-    private final List<TicketStatusEnvelope> ticketEvents = new CopyOnWriteArrayList<>();
 
     @Override
     public <T> void publish(EventEnvelope<T> event) {
         events.add(event);
-    }
-
-    @Override
-    public void publish(TicketStatusEnvelope event) {
-        ticketEvents.add(event);
     }
 
     public List<EventEnvelope<?>> all() {
@@ -46,10 +39,5 @@ public class RecordingEventPublisher implements EventPublisher {
 
     public void clear() {
         events.clear();
-        ticketEvents.clear();
-    }
-
-    public List<TicketStatusEnvelope> ticketEvents() {
-        return List.copyOf(ticketEvents);
     }
 }

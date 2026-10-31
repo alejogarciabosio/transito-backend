@@ -18,9 +18,4 @@ public class LoggingEventPublisher implements EventPublisher {
                 event.getEventType(), event.getEventId(), event.getOccurredAt(), event.getData());
     }
 
-    @Override
-    public void publish(TicketStatusEnvelope event) {
-        log.info("[ticket-event] type={} eventId={} occurredAt={} data={}",
-                event.eventType(), event.eventId(), event.occurredAt(), event.data());
-    }
 }

@@ -25,8 +25,4 @@ public class RabbitMqEventPublisher implements EventPublisher {
         rabbitTemplate.convertAndSend(exchange, "", event);
     }
 
-    @Override
-    public void publish(TicketStatusEnvelope event) {
-        rabbitTemplate.convertAndSend(exchange, "", event);
-    }
 }

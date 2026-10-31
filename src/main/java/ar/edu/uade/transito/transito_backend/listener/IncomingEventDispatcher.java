@@ -37,7 +37,7 @@ public class IncomingEventDispatcher {
         String eventType = message.path("eventType").asText();
         UUID correlationId = message.hasNonNull("correlationId")
                 ? UUID.fromString(message.path("correlationId").asText())
-                : eventId;
+                : null;
 
         if (processedEventRepository.existsById(eventId)) {
             log.info("[event] eventId={} type={} ya procesado, se descarta", eventId, eventType);

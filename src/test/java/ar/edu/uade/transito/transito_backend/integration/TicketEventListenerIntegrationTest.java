@@ -1,6 +1,7 @@
 package ar.edu.uade.transito.transito_backend.integration;
 
 import ar.edu.uade.transito.transito_backend.event.payload.TrafficOperationCreatedPayload;
+import ar.edu.uade.transito.transito_backend.event.payload.UpdateTicketStatusPayload;
 import ar.edu.uade.transito.transito_backend.model.enums.OperationStatus;
 import ar.edu.uade.transito.transito_backend.model.enums.OperationType;
 import ar.edu.uade.transito.transito_backend.support.AbstractIntegrationTest;
@@ -27,16 +28,10 @@ class TicketEventListenerIntegrationTest extends AbstractIntegrationTest {
         assertThat(ops.get(0).getTicketId()).isEqualTo(ticketId.toString());
         var p = events.lastPayload("trafficOperationCreated", TrafficOperationCreatedPayload.class);
         assertThat(p.ticketId()).isEqualTo(ticketId.toString());
-        assertThat(events.ticketEvents()).singleElement().satisfies(status -> {
-            assertThat(status.specVersion()).isEqualTo("1.0");
-            assertThat(status.eventType()).isEqualTo("updateTicketStatus");
-            assertThat(status.subject()).isEqualTo("tickets/" + ticketId);
-            assertThat(status.producer().moduleId()).isEqualTo("M7");
-            assertThat(status.data().ticketId()).isEqualTo(ticketId);
-            assertThat(status.data().updateType()).isEqualTo("STARTED");
-            assertThat(status.data().progress()).isZero();
-            assertThat(status.data().updatedBy().id()).isEqualTo("M7");
-        });
+        var status = events.lastPayload("updateTicketStatus", UpdateTicketStatusPayload.class);
+        assertThat(status.ticketId()).isEqualTo(ticketId);
+        assertThat(status.updateType()).isEqualTo("STARTED");
+        assertThat(status.updatedBy().type()).isEqualTo("SYSTEM");
     }
 
     @Test
@@ -48,7 +43,7 @@ class TicketEventListenerIntegrationTest extends AbstractIntegrationTest {
                 + "\",\"responsibleAreaId\":null,\"updateType\":\"ROUTED\"}");
         assertThat(trafficOperationRepository.count()).isZero();
         assertThat(events.all()).isEmpty();
-        assertThat(events.ticketEvents()).isEmpty();
+        assertThat(events.ofType("updateTicketStatus")).isEmpty();
     }
 
     @Test
@@ -59,6 +54,6 @@ class TicketEventListenerIntegrationTest extends AbstractIntegrationTest {
         dispatchIncoming("ticketUpdated", "{\"ticketId\":\"" + UUID.randomUUID()
                 + "\",\"responsibleAreaId\":\"M7\",\"updateType\":\"RETURNED\"}");
         assertThat(trafficOperationRepository.count()).isZero();
-        assertThat(events.ticketEvents()).isEmpty();
+        assertThat(events.ofType("updateTicketStatus")).isEmpty();
     }
 }

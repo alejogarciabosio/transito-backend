@@ -64,6 +64,10 @@ public class TrafficOperation {
 
     private String ticketId;
 
+    private UUID sourceEventId;
+
+    private UUID sourceCorrelationId;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private OperationStatus status;

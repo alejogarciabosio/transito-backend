@@ -10,8 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ar.edu.uade.transito.transito_backend.event.EventEnvelope;
 import ar.edu.uade.transito.transito_backend.event.EventPublisher;
-import ar.edu.uade.transito.transito_backend.event.TicketStatusEnvelope;
 import ar.edu.uade.transito.transito_backend.event.payload.TrafficOperationCreatedPayload;
+import ar.edu.uade.transito.transito_backend.event.payload.UpdateTicketStatusPayload;
 import ar.edu.uade.transito.transito_backend.exception.InvalidRequestException;
 import ar.edu.uade.transito.transito_backend.exception.InvalidStateTransitionException;
 import ar.edu.uade.transito.transito_backend.exception.ResourceNotFoundException;
@@ -107,9 +107,11 @@ public class TrafficOperationService {
             String message = rejected
                     ? "La verificación de Tránsito finalizó sin una acción aplicable."
                     : "La verificación de Tránsito finalizó satisfactoriamente.";
-            eventPublisher.publish(TicketStatusEnvelope.completed(ticketId, updateType, message,
-                    Map.of("operationId", operation.getOperationId().toString(),
-                            "resolution", operation.getResolution().name())));
+            eventPublisher.publish(EventEnvelope.of("updateTicketStatus",
+                    UpdateTicketStatusPayload.completed(ticketId, updateType, message,
+                            Map.of("operationId", operation.getOperationId().toString(),
+                                    "resolution", operation.getResolution().name())),
+                    operation.getSourceCorrelationId(), operation.getSourceEventId()));
         } catch (IllegalArgumentException ignored) {
             // Only M2-originated operations use UUID ticket identifiers and receive M2 updates.
         }
