@@ -156,7 +156,7 @@ class ParkingIntegrationTest extends AbstractIntegrationTest {
                     .andExpect(jsonPath("$.endDateTime", nullValue()))
                     .andExpect(jsonPath("$.paymentReference", nullValue()));
             post("/parking-sessions", OPERADOR, Payloads.session(zone)).andExpect(status().isCreated());
-            post("/parking-sessions", INSPECTOR, Payloads.session(zone)).andExpect(status().isForbidden());
+            post("/parking-sessions", AUDITOR, Payloads.session(zone)).andExpect(status().isForbidden());
         }
 
         @Test
@@ -184,7 +184,7 @@ class ParkingIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("TC-BE-PS-05: no se marca impaga una sesión paga → 409; solo INSPECTOR → 403")
         void flagUnpaidRules() throws Exception {
             String id = startSession(createZone("Z"));
-            post("/parking-sessions/" + id + "/unpaid-flag", OPERADOR, "{\"baseAmount\":1}").andExpect(status().isForbidden());
+            post("/parking-sessions/" + id + "/unpaid-flag", CIUDADANO, "{\"baseAmount\":1}").andExpect(status().isForbidden());
 
             ParkingSession session = parkingSessionRepository.findById(UUID.fromString(id)).orElseThrow();
             session.setPaid(true);

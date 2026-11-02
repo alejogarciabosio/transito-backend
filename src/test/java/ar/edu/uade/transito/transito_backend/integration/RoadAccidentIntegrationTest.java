@@ -95,11 +95,11 @@ class RoadAccidentIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("TC-BE-ACC-05: enviar status PRELIMINARY no hace nada especial (no hay 'des-verificar')")
+    @DisplayName("TC-BE-ACC-05: un accidente solo puede pasar a VERIFIED; enviar PRELIMINARY → 409")
     void preliminaryStatusIgnored() throws Exception {
         String id = register();
         patch("/accidents/" + id, INSPECTOR, Payloads.accidentUpdate("PRELIMINARY"))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("PRELIMINARY"));
+                .andExpect(status().isConflict());
     }
 
     @Test

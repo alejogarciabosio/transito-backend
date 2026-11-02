@@ -15,6 +15,8 @@ import ar.edu.uade.transito.transito_backend.model.ParkingSession;
 import ar.edu.uade.transito.transito_backend.model.enums.InfractionType;
 import ar.edu.uade.transito.transito_backend.repository.InfractionRepository;
 import ar.edu.uade.transito.transito_backend.repository.ParkingSessionRepository;
+import ar.edu.uade.transito.transito_backend.repository.ParkingZoneRepository;
+import ar.edu.uade.transito.transito_backend.model.Location;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -24,6 +26,7 @@ public class ParkingSessionService {
 
     private final ParkingSessionRepository parkingSessionRepository;
     private final InfractionRepository infractionRepository;
+    private final ParkingZoneRepository parkingZoneRepository;
     private final InfractionService infractionService;
 
     public ParkingSession start(ParkingSession session) {
@@ -67,9 +70,16 @@ public class ParkingSessionService {
                     "La sesión " + sessionId + " ya tiene una infracción por falta de pago");
         }
 
+        // La infracción exige ubicación: se toma de la zona de estacionamiento de la sesión.
+        Location location = java.util.Optional.ofNullable(session.getZoneId())
+                .flatMap(parkingZoneRepository::findById)
+                .map(zone -> Location.builder().street(zone.getName()).crossStreet(zone.getBoundaries()).build())
+                .orElseGet(() -> Location.builder().street("Zona de estacionamiento " + session.getZoneId()).build());
+
         Infraction infraction = Infraction.builder()
                 .licensePlate(session.getLicensePlate())
                 .infractionType(InfractionType.UNPAID_PARKING)
+                .location(location)
                 .infractionDateTime(LocalDateTime.now())
                 .inspectorId(inspectorId)
                 .baseAmount(baseAmount)

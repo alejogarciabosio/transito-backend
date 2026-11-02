@@ -13,7 +13,7 @@ public final class TestUsers {
     public static final AuthenticatedUser ADMIN = new AuthenticatedUser("u-1002", "30222333", Role.ADMINISTRADOR);
     // Alias temporales para que los tests de permisos expresen las capacidades que se consolidaron.
     public static final AuthenticatedUser SUPERVISOR = ADMIN;
-    public static final AuthenticatedUser AUDITOR = ADMIN;
+    public static final AuthenticatedUser AUDITOR = new AuthenticatedUser("u-1003", "30333444", Role.AUDITOR);
     public static final AuthenticatedUser OPERADOR = INSPECTOR;
     public static final AuthenticatedUser DEPOSITO = ADMIN;
     public static final AuthenticatedUser CIUDADANO = new AuthenticatedUser("u-1007", "30777888", Role.CIUDADANO);
@@ -25,6 +25,7 @@ public final class TestUsers {
             case ADMINISTRADOR -> ADMIN;
             case INSPECTOR -> INSPECTOR;
             case CIUDADANO -> CIUDADANO;
+            case AUDITOR -> AUDITOR;
         };
     }
 }

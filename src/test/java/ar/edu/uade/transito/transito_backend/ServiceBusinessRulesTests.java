@@ -134,6 +134,7 @@ class ServiceBusinessRulesTests {
         ParkingSessionService service = new ParkingSessionService(
                 sessionRepository,
                 infractionRepository,
+                mock(ar.edu.uade.transito.transito_backend.repository.ParkingZoneRepository.class),
                 mock(InfractionService.class));
 
         assertThrows(InvalidStateTransitionException.class,

@@ -40,13 +40,13 @@ public class TrafficOperationController {
                 .body(TrafficOperationMapper.toResponse(created));
     }
 
-    @PreAuthorize("hasAnyRole('INSPECTOR', 'ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('INSPECTOR', 'ADMINISTRADOR', 'AUDITOR')")
     @GetMapping
     public List<TrafficOperationResponse> findAll() {
         return trafficOperationService.findAll().stream().map(TrafficOperationMapper::toResponse).toList();
     }
 
-    @PreAuthorize("hasAnyRole('INSPECTOR', 'ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('INSPECTOR', 'ADMINISTRADOR', 'AUDITOR')")
     @GetMapping("/{id}")
     public TrafficOperationResponse findById(@PathVariable UUID id) {
         return TrafficOperationMapper.toResponse(trafficOperationService.findById(id));

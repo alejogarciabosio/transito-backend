@@ -49,7 +49,7 @@ public class InfractionController {
                 .body(InfractionMapper.toResponse(created));
     }
 
-    @PreAuthorize("hasAnyRole('INSPECTOR', 'ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('INSPECTOR', 'ADMINISTRADOR', 'AUDITOR')")
     @GetMapping
     public List<InfractionResponse> findAll() {
         return infractionService.findAll().stream().map(InfractionMapper::toResponse).toList();
@@ -62,7 +62,7 @@ public class InfractionController {
         return infractionService.findByOffenderNationalId(nationalId).stream().map(InfractionMapper::toResponse).toList();
     }
 
-    @PreAuthorize("hasAnyRole('INSPECTOR', 'ADMINISTRADOR', 'CIUDADANO')")
+    @PreAuthorize("hasAnyRole('INSPECTOR', 'ADMINISTRADOR', 'CIUDADANO', 'AUDITOR')")
     @GetMapping("/{id}")
     public InfractionResponse findById(@PathVariable UUID id) {
         Infraction infraction = infractionService.findById(id);

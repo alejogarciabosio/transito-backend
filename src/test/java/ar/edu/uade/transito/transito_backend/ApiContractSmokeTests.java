@@ -76,7 +76,14 @@ class ApiContractSmokeTests {
 
         mockMvc.perform(get("/v3/api-docs"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.info.title").value("API de Tránsito Municipal"));
+                .andExpect(jsonPath("$.info.title").value("API de Tránsito Municipal"))
+                .andExpect(jsonPath("$.paths['/api/v1/street-closures']").exists())
+                .andExpect(jsonPath("$.paths['/api/v1/impoundments']").exists());
+
+        mockMvc.perform(get("/v3/api-docs/swagger-config"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.urls[0].url").value("/v3/api-docs"))
+                .andExpect(jsonPath("$.urls[1].url").value("/openapi.yaml"));
 
         mockMvc.perform(get("/api/v1/parking-zones"))
                 .andExpect(status().isOk());
