@@ -30,6 +30,11 @@ public class ParkingSessionService {
     private final InfractionService infractionService;
 
     public ParkingSession start(ParkingSession session) {
+        var zone = parkingZoneRepository.findById(session.getZoneId())
+                .orElseThrow(() -> new ResourceNotFoundException("ParkingZone no encontrada: " + session.getZoneId()));
+        if (zone.getStatus() != ar.edu.uade.transito.transito_backend.model.enums.ParkingZoneStatus.ACTIVE) {
+            throw new InvalidStateTransitionException("La zona " + session.getZoneId() + " no está activa");
+        }
         session.setPaid(false);
         session.setEndDateTime(null);
         session.setPaymentReference(null);

@@ -65,7 +65,11 @@ public class JwtService {
     }
 
     public Role extractRole(Claims claims) {
-        return Role.valueOf(claims.get("role", String.class));
+        String role = claims.get("role", String.class);
+        if (role == null) {
+            throw new IllegalArgumentException("El token no incluye el claim role");
+        }
+        return Role.valueOf(role);
     }
 
     public String extractActorType(Claims claims) {

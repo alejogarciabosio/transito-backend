@@ -3,6 +3,9 @@ name: CI
 on:
   pull_request:
     branches: [ main ]
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
 
 jobs:
   test:
@@ -15,3 +18,17 @@ jobs:
           distribution: 'temurin'
       - name: Correr tests y verificar cobertura minima 85%
         run: ./mvnw verify
+
+  secretos:
+    name: Escaneo de secretos (gitleaks)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -173,4 +173,41 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
 </plugins>
 </build>
 
+
+	<profiles>
+		<!-- Mutation testing (Clase 15, eje B): ./mvnw test-compile org.pitest:pitest-maven:mutationCoverage -Pmutation -->
+		<profile>
+			<id>mutation</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.pitest</groupId>
+						<artifactId>pitest-maven</artifactId>
+						<version>1.20.3</version>
+						<dependencies>
+							<dependency>
+								<groupId>org.pitest</groupId>
+								<artifactId>pitest-junit5-plugin</artifactId>
+								<version>1.2.3</version>
+							</dependency>
+						</dependencies>
+						<configuration>
+							<targetClasses>
+								<param>ar.edu.uade.transito.transito_backend.service.*</param>
+							</targetClasses>
+							<targetTests>
+								<param>ar.edu.uade.transito.transito_backend.unit.*</param>
+								<param>ar.edu.uade.transito.transito_backend.ServiceBusinessRulesTests</param>
+								<param>ar.edu.uade.transito.transito_backend.StateTransitionTests</param>
+								<param>ar.edu.uade.transito.transito_backend.AdditionalServiceCoverageTests</param>
+							</targetTests>
+							<threads>4</threads>
+							<timeoutConstant>8000</timeoutConstant>
+							<outputFormats><param>HTML</param><param>XML</param></outputFormats>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>

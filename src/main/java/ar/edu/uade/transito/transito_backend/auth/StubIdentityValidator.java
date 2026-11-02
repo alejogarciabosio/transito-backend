@@ -23,7 +23,7 @@ public class StubIdentityValidator implements IdentityValidator {
 
     @Override
     public AuthenticatedUser validate(String username, String password) {
-        StubUser user = USERS.get(username);
+        StubUser user = username == null ? null : USERS.get(username);
         if (user == null || !user.password().equals(password)) {
             throw new InvalidCredentialsException("Usuario o contraseña inválidos");
         }

@@ -41,7 +41,7 @@ class BugReproductionTest extends AbstractIntegrationTest {
     }
 
     private String closure() {
-        dispatchIncoming("streetClosureRequested", "{\"closureRequestId\":\"REQ-1\",\"sourceModule\":\"M3\","
+        dispatchIncoming("streetClosureRequested", "{\"closureRequestId\":\"REQ-1\",\"sourceRef\":\"OBR-1\",\"reason\":\"Obra\",\"sourceModule\":\"M3\","
                 + "\"requestedFrom\":\"2026-10-01T00:00:00-03:00\",\"requestedTo\":\"2026-10-02T00:00:00-03:00\"}");
         return streetClosureRepository.findAll().get(0).getStreetClosureId().toString();
     }
@@ -64,9 +64,9 @@ class BugReproductionTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("BUG-BE-03: login sin username debería ser 401 (hoy 500: NPE en Map.of().get(null))")
+    @DisplayName("BUG-BE-03: login sin username → error controlado (400 si falta la contraseña, 401 si no; antes 500 por NPE en Map.of().get(null))")
     void bug03_loginWithoutUsername() throws Exception {
-        post("/auth/login", null, "{}").andExpect(status().isUnauthorized());
+        post("/auth/login", null, "{}").andExpect(status().isBadRequest());
         post("/auth/login", null, "{\"password\":\"x\"}").andExpect(status().isUnauthorized());
     }
 
@@ -178,14 +178,14 @@ class BugReproductionTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("BUG-BE-13: JWT válido sin claim 'role' debería ser 403 (hoy NPE → 500)")
+    @DisplayName("BUG-BE-13: JWT válido sin claim 'role' no debe causar 500: se trata como token inválido (401, igual que un rol desconocido)")
     void bug13_tokenWithoutRole() throws Exception {
         String forged = io.jsonwebtoken.Jwts.builder().subject("u").claim("nationalId", "1")
                 .signWith(io.jsonwebtoken.security.Keys.hmacShaKeyFor(
-                        "test-secret-de-al-menos-32-bytes-para-hs256-0123456789".getBytes()))
+                        "test-secret-key-with-at-least-thirty-two-bytes".getBytes()))
                 .compact();
         mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(API_PREFIX + "/infractions")
-                .header("Authorization", "Bearer " + forged)).andExpect(status().isForbidden());
+                .header("Authorization", "Bearer " + forged)).andExpect(status().isUnauthorized());
     }
 
     @Test
