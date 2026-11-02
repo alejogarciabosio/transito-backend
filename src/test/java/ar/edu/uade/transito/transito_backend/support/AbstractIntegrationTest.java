@@ -41,6 +41,8 @@ public abstract class AbstractIntegrationTest {
     @Autowired protected RecordingEventPublisher events;
     @Autowired protected IncomingEventDispatcher incomingEventDispatcher;
     @Autowired protected ObjectMapper objectMapper;
+    @Autowired protected ar.edu.uade.transito.transito_backend.auth.LoginRateLimitFilter loginRateLimitFilter;
+    @Autowired protected ar.edu.uade.transito.transito_backend.auth.IdempotencyFilter idempotencyFilter;
 
     @Autowired protected InfractionRepository infractionRepository;
     @Autowired protected ParkingSessionRepository parkingSessionRepository;
@@ -62,6 +64,8 @@ public abstract class AbstractIntegrationTest {
         trafficOperationRepository.deleteAll();
         vehicleImpoundmentRepository.deleteAll();
         events.clear();
+        loginRateLimitFilter.reset();
+        idempotencyFilter.reset();
     }
 
     protected String token(AuthenticatedUser user) {
