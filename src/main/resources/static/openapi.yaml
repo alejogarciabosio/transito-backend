@@ -6,6 +6,8 @@ info:
     Contrato representativo del módulo de Tránsito, Estacionamiento y
     Seguridad Vial. Documenta diez operaciones principales de la primera etapa.
 servers:
+  - url: https://transito-backend-prod.up.railway.app
+    description: Producción (Railway)
   - url: http://localhost:8080
     description: Entorno local
 tags:

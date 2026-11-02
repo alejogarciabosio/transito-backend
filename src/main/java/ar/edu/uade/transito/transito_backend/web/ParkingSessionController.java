@@ -42,7 +42,7 @@ public class ParkingSessionController {
                 .body(ParkingSessionMapper.toResponse(created));
     }
 
-    @PreAuthorize("hasAnyRole('INSPECTOR', 'ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('INSPECTOR', 'ADMINISTRADOR', 'AUDITOR')")
     @GetMapping
     public List<ParkingSessionResponse> findAll() {
         return parkingSessionService.findAll().stream().map(ParkingSessionMapper::toResponse).toList();

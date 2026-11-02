@@ -32,7 +32,7 @@ public class StreetClosureController {
     private final StreetClosureService streetClosureService;
     private final CurrentUserProvider currentUserProvider;
 
-    @PreAuthorize("hasAnyRole('INSPECTOR', 'ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('INSPECTOR', 'ADMINISTRADOR', 'AUDITOR')")
     @GetMapping
     public List<StreetClosureResponse> findAll() {
         return streetClosureService.findAll().stream().map(StreetClosureMapper::toResponse).toList();
@@ -44,7 +44,7 @@ public class StreetClosureController {
         return streetClosureService.findCurrent().stream().map(StreetClosureMapper::toResponse).toList();
     }
 
-    @PreAuthorize("hasAnyRole('INSPECTOR', 'ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('INSPECTOR', 'ADMINISTRADOR', 'AUDITOR')")
     @GetMapping("/{id}")
     public StreetClosureResponse findById(@PathVariable UUID id) {
         return StreetClosureMapper.toResponse(streetClosureService.findById(id));

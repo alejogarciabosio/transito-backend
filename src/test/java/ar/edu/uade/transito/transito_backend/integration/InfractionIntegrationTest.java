@@ -79,7 +79,7 @@ class InfractionIntegrationTest extends AbstractIntegrationTest {
         @Test
         @DisplayName("TC-BE-INF-04: roles distintos de INSPECTOR no pueden registrar → 403")
         void otherRolesForbidden() throws Exception {
-            for (var user : new ar.edu.uade.transito.transito_backend.auth.AuthenticatedUser[]{SUPERVISOR, AUDITOR, CIUDADANO, ADMIN, DEPOSITO, OPERADOR}) {
+            for (var user : new ar.edu.uade.transito.transito_backend.auth.AuthenticatedUser[]{AUDITOR, CIUDADANO, ADMIN}) {
                 post("/infractions", user, Payloads.infraction("1")).andExpect(status().isForbidden());
             }
             post("/infractions", null, Payloads.infraction("1")).andExpect(status().isUnauthorized());
@@ -205,7 +205,7 @@ class InfractionIntegrationTest extends AbstractIntegrationTest {
             post("/infractions/" + id + "/appeal", CIUDADANO, "{\"reason\":\"b\"}").andExpect(status().isConflict());
 
             String confirmed = registerAsInspector(CIUDADANO.nationalId());
-            post("/infractions/" + confirmed + "/confirmation", INSPECTOR, null);
+            post("/infractions/" + confirmed + "/confirmation", ADMIN, null);
             post("/infractions/" + confirmed + "/appeal", CIUDADANO, "{\"reason\":\"c\"}").andExpect(status().isConflict());
         }
 
@@ -245,7 +245,7 @@ class InfractionIntegrationTest extends AbstractIntegrationTest {
         void confirmAppealed() throws Exception {
             String id = registerAsInspector(CIUDADANO.nationalId());
             post("/infractions/" + id + "/appeal", CIUDADANO, "{\"reason\":\"x\"}");
-            post("/infractions/" + id + "/confirmation", INSPECTOR, null)
+            post("/infractions/" + id + "/confirmation", ADMIN, null)
                     .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("CONFIRMED"));
             assertThat(events.ofType("infractionConfirmed")).hasSize(1);
         }
@@ -310,6 +310,20 @@ class InfractionIntegrationTest extends AbstractIntegrationTest {
             post("/infractions/" + id + "/annulment", SUPERVISOR, "{\"annulmentReason\":\"x\",\"authorizedBy\":\"u\"}")
                     .andExpect(status().isConflict());
             assertThat(events.ofType("infractionAnulled")).isEmpty();
+        }
+    }
+
+    @org.junit.jupiter.api.Test
+    @DisplayName("TC-BE-INF-AUD: el auditor consulta infracciones (lista y detalle) pero no registra, confirma ni anula")
+    void auditorReadOnly() throws Exception {
+        String id = registerAsInspector(CIUDADANO.nationalId());
+        get("/infractions", AUDITOR).andExpect(status().isOk());
+        get("/infractions/" + id, AUDITOR).andExpect(status().isOk());
+        post("/infractions", AUDITOR, Payloads.infraction("1")).andExpect(status().isForbidden());
+        post("/infractions/" + id + "/confirmation", AUDITOR, null).andExpect(status().isForbidden());
+        post("/infractions/" + id + "/annulment", AUDITOR, "{\"annulmentReason\":\"x\"}").andExpect(status().isForbidden());
+        for (String path : new String[]{"/operations", "/accidents", "/impoundments", "/street-closures", "/parking-sessions"}) {
+            get(path, AUDITOR).andExpect(status().isOk());
         }
     }
 }

@@ -45,7 +45,7 @@ public class VehicleImpoundmentController {
                 .body(VehicleImpoundmentMapper.toResponse(created));
     }
 
-    @PreAuthorize("hasAnyRole('INSPECTOR', 'ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('INSPECTOR', 'ADMINISTRADOR', 'AUDITOR')")
     @GetMapping
     public List<VehicleImpoundmentResponse> findAll() {
         return vehicleImpoundmentService.findAll().stream().map(VehicleImpoundmentMapper::toResponse).toList();
@@ -59,7 +59,7 @@ public class VehicleImpoundmentController {
                 .map(VehicleImpoundmentMapper::toResponse).toList();
     }
 
-    @PreAuthorize("hasAnyRole('INSPECTOR', 'ADMINISTRADOR', 'CIUDADANO')")
+    @PreAuthorize("hasAnyRole('INSPECTOR', 'ADMINISTRADOR', 'CIUDADANO', 'AUDITOR')")
     @GetMapping("/{id}")
     public VehicleImpoundmentResponse findById(@PathVariable UUID id) {
         VehicleImpoundment impoundment = vehicleImpoundmentService.findById(id);

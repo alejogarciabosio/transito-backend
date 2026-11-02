@@ -35,9 +35,11 @@ public class IncomingEventDispatcher {
     public void dispatch(JsonNode message) {
         UUID eventId = UUID.fromString(message.path("eventId").asText());
         String eventType = message.path("eventType").asText();
+        // correlationId es opcional en el envelope de Core: si no viene, el evento inicia
+        // su propio hilo y se usa su eventId como correlación.
         UUID correlationId = message.hasNonNull("correlationId")
                 ? UUID.fromString(message.path("correlationId").asText())
-                : null;
+                : eventId;
 
         if (processedEventRepository.existsById(eventId)) {
             log.info("[event] eventId={} type={} ya procesado, se descarta", eventId, eventType);
