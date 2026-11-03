@@ -30,6 +30,17 @@ Luego ejecutar:
 docker compose up --build
 ```
 
+### Arranque rápido (sin credenciales)
+
+Sin `.env` ni cuentas externas, el `docker-compose.yml` levanta una base PostgreSQL local y el backend con valores de desarrollo:
+
+```bash
+docker compose up --build
+# luego:  curl http://localhost:8080/actuator/health   →  {"status":"UP"}
+```
+
+Swagger: http://localhost:8080/swagger-ui/index.html · Usuarios de prueba: `ciudadano1/ciudadano123`, `inspector1/inspector123`, `admin1/admin123`.
+
 ## Verificación local
 
 Los tests usan una base H2 en memoria y no requieren credenciales externas:
