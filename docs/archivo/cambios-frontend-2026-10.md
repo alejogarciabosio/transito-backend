@@ -1,6 +1,6 @@
 # Cambios de contrato para el Frontend — octubre 2026
 
-> Qué cambió desde la última integración y qué hay que tocar en el frontend para que siga funcionando. El contrato completo y actualizado está en `docs/actividad-api-rest-entrega.md` — este documento es solo el **delta**.
+> Qué cambió desde la última integración y qué hay que tocar en el frontend para que siga funcionando. El contrato completo y actualizado está en `docs/entrega-academica/actividad-api-rest-entrega.md` — este documento es solo el **delta**.
 
 ## 1. Todas las URLs ahora llevan el prefijo `/api/v1`
 
@@ -79,7 +79,7 @@ Con el backend levantado, ahora hay Swagger UI para probar los endpoints a mano:
 
 - El formato de login (`POST /api/v1/auth/login`, mismo body, misma respuesta `{token, role, expiresInSeconds}`).
 - CORS: sigue limitado a `http://localhost:5173` en local.
-- Los enums (roles, estados, tipos) — ver la tabla completa en `docs/guia-integracion-frontend.md` §4, siguen vigentes.
+- Los enums (roles, estados, tipos) — ver la tabla completa en `docs/archivo/guia-integracion-frontend.md` §4, siguen vigentes.
 - Los roles requeridos por cada endpoint.
 
 ## Resumen de lo mínimo para no romper nada
