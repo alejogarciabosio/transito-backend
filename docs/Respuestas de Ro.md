@@ -238,3 +238,63 @@ En el catálogo figura declarado por Tránsito el evento streetClousureEnded (co
 Recuerden también que hoy hay un único ambiente compartido (vhost core), así que cuando lancen un evento de prueba conviene avisar al módulo suscriptor con el eventId generado para verificar juntos que llegó y se confirmó.
 
 Pásennos la IP por privado cuando quieran y coordinamos la prueba inicial. ¡Gracias!
+
+
+-------------------------------------------------------------------------------
+## FECHA 8/11/26
+
+# Mensaje de respuesta de Core respecto el secreto e IP pública dinámica:
+"Buenas, equipo de Tránsito.
+
+Ya habilitamos la IP pública `152.55.177.100/32` en las reglas de seguridad de AWS Core para conexiones AMQPS por el puerto `5671`.
+
+También verificamos que el módulo `transito` se encuentra registrado y activo en Core.
+
+Les compartimos los datos de integración:
+
+**Conexión RabbitMQ (AMQPS)**
+- Host: `core-uade-2026.duckdns.org`
+- Puerto: `5671` (TLS)
+- Virtual host: `core`
+- Usuario: `module_transito`
+- Cola de consumo: `q.transito`
+- Exchange de publicación: `muni.inbox`
+- Routing key de publicación: cadena vacía
+
+**API de Core**
+- URL base: `https://core-uade-2026.duckdns.org/api/v1`
+- Módulo: `transito`
+- Endpoint de autenticación: `POST /auth/module-token`
+- Secreto de máquina: <REDACTADO — cargado como CORE_MODULE_SECRET en Railway, no se guarda en este documento>
+
+Para autenticarse en la API, deben enviar el nombre del módulo y el secreto de máquina al endpoint indicado. La respuesta proporciona un token que podrán utilizar en las solicitudes HTTP autorizadas.
+
+Aclaramos que el secreto de máquina es independiente de la contraseña de RabbitMQ utilizada para AMQPS. Si no disponen de esta última, avísennos para resolverlo.
+
+Como nos comentaron que su IP pública de salida es dinámica, les pedimos que nos reconfirmen que sigue siendo `152.55.177.100` antes de realizar las pruebas de conexión.
+
+Con esto queda preparada la configuración de acceso del lado de Core. Queda pendiente verificar la conectividad y la autenticación efectivas desde su backend.
+
+Saludos, equipo Core."
+
+# Mensaje del módulo de Rentas:
+(este mensaje a continuación me suena que ya lo vimos anteriormente, pero no estoy del todo seguro, así que te lo vuelvo a mandar porque Ro no sabe ni de qué está hablando Rentas)
+"Hola equipo M5. Validamos e implementamos en M7 el contrato M5 → M7 consolidado el 27/10.  
+Quedaron aceptados paymentRegistered, debtSettled y paymentReversed, con paymentId y debtId como UUID persistentes serializados como string; citizenId opcional; conceptCode: "TRAFFIC_INFRACTION"; y originType: "TRAFFIC_FINE".  
+M7 valida que originId e infractionId sean el mismo UUID de una infracción existente de Tránsito, y procesa los eventos de forma idempotente por eventId. También validamos montos positivos y saldo cero al emitir debtSettled.  
+De nuestro lado el contrato queda cerrado. Solo queda pendiente realizar la prueba E2E real a través de Core antes de habilitar tráfico entre módulos."
+
+(esto es un mensaje nuevo y el último que me mandó Ro y que ella recibió de Rentas)
+"¡Buenas! Somos de M5 Rentas.
+
+Estamos avanzando con la integración de las infracciones y nos falta cerrar el circuito de anulación.
+
+¿Nos pueden compartir el contrato actual del evento que publican cuando se anula una infracción?
+
+Necesitamos confirmar el eventType exacto, eventVersion, payload, identificador de infracción y cómo debemos relacionarlo con la obligación o deuda creada previamente.
+
+Del lado de Rentas estamos contemplando dos situaciones: si la deuda no tiene pagos, poder anularla; si ya tiene pagos imputados, derivarla a revisión sin eliminar los registros económicos.
+
+También necesitamos conservar eventId, correlación y trazabilidad del origen.
+
+Con el contrato confirmado podemos implementar y probar el consumidor. ¡Gracias!"
