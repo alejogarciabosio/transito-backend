@@ -30,6 +30,7 @@ Todo evento externo de M7 usa exactamente este sobre:
 | Dirección | Evento | Destino/origen | Contrato de `data` |
 | --- | --- | --- | --- |
 | Publica | `infractionConfirmed` | M5 Rentas | `infractionId`, `debtorId`, `debtorIdType`, `licensePlate`, `infractionType`, `infractionDateTime`, `baseAmount`, `aggravatingFactors`, `finalAmount`, `inspectorId`, `location` |
+| Publica | `infractionAnulled` | M5 Rentas | `infractionId` (mismo UUID usado como `originId`/`infractionId` en `infractionConfirmed`, para relacionar con la deuda ya creada), `annulmentReason`, `authorizedBy`, `annulmentDate` (ISO 8601 con offset) |
 | Publica | `streetClosureApproved` | M3 Obras / M6 Ambiente | `streetClosureId`, `closureRequestId`, `requestingModule` técnico, `startDate`, `endDate`, `affectedSections`, `detours`, `conditions` |
 | Publica | `streetClosureRejected` | M3 Obras / M6 Ambiente | `closureRequestId`, `rejectionReason`, `requestingModule` técnico |
 | Publica | `streetClosureEnded` | M3 Obras / M6 Ambiente | `streetClosureId`, `closureRequestId`, `completionDateTime`, `notes` |
