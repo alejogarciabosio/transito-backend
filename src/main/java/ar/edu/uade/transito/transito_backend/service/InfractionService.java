@@ -1,6 +1,7 @@
 package ar.edu.uade.transito.transito_backend.service;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,6 +26,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Transactional
 public class InfractionService {
+
+    private static final ZoneId MUNICIPAL_TIME_ZONE = ZoneId.of("America/Argentina/Buenos_Aires");
 
     private final InfractionRepository infractionRepository;
     private final EventPublisher eventPublisher;
@@ -158,7 +161,7 @@ public class InfractionService {
                 saved.getInfractionId(),
                 annulmentReason,
                 authorizedBy,
-                LocalDateTime.now())));
+                OffsetDateTime.now(MUNICIPAL_TIME_ZONE))));
 
         return saved;
     }

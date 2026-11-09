@@ -1,6 +1,6 @@
 # Guía de integración histórica — Backend Tránsito para el Frontend
 
-> **Documento archivado:** conserva el contrato anterior sin versionado para trazabilidad. El contrato vigente y la tabla final de endpoints se encuentran en `docs/actividad-api-rest-entrega.md` y usan el prefijo `/api/v1`.
+> **Documento archivado:** conserva el contrato anterior sin versionado para trazabilidad. El contrato vigente y la tabla final de endpoints se encuentran en `docs/entrega-academica/actividad-api-rest-entrega.md` y usan el prefijo `/api/v1`.
 
 ---
 

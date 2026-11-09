@@ -1,6 +1,6 @@
 # Módulo 7 — Contexto de dominio (Tránsito, Estacionamiento y Seguridad Vial)
 
-> Importado desde CLAUDE.md. Este archivo cubre el modelo de negocio; el archivo raíz cubre stack e infraestructura. Ver también `docs/modulo7-crud-endpoints.md` (endpoints base) y `docs/modulo7-revision-payloads.md` (contratos de eventos).
+> Importado desde CLAUDE.md. Este archivo cubre el modelo de negocio; el archivo raíz cubre stack e infraestructura. Ver también `docs/archivo/modulo7-crud-endpoints.md` (endpoints base) y `docs/archivo/historial-payloads/modulo7-revision-payloads.md` (contratos de eventos).
 
 ## Entidades del dominio
 
