@@ -298,3 +298,63 @@ Del lado de Rentas estamos contemplando dos situaciones: si la deuda no tiene pa
 También necesitamos conservar eventId, correlación y trazabilidad del origen.
 
 Con el contrato confirmado podemos implementar y probar el consumidor. ¡Gracias!"
+
+
+-------------------------------------------------------------------------------
+## FECHA 11/11/26
+
+Bueno, Core nos respondió el mensaje, sólo que Ro me mandó en 2 mensajes distintos lo que parece que Core ya dijo. Ambos mensajes se lo mandó Core, pero no sé porque lo hicieron. De todas formas, los mensajes son los siguientes:
+
+"¡Buenas, equipo de Tránsito!
+
+Muchas gracias por avisarnos del cambio. Ya actualizamos la regla en el Security Group de AWS para reemplazar la IP anterior por su nueva IP de salida: 152.55.177.18.
+
+Con respecto a los dos puntos que consultan:
+
+1) Contraseña de RabbitMQ para module_transito
+
+Tal como establecimos en la guía de seguridad, las credenciales no son intercambiables (el secret de máquina es exclusivo para el token HTTP y no sirve para el broker). La contraseña del usuario module_transito se las enviamos ahora mismo por privado para no exponer accesos en canales generales ni repositorios.
+
+Una vez que la reciban, su connection string completa queda armada de la siguiente manera:
+
+text
+amqps://module_transito:<PASSWORD>@core-uade-2026.duckdns.org:5671/core
+
+(Recuerden conectarse usando el dominio como host para que valide el certificado TLS, virtual host core, puerto 5671, publicar en el exchange muni.inbox y consumir de su cola q.transito mediante declaración pasiva).
+
+2) Alcance del permiso (puertos 443 y 5671)
+
+Sí, cubre ambos puertos. Al autorizar su IP pública (152.55.177.18), la regla habilita tanto el tráfico AMQPS (puerto 5671) hacia RabbitMQ como el tráfico HTTPS (puerto 443) hacia la API del Core (https://core-uade-2026.duckdns.org).
+
+Por lo tanto, desde esa misma IP ya pueden:
+
+Solicitar el token de máquina en POST /api/v1/auth/module-token con su secret.
+Consultar los endpoints de catálogo (/api/v1/catalogos/*), suscripciones o publicar eventos por HTTP.
+Conectar sus listeners AMQPS al broker en el puerto 5671.
+
+Apenas prueben la conexión o si van a lanzar un evento de prueba cruzado con otro módulo (por ejemplo Obras o Ambiente), avísennos con el eventId generado y lo monitoreamos juntos en la bitácora del Core.
+
+¡Éxitos con las pruebas!"
+
+
+
+Y este es el segundo mensaje que me reenvió Ro:
+"Buenas, equipo de Tránsito. Les confirmamos que terminamos de ajustar la configuración de acceso desde Core.
+
+**1. Acceso AMQPS (5671):** actualizamos la regla del Security Group para reemplazar la IP anterior (`152.55.177.100`) por la nueva (`152.55.177.18/32`).
+
+**2. Acceso HTTPS (443):** aclaramos un detalle de nuestro mensaje anterior: el acceso HTTPS no depende de la misma regla que AMQPS. El puerto 443 ya está habilitado públicamente, por lo que pueden utilizar los endpoints de nuestra API sin necesidad de agregar su IP a otra regla.
+
+**3. Credenciales RabbitMQ:** configuramos una nueva contraseña para su usuario:
+
+- Host: `core-uade-2026.duckdns.org`
+- Puerto: `5671` (AMQPS/TLS)
+- Virtual host: `core`
+- Usuario: `module_transito`
+- Contraseña: <REDACTADO — cargar como CORE_RABBITMQ_PASSWORD en Railway, no se guarda en este documento>
+
+Verificamos también que el usuario tiene permisos para publicar en `muni.inbox` y consumir desde `q.transito`.
+
+Esta contraseña es independiente del secreto de máquina que utilizan para obtener el token HTTP.
+
+Con esto, la configuración del lado de Core queda preparada para que prueben la conexión. Les pedimos que nos confirmen si pueden conectarse correctamente o si encuentran algún inconveniente."
