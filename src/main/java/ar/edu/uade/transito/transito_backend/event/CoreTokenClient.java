@@ -13,8 +13,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Pide el JWT de módulo a Core (POST /api/v1/auth/module-token) usando el secret de máquina.
@@ -65,15 +65,14 @@ public class CoreTokenClient {
                 throw new IllegalStateException(
                         "Core respondió " + response.statusCode() + " al pedir el token de módulo: " + response.body());
             }
-            Map<String, Object> parsed = objectMapper.readValue(response.body(), new TypeReference<>() {});
-            Object accessToken = parsed.get("accessToken");
-            if (accessToken == null) {
+            JsonNode parsed = objectMapper.readTree(response.body());
+            if (!parsed.hasNonNull("accessToken")) {
                 throw new IllegalStateException("Core no devolvió accessToken: " + response.body());
             }
-            long expiresInSeconds = Long.parseLong(parsed.getOrDefault("expiresIn", 900).toString());
+            long expiresInSeconds = parsed.path("expiresIn").asLong(900);
             // Margen de 30s para no quedarnos con un token a punto de vencer.
             this.cachedTokenExpiresAt = Instant.now().plusSeconds(Math.max(expiresInSeconds - 30, 0));
-            return accessToken.toString();
+            return parsed.path("accessToken").asText();
         } catch (IOException ex) {
             throw new IllegalStateException("No se pudo obtener el token de módulo de Core", ex);
         } catch (InterruptedException ex) {
