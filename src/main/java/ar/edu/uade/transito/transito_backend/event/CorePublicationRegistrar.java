@@ -6,7 +6,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
-import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -26,11 +25,6 @@ import tools.jackson.databind.ObjectMapper;
 public class CorePublicationRegistrar {
 
     private static final Logger log = LoggerFactory.getLogger(CorePublicationRegistrar.class);
-
-    static final List<String> PUBLISHED_EVENT_TYPES = List.of(
-            "infractionRegistered", "infractionAppealed", "infractionConfirmed", "infractionAnulled",
-            "roadAccidentRegistered", "streetClosureApproved", "streetClosureRejected", "streetClosureEnded",
-            "vehicleImpounded", "vehicleReleased", "trafficOperationCreated", "updateTicketStatus");
 
     private final CoreTokenClient tokenClient;
     private final ObjectMapper objectMapper;
@@ -58,7 +52,7 @@ public class CorePublicationRegistrar {
     }
 
     void registerAll() {
-        for (String eventType : PUBLISHED_EVENT_TYPES) {
+        for (String eventType : CorePublishedEventTypes.ALL) {
             try {
                 register(eventType);
             } catch (RuntimeException ex) {

@@ -4,12 +4,16 @@ import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.beans.factory.annotation.Value;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /** Publishes the Core envelope to its shared fanout exchange. */
 @Component
 @ConditionalOnProperty(name = "core.rabbitmq.enabled", havingValue = "true")
 public class RabbitMqEventPublisher implements EventPublisher {
+
+    private static final Logger log = LoggerFactory.getLogger(RabbitMqEventPublisher.class);
 
     private final RabbitTemplate rabbitTemplate;
     private final String exchange;
@@ -25,6 +29,10 @@ public class RabbitMqEventPublisher implements EventPublisher {
 
     @Override
     public <T> void publish(EventEnvelope<T> event) {
+        if (!CorePublishedEventTypes.contains(event.getEventType())) {
+            log.debug("El evento {} es interno de Tránsito; no se publica en Core", event.getEventType());
+            return;
+        }
         // A fanout exchange ignores the routing key; Core routes by registered subscriptions.
         rabbitTemplate.convertAndSend(exchange, "", event, message -> {
             message.getMessageProperties().setDeliveryMode(MessageDeliveryMode.PERSISTENT);

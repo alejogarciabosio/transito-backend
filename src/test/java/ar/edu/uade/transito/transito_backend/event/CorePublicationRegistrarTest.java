@@ -55,8 +55,8 @@ class CorePublicationRegistrarTest {
         registrar.registerAll();
 
         assertThat(tokenRequests).hasValue(1);
-        assertThat(publicationBodies).hasSize(CorePublicationRegistrar.PUBLISHED_EVENT_TYPES.size());
-        assertThat(publicationBodies).contains("{\"eventType\":\"infractionConfirmed\"}",
-                "{\"eventType\":\"infractionAnulled\"}");
+        assertThat(publicationBodies).hasSize(CorePublishedEventTypes.ALL.size());
+        assertThat(publicationBodies).contains("{\"eventType\":\"infractionConfirmed\"}");
+        assertThat(publicationBodies).doesNotContain("{\"eventType\":\"infractionAnulled\"}");
     }
 }
