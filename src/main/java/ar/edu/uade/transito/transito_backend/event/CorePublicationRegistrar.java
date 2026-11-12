@@ -12,15 +12,16 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.ApplicationRunner;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Component;
 
 import tools.jackson.databind.ObjectMapper;
 
 /** Declares every event emitted by Tránsito in Core's integration catalogue. */
-@Configuration(proxyBeanMethods = false)
+@Component
 @ConditionalOnProperty(name = { "core.rabbitmq.enabled", "core.publications.registration.enabled" }, havingValue = "true")
 public class CorePublicationRegistrar {
 
@@ -36,7 +37,8 @@ public class CorePublicationRegistrar {
     private final URI publicationsEndpoint;
     private final HttpClient httpClient;
 
-    CorePublicationRegistrar(CoreTokenClient tokenClient, ObjectMapper objectMapper,
+    @Autowired
+    public CorePublicationRegistrar(CoreTokenClient tokenClient, ObjectMapper objectMapper,
             @Value("${core.base-url}") String baseUrl) {
         this(tokenClient, objectMapper, URI.create(baseUrl + "/api/v1/publications"),
                 HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build());
@@ -50,9 +52,9 @@ public class CorePublicationRegistrar {
         this.httpClient = httpClient;
     }
 
-    @Bean
-    ApplicationRunner registerCorePublications() {
-        return args -> registerAll();
+    @EventListener(ApplicationReadyEvent.class)
+    public void registerCorePublications() {
+        registerAll();
     }
 
     void registerAll() {
