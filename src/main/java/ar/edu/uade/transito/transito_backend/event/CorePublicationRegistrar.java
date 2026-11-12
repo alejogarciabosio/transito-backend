@@ -20,7 +20,7 @@ import org.springframework.context.annotation.Configuration;
 import tools.jackson.databind.ObjectMapper;
 
 /** Declares every event emitted by Tránsito in Core's integration catalogue. */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(name = { "core.rabbitmq.enabled", "core.publications.registration.enabled" }, havingValue = "true")
 public class CorePublicationRegistrar {
 
