@@ -22,7 +22,7 @@ Fecha de actualización: 13/11/2026. Esta lista separa evidencia verificada de t
 | Cobertura frontend | Pendiente | Ejecutar y guardar el reporte de cobertura del frontend; la comisión exige 85%. |
 | Mutation testing | Pendiente | Ejecutar `./mvnw test-compile org.pitest:pitest-maven:mutationCoverage -Pmutation` y documentar score >= 60%. |
 | Sonar Quality Gate | Pendiente de confirmar | Ejecutar análisis/configurar proyecto y guardar enlace o captura del gate aprobado. |
-| Testcontainers | Pendiente | La suite actual usa H2. Incorporar al menos pruebas de integración relevantes con PostgreSQL real mediante Testcontainers y documentar su ejecución. |
+| Testcontainers | Verificado localmente | `PostgresContainerIntegrationTest` levanta PostgreSQL 16 real y ejecuta el login de la aplicación. Ejecución 13/11/2026: 1 test, sin fallos. Incluirlo en CI y ampliar luego con un flujo de negocio persistente. |
 | Prueba de carga | Pendiente | Ejecutar 50 usuarios concurrentes y guardar resultado con p95 < 500 ms. |
 | Tests flaky | Pendiente de confirmación | Repetir suite/CI y registrar que no hubo resultados intermitentes. |
 
