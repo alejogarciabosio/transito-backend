@@ -44,7 +44,7 @@ public class ParkingTariff {
     private LocalDate validTo;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, columnDefinition = "varchar(20) default 'ACTIVE'")
+    @Column(nullable = false)
     @Builder.Default
     private ParkingTariffStatus status = ParkingTariffStatus.ACTIVE;
 }
