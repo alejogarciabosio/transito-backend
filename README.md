@@ -35,7 +35,7 @@ Requisitos: Docker Desktop corriendo (con `docker compose`) y `curl`. Nada más:
    ```
 
    Levanta cinco contenedores: `db` (PostgreSQL), `rabbitmq` (broker local), `rabbitmq-init` (carga el exchange y las
-   colas y termina), `mocks` (WireMock de M1 y de Core) y `backend`. La primera vez tarda unos minutos (descarga
+   colas y termina), `mocks` (WireMock de M1, de Core y del proveedor de IA) y `backend`. La primera vez tarda unos minutos (descarga
    imágenes y compila); después arranca en menos de un minuto.
 4. Verificar: `curl http://localhost:8080/actuator/health` devuelve `{"status":"UP",...}`.
 
@@ -130,8 +130,75 @@ docker compose start rabbitmq    # vuelve; la app se reconecta sola (unos segund
 docker compose exec rabbitmq rabbitmqctl list_queues name consumers   # q.transito vuelve a tener 1 consumidor
 ```
 
-Mientras el broker está caído, `/actuator/health` puede tardar o no responder (indicador de RabbitMQ); al volver se
-normaliza. Una publicación hecha en ese lapso se pierde hasta que exista el outbox (ver plan de la entrega).
+Con el broker caído **no se pierden mensajes** (Transactional Outbox, [ADR-006](docs/adr/ADR-006-transactional-outbox.md)):
+la operación de negocio responde 200 igual, el evento queda guardado en `outbox_events` con estado `PENDING` y el relay
+(cada 2 s) lo publica cuando el broker vuelve, pasando a `PUBLISHED`. Para verlo, con un token de `admin1`:
+
+```bash
+docker compose stop rabbitmq
+# aprobar un corte (ver "Inyectar un evento de prueba"): responde 200 aunque no haya broker
+curl -s -H "Authorization: Bearer $ADMIN_TOKEN" 'http://localhost:8080/api/v1/admin/outbox?status=PENDING'   # el evento está PENDING
+docker compose start rabbitmq
+sleep 10
+curl -s -H "Authorization: Bearer $ADMIN_TOKEN" 'http://localhost:8080/api/v1/admin/outbox?limit=5'          # ahora PUBLISHED
+```
+
+`GET /api/v1/admin/outbox` (roles ADMINISTRADOR y AUDITOR; filtros opcionales `status=PENDING|PUBLISHED|FAILED` y
+`limit`) lista los eventos sin el payload. Mientras el broker está caído, `/actuator/health` puede tardar (indicador de
+RabbitMQ); al volver se normaliza.
+
+## IA: sugerencia de infracción con el mock del proveedor
+
+La IA está apagada por defecto. Para la demo local **sin clave real**, el contenedor `mocks` imita Groq
+`chat/completions` (`docker/wiremock/mappings/groq-chat-completions.json`) y el compose ya apunta `ai.groq.url`
+(`AI_GROQ_URL`) a `http://mocks:8080/openai/v1/chat/completions`. Agregar al `.env` `AI_ENABLED=true` y
+`GROQ_API_KEY=clave-ficticia-mock` (cualquier texto) y recrear el backend (`docker compose up -d backend`).
+`POST /api/v1/infractions/suggestions` (rol INSPECTOR) devuelve entonces
+`{"infractionType":"ILLEGAL_PARKING","aggravatingFactors":["ZONA_ESCOLAR"],"source":"AI","promptVersion":"v1"}`.
+Con `docker compose stop mocks` la misma llamada responde 200 con `source: MANUAL`. Producción no cambia (URL de Groq,
+modelo `openai/gpt-oss-20b`). Detalle: [docs/ia/README-ia.md](docs/ia/README-ia.md).
+
+## Frontend (repo `transito-frontend`)
+
+Con el backend levantado (compose) en `http://localhost:8080`:
+
+```bash
+git clone https://github.com/alejogarciabosio/transito-frontend
+cd transito-frontend
+npm ci
+VITE_API_BASE_URL=http://localhost:8080 npm run dev     # o poner VITE_API_BASE_URL en transito-frontend/.env.local
+```
+
+Abrir http://localhost:5173 (el puerto que muestra Vite). `CORS_ALLOWED_ORIGINS` del backend debe incluir
+`http://localhost:5173` (es el valor sugerido). Alternativa en contenedor: clonar el frontend al lado de este repo,
+descomentar el bloque `frontend` del final de `docker-compose.yml` y abrir http://localhost:3000 (agregar
+`http://localhost:3000` a `CORS_ALLOWED_ORIGINS`).
+
+## Demo (paso a paso, todo local)
+
+1. `cp .env.example .env`, completar con la tabla de arriba y, para la IA, `AI_ENABLED=true` y `GROQ_API_KEY=clave-ficticia-mock`.
+2. `docker compose up --build -d` y esperar `curl http://localhost:8080/actuator/health` → `UP`.
+3. Levantar el frontend (sección anterior) e ingresar como `inspector1` / `admin1` / `ciudadano1`.
+4. **Integración con Core:** `./scripts/inyectar-street-closure.sh` → el corte aparece `REQUESTED` en `GET /api/v1/street-closures`;
+   aprobarlo (`POST /api/v1/street-closures/{id}/approval`) → `streetClosureApproved` en `q.transito.inspeccion`.
+5. **Patrón State (409):** volver a aprobar el mismo corte → 409 Problem Details.
+6. **Broker caído sin pérdida:** `docker compose stop rabbitmq`, aprobar otro corte (200), ver `PENDING` en
+   `GET /api/v1/admin/outbox`, `docker compose start rabbitmq` y ver `PUBLISHED`.
+7. **IA:** como `inspector1`, `POST /api/v1/infractions/suggestions` con `{"description":"Auto en doble fila frente a la escuela"}`
+   → `ILLEGAL_PARKING` + `ZONA_ESCOLAR`, `source: AI`; `docker compose stop mocks` → `source: MANUAL`.
+8. **Contratos:** Swagger en http://localhost:8080/swagger-ui/index.html; WSDL en http://localhost:8080/soap/authentication?wsdl.
+9. Apagar y borrar todo: `docker compose down -v`.
+
+## Contratos: OpenAPI, WSDL y ADR
+
+- `openapi.yaml` (raíz) y `src/main/resources/static/openapi.yaml` (servido en `/openapi.yaml`) son **idénticos** y se
+  generan desde springdoc. `OpenApiStaticContractTest` falla si se desalinean de `/v3/api-docs` o de los controladores.
+  Para regenerar: con el compose arriba, `curl -s http://localhost:8080/v3/api-docs > api-docs.json`, convertir a YAML
+  y copiarlo a los dos archivos.
+- WSDL de la fachada SOAP: [docs/contratos-integracion/authentication.wsdl](docs/contratos-integracion/authentication.wsdl)
+  (exportado de `/soap/authentication?wsdl`; `SoapWsdlContractTest` verifica que coincide con el servido).
+- Decisiones de arquitectura y patrones: [docs/adr/](docs/adr/README.md). HU pendientes y workaround:
+  [docs/entrega-academica/hu-pendientes.md](docs/entrega-academica/hu-pendientes.md).
 
 ## Tests locales
 
@@ -147,4 +214,4 @@ Los tests usan H2/Testcontainers y no requieren el compose:
 - Eventos con Core por RabbitMQ (en producción AMQPS con las credenciales reales, cargadas como variables `CORE_*`
   en Railway; nunca en este repo).
 - Consumo idempotente (`processed_events`), cierre automático de cortes, Problem Details, ETag.
-- El frontend está en el repo `transito-frontend`; en el compose hay un bloque comentado para levantarlo al lado.
+- El frontend está en el repo `transito-frontend` (ver sección "Frontend").

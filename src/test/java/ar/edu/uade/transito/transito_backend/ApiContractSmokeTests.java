@@ -72,7 +72,7 @@ class ApiContractSmokeTests {
     void publicContractAndParkingZonesAreAvailable() throws Exception {
         mockMvc.perform(get("/openapi.yaml"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("openapi: 3.0.3")));
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("openapi: 3.1.0")));
 
         mockMvc.perform(get("/v3/api-docs"))
                 .andExpect(status().isOk())

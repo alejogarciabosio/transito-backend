@@ -1,458 +1,1285 @@
-openapi: 3.0.3
+# Generado desde springdoc (/v3/api-docs). No editar a mano: regenerar (ver README, sección OpenAPI).
+openapi: 3.1.0
 info:
   title: API de Tránsito Municipal
+  description: 'API REST del módulo 7 (Tránsito, Estacionamiento y Seguridad Vial). Generado desde springdoc (/v3/api-docs)
+    del compose local; mantenerlo igual al controlador (lo verifica OpenApiStaticContractTest). Errores en Problem Details
+    (RFC 9457). Autenticación: POST /api/v1/auth/login devuelve un JWT para Authorization: Bearer.'
   version: 1.0.0
-  description: >-
-    Contrato representativo del módulo de Tránsito, Estacionamiento y
-    Seguridad Vial. Documenta diez operaciones principales de la primera etapa.
 servers:
-  - url: https://transito-backend-prod.up.railway.app
-    description: Producción (Railway)
-  - url: http://localhost:8080
-    description: Entorno local
-tags:
-  - name: Autenticación
-  - name: Infracciones
-  - name: Operativos
+- url: https://transito-backend-prod.up.railway.app
+  description: Producción (Railway)
+- url: http://localhost:8080
+  description: Entorno local
 paths:
-  /api/v1/auth/login:
-    post:
-      tags: [Autenticación]
-      summary: Iniciar sesión
-      security: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/LoginRequest'
-      responses:
-        '200':
-          description: Autenticación exitosa
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/LoginResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-        '502':
-          $ref: '#/components/responses/BadGateway'
-        '503':
-          $ref: '#/components/responses/ServiceUnavailable'
-  /api/v1/auth/me:
+  /api/v1/parking-zones/{id}:
     get:
-      tags: [Autenticación]
-      summary: Datos del usuario autenticado
-      description: Devuelve solo los datos del propio usuario del token. El DNI se resuelve en el servidor; el JWT no lo incluye (DEF-06).
+      tags:
+      - parking-zone-controller
+      operationId: findById
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
       responses:
         '200':
-          description: Usuario autenticado
+          description: OK
           content:
-            application/json:
+            '*/*':
               schema:
-                $ref: '#/components/schemas/CurrentUserResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-  /api/v1/infractions:
-    post:
-      tags: [Infracciones]
-      summary: Registrar una infracción
-      description: El inspector se obtiene del JWT y no se recibe en el body.
-      requestBody:
+                $ref: '#/components/schemas/ParkingZoneResponse'
+    put:
+      tags:
+      - parking-zone-controller
+      operationId: update
+      parameters:
+      - name: id
+        in: path
         required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateInfractionRequest'
+              $ref: '#/components/schemas/UpdateParkingZoneRequest'
+        required: true
       responses:
-        '201':
-          description: Infracción registrada
-          headers:
-            Location:
-              description: URI de la infracción creada
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ParkingZoneResponse'
+    delete:
+      tags:
+      - parking-zone-controller
+      operationId: delete
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: OK
+  /api/v1/parking-tariffs/{id}:
+    get:
+      tags:
+      - parking-tariff-controller
+      operationId: findById_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ParkingTariffResponse'
+    put:
+      tags:
+      - parking-tariff-controller
+      operationId: update_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateParkingTariffRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ParkingTariffResponse'
+    delete:
+      tags:
+      - parking-tariff-controller
+      operationId: delete_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: OK
+  /soap/authentication:
+    get:
+      tags:
+      - soap-authentication-controller
+      operationId: wsdl
+      responses:
+        '200':
+          description: OK
+          content:
+            text/xml:
               schema:
                 type: string
-                format: uri-reference
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InfractionResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-    get:
-      tags: [Infracciones]
-      summary: Listar infracciones
+    post:
+      tags:
+      - soap-authentication-controller
+      operationId: authenticate
+      requestBody:
+        content:
+          text/xml:
+            schema:
+              type: string
+          application/soap+xml:
+            schema:
+              type: string
+        required: true
       responses:
         '200':
-          description: Lista de infracciones
+          description: OK
           content:
-            application/json:
+            '*/*':
+              schema:
+                type: string
+  /api/v1/street-closures/{id}/rejection:
+    post:
+      tags:
+      - street-closure-controller
+      operationId: reject
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RejectClosureRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/StreetClosureResponse'
+  /api/v1/street-closures/{id}/completion:
+    post:
+      tags:
+      - street-closure-controller
+      operationId: finish
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FinishClosureRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/StreetClosureResponse'
+  /api/v1/street-closures/{id}/approval:
+    post:
+      tags:
+      - street-closure-controller
+      operationId: approve
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApproveClosureRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/StreetClosureResponse'
+  /api/v1/street-closures/{id}/activation:
+    post:
+      tags:
+      - street-closure-controller
+      operationId: activate
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/StreetClosureResponse'
+  /api/v1/parking-zones:
+    get:
+      tags:
+      - parking-zone-controller
+      operationId: findAll
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/InfractionResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-  /api/v1/infractions/suggestions:
+                  $ref: '#/components/schemas/ParkingZoneResponse'
     post:
-      tags: [Infracciones]
-      summary: Sugerir tipo y agravantes de infracción con IA (INSPECTOR)
-      description: >-
-        Ayuda opcional: el inspector escribe un texto libre y el sistema sugiere `infractionType` y
-        agravantes (catálogo REINCIDENCIA, ZONA_ESCOLAR, ALTA_VELOCIDAD, RESISTENCIA). No registra ni confirma nada;
-        una persona siempre decide. Responde 200 con `source: MANUAL` (tipo null, lista vacía) si la IA está apagada
-        (`AI_ENABLED=false`), falla, tarda más de 5 s, devuelve salida inválida o el circuito está abierto.
-        Nunca devuelve 5xx por falla del proveedor. Los datos personales se enmascaran antes de enviarse.
+      tags:
+      - parking-zone-controller
+      operationId: create
       requestBody:
-        required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/InfractionSuggestionRequest'
+              $ref: '#/components/schemas/CreateParkingZoneRequest'
+        required: true
       responses:
         '200':
-          description: Sugerencia (source AI) o modo manual (source MANUAL)
+          description: OK
           content:
-            application/json:
+            '*/*':
               schema:
-                $ref: '#/components/schemas/InfractionSuggestionResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-  /api/v1/infractions/mine:
+                $ref: '#/components/schemas/ParkingZoneResponse'
+  /api/v1/parking-tariffs:
     get:
-      tags: [Infracciones]
-      summary: Listar las infracciones del ciudadano autenticado
+      tags:
+      - parking-tariff-controller
+      operationId: findByZoneId
+      parameters:
+      - name: zoneId
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uuid
       responses:
         '200':
-          description: Infracciones propias
+          description: OK
           content:
-            application/json:
+            '*/*':
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/InfractionResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-  /api/v1/infractions/{id}:
+                  $ref: '#/components/schemas/ParkingTariffResponse'
+    post:
+      tags:
+      - parking-tariff-controller
+      operationId: create_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateParkingTariffRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ParkingTariffResponse'
+  /api/v1/parking-sessions:
     get:
-      tags: [Infracciones]
-      summary: Obtener una infracción
-      parameters:
-        - $ref: '#/components/parameters/ResourceId'
+      tags:
+      - parking-session-controller
+      operationId: findAll_1
       responses:
         '200':
-          description: Detalle de la infracción
+          description: OK
           content:
-            application/json:
+            '*/*':
               schema:
-                $ref: '#/components/schemas/InfractionResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-  /api/v1/infractions/{id}/appeal:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ParkingSessionResponse'
     post:
-      tags: [Infracciones]
-      summary: Presentar un descargo
-      parameters:
-        - $ref: '#/components/parameters/ResourceId'
+      tags:
+      - parking-session-controller
+      operationId: start
       requestBody:
-        required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AppealRequest'
-      responses:
-        '200':
-          description: Descargo registrado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InfractionResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
-  /api/v1/infractions/{id}/confirmation:
-    post:
-      tags: [Infracciones]
-      summary: Confirmar una infracción
-      parameters:
-        - $ref: '#/components/parameters/ResourceId'
-      responses:
-        '200':
-          description: Infracción confirmada
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InfractionResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
-  /api/v1/infractions/{id}/annulment:
-    post:
-      tags: [Infracciones]
-      summary: Anular una infracción
-      description: El autorizante se obtiene del JWT y no se recibe en el body.
-      parameters:
-        - $ref: '#/components/parameters/ResourceId'
-      requestBody:
+              $ref: '#/components/schemas/CreateParkingSessionRequest'
         required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ParkingSessionResponse'
+  /api/v1/parking-sessions/{id}/unpaid-flag:
+    post:
+      tags:
+      - parking-session-controller
+      operationId: flagUnpaid
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AnnulRequest'
+              $ref: '#/components/schemas/FlagUnpaidRequest'
+        required: true
       responses:
         '200':
-          description: Infracción anulada
+          description: OK
           content:
-            application/json:
+            '*/*':
               schema:
                 $ref: '#/components/schemas/InfractionResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
+  /api/v1/parking-sessions/{id}/closure:
+    post:
+      tags:
+      - parking-session-controller
+      operationId: close
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ParkingSessionResponse'
   /api/v1/operations:
+    get:
+      tags:
+      - traffic-operation-controller
+      operationId: findAll_2
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TrafficOperationResponse'
     post:
-      tags: [Operativos]
-      summary: Crear un operativo
+      tags:
+      - traffic-operation-controller
+      operationId: create_2
       requestBody:
-        required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/CreateTrafficOperationRequest'
+        required: true
       responses:
-        '201':
-          description: Operativo creado
-          headers:
-            Location:
-              description: URI del operativo creado
-              schema:
-                type: string
-                format: uri-reference
+        '200':
+          description: OK
           content:
-            application/json:
+            '*/*':
               schema:
                 $ref: '#/components/schemas/TrafficOperationResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
   /api/v1/operations/{id}/closure:
     post:
-      tags: [Operativos]
-      summary: Cerrar un operativo
+      tags:
+      - traffic-operation-controller
+      operationId: close_1
       parameters:
-        - $ref: '#/components/parameters/ResourceId'
-      requestBody:
+      - name: id
+        in: path
         required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/CloseOperationRequest'
+        required: true
       responses:
         '200':
-          description: Operativo cerrado
+          description: OK
           content:
-            application/json:
+            '*/*':
               schema:
                 $ref: '#/components/schemas/TrafficOperationResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
-components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-  parameters:
-    ResourceId:
-      name: id
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid
-  responses:
-    BadRequest:
-      description: Solicitud inválida
-      content:
-        application/problem+json:
-          schema:
-            $ref: '#/components/schemas/ProblemDetail'
-    Unauthorized:
-      description: Token ausente, inválido o credenciales incorrectas
-      content:
-        application/problem+json:
-          schema:
-            $ref: '#/components/schemas/ProblemDetail'
-    Forbidden:
-      description: El usuario no posee permisos
-      content:
-        application/problem+json:
-          schema:
-            $ref: '#/components/schemas/ProblemDetail'
-    NotFound:
-      description: Recurso inexistente
-      content:
-        application/problem+json:
-          schema:
-            $ref: '#/components/schemas/ProblemDetail'
-    Conflict:
-      description: Transición de estado inválida
-      content:
-        application/problem+json:
-          schema:
-            $ref: '#/components/schemas/ProblemDetail'
-    TooManyRequests:
-      description: Demasiados intentos de autenticación
-      content:
-        application/problem+json:
-          schema:
-            $ref: '#/components/schemas/ProblemDetail'
-    BadGateway:
-      description: Respuesta inválida del servicio de identidad
-      content:
-        application/problem+json:
-          schema:
-            $ref: '#/components/schemas/ProblemDetail'
-    ServiceUnavailable:
-      description: Servicio de identidad temporalmente no disponible
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-          description: Segundos recomendados antes de reintentar
-      content:
-        application/problem+json:
-          schema:
-            $ref: '#/components/schemas/ProblemDetail'
-  schemas:
-    LoginRequest:
-      type: object
-      required: [gmail, password]
-      properties:
-        gmail:
+  /api/v1/infractions:
+    get:
+      tags:
+      - infraction-controller
+      operationId: findAll_3
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InfractionResponse'
+    post:
+      tags:
+      - infraction-controller
+      operationId: register
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateInfractionRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/InfractionResponse'
+  /api/v1/infractions/{id}/confirmation:
+    post:
+      tags:
+      - infraction-controller
+      operationId: confirm
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
           type: string
-          format: email
-        username:
+          format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/InfractionResponse'
+  /api/v1/infractions/{id}/appeal:
+    post:
+      tags:
+      - infraction-controller
+      operationId: appeal
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
           type: string
-          deprecated: true
-          description: Alias transitorio para entornos locales; la integración con M1 utiliza gmail.
-        password:
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppealRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/InfractionResponse'
+  /api/v1/infractions/{id}/annulment:
+    post:
+      tags:
+      - infraction-controller
+      operationId: annul
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
           type: string
-          format: password
-    LoginResponse:
-      type: object
-      required: [token, role, expiresInSeconds]
-      properties:
-        token:
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnnulRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/InfractionResponse'
+  /api/v1/infractions/suggestions:
+    post:
+      tags:
+      - infraction-suggestion-controller
+      operationId: suggest
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InfractionSuggestionRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/InfractionSuggestionResponse'
+  /api/v1/impoundments:
+    get:
+      tags:
+      - vehicle-impoundment-controller
+      operationId: findAll_4
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VehicleImpoundmentResponse'
+    post:
+      tags:
+      - vehicle-impoundment-controller
+      operationId: register_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateVehicleImpoundmentRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/VehicleImpoundmentResponse'
+  /api/v1/impoundments/{id}/release:
+    post:
+      tags:
+      - vehicle-impoundment-controller
+      operationId: release
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
           type: string
-        role:
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReleaseImpoundmentRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/VehicleImpoundmentResponse'
+  /api/v1/auth/login:
+    post:
+      tags:
+      - auth-controller
+      operationId: login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+  /api/v1/accidents:
+    get:
+      tags:
+      - road-accident-controller
+      operationId: findAll_5
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RoadAccidentResponse'
+    post:
+      tags:
+      - road-accident-controller
+      operationId: register_2
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRoadAccidentRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/RoadAccidentResponse'
+  /api/v1/operations/{id}:
+    get:
+      tags:
+      - traffic-operation-controller
+      operationId: findById_2
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
           type: string
-        expiresInSeconds:
+          format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/TrafficOperationResponse'
+    patch:
+      tags:
+      - traffic-operation-controller
+      operationId: update_2
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTrafficOperationRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/TrafficOperationResponse'
+  /api/v1/infractions/{id}:
+    get:
+      tags:
+      - infraction-controller
+      operationId: findById_3
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/InfractionResponse'
+    patch:
+      tags:
+      - infraction-controller
+      operationId: update_3
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateInfractionRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/InfractionResponse'
+  /api/v1/impoundments/{id}:
+    get:
+      tags:
+      - vehicle-impoundment-controller
+      operationId: findById_4
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/VehicleImpoundmentResponse'
+    patch:
+      tags:
+      - vehicle-impoundment-controller
+      operationId: update_4
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateVehicleImpoundmentRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/VehicleImpoundmentResponse'
+  /api/v1/accidents/{id}:
+    get:
+      tags:
+      - road-accident-controller
+      operationId: findById_5
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/RoadAccidentResponse'
+    patch:
+      tags:
+      - road-accident-controller
+      operationId: update_5
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRoadAccidentRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/RoadAccidentResponse'
+  /api/v1/street-closures:
+    get:
+      tags:
+      - street-closure-controller
+      operationId: findAll_6
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StreetClosureResponse'
+  /api/v1/street-closures/{id}:
+    get:
+      tags:
+      - street-closure-controller
+      operationId: findById_6
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/StreetClosureResponse'
+  /api/v1/street-closures/current:
+    get:
+      tags:
+      - street-closure-controller
+      operationId: findCurrent
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StreetClosureResponse'
+  /api/v1/parking-sessions/{id}:
+    get:
+      tags:
+      - parking-session-controller
+      operationId: findById_7
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ParkingSessionResponse'
+  /api/v1/infractions/mine:
+    get:
+      tags:
+      - infraction-controller
+      operationId: findMine
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InfractionResponse'
+  /api/v1/impoundments/mine:
+    get:
+      tags:
+      - vehicle-impoundment-controller
+      operationId: findMine_1
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VehicleImpoundmentResponse'
+  /api/v1/auth/me:
+    get:
+      tags:
+      - auth-controller
+      operationId: me
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CurrentUserResponse'
+  /api/v1/admin/outbox:
+    get:
+      tags:
+      - outbox-admin-controller
+      operationId: list
+      parameters:
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - PENDING
+          - PUBLISHED
+          - FAILED
+      - name: limit
+        in: query
+        required: false
+        schema:
           type: integer
-          format: int64
-    CurrentUserResponse:
+          format: int32
+          default: 50
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OutboxEventResponse'
+  /api/v1/accidents/mine:
+    get:
+      tags:
+      - road-accident-controller
+      operationId: findMine_2
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RoadAccidentResponse'
+components:
+  schemas:
+    UpdateParkingZoneRequest:
       type: object
-      required: [userId, role]
       properties:
-        userId:
+        name:
           type: string
-        role:
+          maxLength: 120
+          minLength: 0
+        boundaries:
           type: string
-        nationalId:
+          maxLength: 255
+          minLength: 0
+        allowedHours:
           type: string
-          nullable: true
-        actorType:
+          maxLength: 255
+          minLength: 0
+        status:
           type: string
-          nullable: true
-        citizenId:
-          type: string
-          nullable: true
-    Location:
+          enum:
+          - ACTIVE
+          - INACTIVE
+      required:
+      - allowedHours
+      - boundaries
+      - name
+      - status
+    ParkingZoneResponse:
       type: object
-      required: [street]
+      properties:
+        zoneId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        boundaries:
+          type: string
+        allowedHours:
+          type: string
+        status:
+          type: string
+          enum:
+          - ACTIVE
+          - INACTIVE
+    UpdateParkingTariffRequest:
+      type: object
+      properties:
+        pricePerHour:
+          type: number
+          minimum: 0.01
+        validFrom:
+          type: string
+          format: date
+        validTo:
+          type: string
+          format: date
+        dateRangeValid:
+          type: boolean
+      required:
+      - pricePerHour
+      - validFrom
+    ParkingTariffResponse:
+      type: object
+      properties:
+        tariffId:
+          type: string
+          format: uuid
+        zoneId:
+          type: string
+          format: uuid
+        pricePerHour:
+          type: number
+        validFrom:
+          type: string
+          format: date
+        validTo:
+          type: string
+          format: date
+        status:
+          type: string
+          enum:
+          - ACTIVE
+          - INACTIVE
+    RejectClosureRequest:
+      type: object
+      properties:
+        rejectionReason:
+          type: string
+          maxLength: 1000
+          minLength: 0
+      required:
+      - rejectionReason
+    Detour:
+      type: object
       properties:
         street:
           type: string
-        crossStreet:
+          maxLength: 255
+          minLength: 0
+        alternateRoute:
           type: string
-          nullable: true
-        latitude:
-          type: number
-          format: double
-          nullable: true
-        longitude:
-          type: number
-          format: double
-          nullable: true
-    InfractionStatus:
-      type: string
-      enum: [PENDING_APPEAL, APPEALED, CONFIRMED, ANNULLED]
-    CreateInfractionRequest:
-      type: object
+          maxLength: 255
+          minLength: 0
       required:
-        - licensePlate
-        - infractionType
-        - infractionDateTime
-        - location
-        - baseAmount
-        - finalAmount
+      - alternateRoute
+      - street
+    StreetClosureResponse:
+      type: object
+      properties:
+        streetClosureId:
+          type: string
+          format: uuid
+        closureRequestId:
+          type: string
+        requestingModule:
+          type: string
+          enum:
+          - OBRAS
+          - AMBIENTE
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        affectedStreet:
+          type: array
+          items:
+            type: string
+        detours:
+          type: array
+          items:
+            $ref: '#/components/schemas/Detour'
+        conditions:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum:
+          - REQUESTED
+          - APPROVED
+          - REJECTED
+          - ACTIVE
+          - FINISHED
+          - EXPIRED
+    FinishClosureRequest:
+      type: object
+      properties:
+        notes:
+          type: string
+          maxLength: 2000
+          minLength: 0
+      required:
+      - notes
+    ApproveClosureRequest:
+      type: object
+      properties:
+        detours:
+          type: array
+          items:
+            $ref: '#/components/schemas/Detour'
+        conditions:
+          type: array
+          items:
+            type: string
+            maxLength: 255
+            minLength: 0
+        authorizedFrom:
+          type: string
+          format: date-time
+        authorizedTo:
+          type: string
+          format: date-time
+      required:
+      - conditions
+      - detours
+    CreateParkingZoneRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 120
+          minLength: 0
+        boundaries:
+          type: string
+          maxLength: 255
+          minLength: 0
+        allowedHours:
+          type: string
+          maxLength: 255
+          minLength: 0
+      required:
+      - allowedHours
+      - boundaries
+      - name
+    CreateParkingTariffRequest:
+      type: object
+      properties:
+        zoneId:
+          type: string
+          format: uuid
+        pricePerHour:
+          type: number
+          minimum: 0.01
+        validFrom:
+          type: string
+          format: date
+        validTo:
+          type: string
+          format: date
+        dateRangeValid:
+          type: boolean
+      required:
+      - pricePerHour
+      - validFrom
+      - validTo
+      - zoneId
+    CreateParkingSessionRequest:
+      type: object
       properties:
         licensePlate:
           type: string
-          example: AB123CD
+          maxLength: 15
+          minLength: 0
+        zoneId:
+          type: string
+          format: uuid
+        startDateTime:
+          type: string
+          format: date-time
+      required:
+      - licensePlate
+      - startDateTime
+      - zoneId
+    ParkingSessionResponse:
+      type: object
+      properties:
+        sessionId:
+          type: string
+          format: uuid
+        licensePlate:
+          type: string
+        zoneId:
+          type: string
+          format: uuid
+        startDateTime:
+          type: string
+          format: date-time
+        endDateTime:
+          type: string
+          format: date-time
+        paid:
+          type: boolean
+        paymentReference:
+          type: string
+    FlagUnpaidRequest:
+      type: object
+      properties:
+        baseAmount:
+          type: number
+          minimum: 0.01
+      required:
+      - baseAmount
+    InfractionResponse:
+      type: object
+      properties:
+        infractionId:
+          type: string
+          format: uuid
+        licensePlate:
+          type: string
         infractionType:
           type: string
-          enum: [UNPAID_PARKING, SPEEDING, RED_LIGHT, ILLEGAL_PARKING, NO_LICENSE, RECKLESS_DRIVING, OTHER]
+          enum:
+          - UNPAID_PARKING
+          - SPEEDING
+          - RED_LIGHT
+          - ILLEGAL_PARKING
+          - NO_LICENSE
+          - RECKLESS_DRIVING
+          - OTHER
         infractionDateTime:
           type: string
           format: date-time
@@ -462,17 +1289,19 @@ components:
           type: array
           items:
             type: string
-            format: uri
+        inspectorId:
+          type: string
         offenderNationalId:
           type: string
         vehicleOwnerTaxId:
           type: string
-          nullable: true
         debtorId:
           type: string
         debtorIdType:
           type: string
-          enum: [DNI, CUIT]
+          enum:
+          - DNI
+          - CUIT
         baseAmount:
           type: number
         aggravatingFactors:
@@ -481,49 +1310,99 @@ components:
             type: string
         finalAmount:
           type: number
+        status:
+          type: string
+          enum:
+          - PENDING_APPEAL
+          - CONFIRMED
+          - APPEALED
+          - ANNULLED
         originOperationId:
           type: string
           format: uuid
-          nullable: true
         originTicketId:
           type: string
-          nullable: true
         originParkingSessionId:
           type: string
           format: uuid
-          nullable: true
-    InfractionResponse:
-      allOf:
-        - $ref: '#/components/schemas/CreateInfractionRequest'
-        - type: object
-          required: [infractionId, inspectorId, status]
-          properties:
-            infractionId:
-              type: string
-              format: uuid
-            inspectorId:
-              type: string
-            status:
-              $ref: '#/components/schemas/InfractionStatus'
-    AppealRequest:
+    Location:
       type: object
-      required: [reason]
       properties:
-        reason:
+        street:
           type: string
-    AnnulRequest:
-      type: object
-      required: [annulmentReason]
-      properties:
-        annulmentReason:
+          maxLength: 255
+          minLength: 0
+        crossStreet:
           type: string
+          maxLength: 255
+          minLength: 0
+        latitude:
+          type: number
+          format: double
+          maximum: 90.0
+          minimum: -90.0
+        longitude:
+          type: number
+          format: double
+          maximum: 180.0
+          minimum: -180.0
+      required:
+      - street
     CreateTrafficOperationRequest:
       type: object
-      required: [type, zone, startDateTime, assignedInspectors, assignedUnits]
       properties:
         type:
           type: string
-          enum: [ROUTINE_CONTROL, COMPLAINT_VERIFICATION, SAFETY_INSPECTION]
+          enum:
+          - ROUTINE_CONTROL
+          - COMPLAINT_VERIFICATION
+          - SAFETY_INSPECTION
+        zone:
+          type: string
+          maxLength: 200
+          minLength: 0
+        startDateTime:
+          type: string
+          format: date-time
+        endDateTime:
+          type: string
+          format: date-time
+        assignedInspectors:
+          type: array
+          items:
+            type: string
+            maxLength: 255
+            minLength: 0
+        assignedUnits:
+          type: array
+          items:
+            type: string
+            maxLength: 255
+            minLength: 0
+        ticketId:
+          type: string
+          maxLength: 255
+          minLength: 0
+        dateRangeValid:
+          type: boolean
+      required:
+      - assignedInspectors
+      - assignedUnits
+      - startDateTime
+      - type
+      - zone
+    TrafficOperationResponse:
+      type: object
+      properties:
+        operationId:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum:
+          - ROUTINE_CONTROL
+          - COMPLAINT_VERIFICATION
+          - SAFETY_INSPECTION
         zone:
           type: string
         startDateTime:
@@ -532,7 +1411,6 @@ components:
         endDateTime:
           type: string
           format: date-time
-          nullable: true
         assignedInspectors:
           type: array
           items:
@@ -543,75 +1421,544 @@ components:
             type: string
         ticketId:
           type: string
-          nullable: true
-    TrafficOperationResponse:
-      allOf:
-        - $ref: '#/components/schemas/CreateTrafficOperationRequest'
-        - type: object
-          required: [operationId, status]
-          properties:
-            operationId:
-              type: string
-              format: uuid
-            status:
-              type: string
-              enum: [OPEN, CLOSED]
-            resolution:
-              type: string
-              enum: [INFRACTION_CREATED, ACCIDENT_REGISTERED, NO_ACTION]
-              nullable: true
+        status:
+          type: string
+          enum:
+          - OPEN
+          - CLOSED
+        resolution:
+          type: string
+          enum:
+          - INFRACTION_CREATED
+          - ACCIDENT_REGISTERED
+          - NO_ACTION
     CloseOperationRequest:
       type: object
-      required: [resolution]
       properties:
         resolution:
           type: string
-          enum: [INFRACTION_CREATED, ACCIDENT_REGISTERED, NO_ACTION]
-    InfractionSuggestionRequest:
+          enum:
+          - INFRACTION_CREATED
+          - ACCIDENT_REGISTERED
+          - NO_ACTION
+      required:
+      - resolution
+    CreateInfractionRequest:
       type: object
-      required: [description]
       properties:
-        description:
+        licensePlate:
           type: string
-          minLength: 1
-          maxLength: 500
-          description: Texto libre del inspector (se enmascaran DNI/CUIT, patentes, emails y teléfonos antes de enviarlo).
-    InfractionSuggestionResponse:
-      type: object
-      required: [infractionType, aggravatingFactors, source, promptVersion]
-      properties:
+          maxLength: 15
+          minLength: 0
         infractionType:
           type: string
-          nullable: true
-          enum: [UNPAID_PARKING, SPEEDING, RED_LIGHT, ILLEGAL_PARKING, NO_LICENSE, RECKLESS_DRIVING, OTHER]
+          enum:
+          - UNPAID_PARKING
+          - SPEEDING
+          - RED_LIGHT
+          - ILLEGAL_PARKING
+          - NO_LICENSE
+          - RECKLESS_DRIVING
+          - OTHER
+        infractionDateTime:
+          type: string
+          format: date-time
+        location:
+          $ref: '#/components/schemas/Location'
+        evidenceUrl:
+          type: array
+          items:
+            type: string
+            maxLength: 255
+            minLength: 0
+        offenderNationalId:
+          type: string
+          maxLength: 255
+          minLength: 0
+        vehicleOwnerTaxId:
+          type: string
+          maxLength: 255
+          minLength: 0
+        debtorId:
+          type: string
+          maxLength: 255
+          minLength: 0
+        debtorIdType:
+          type: string
+          enum:
+          - DNI
+          - CUIT
+        baseAmount:
+          type: number
+          minimum: 0.0
         aggravatingFactors:
           type: array
           items:
             type: string
-            enum: [REINCIDENCIA, ZONA_ESCOLAR, ALTA_VELOCIDAD, RESISTENCIA]
+            maxLength: 255
+            minLength: 0
+        finalAmount:
+          type: number
+          minimum: 0.0
+        originOperationId:
+          type: string
+          format: uuid
+        originTicketId:
+          type: string
+          maxLength: 255
+          minLength: 0
+        originParkingSessionId:
+          type: string
+          format: uuid
+        finalAmountValid:
+          type: boolean
+        debtorIdentificationComplete:
+          type: boolean
+      required:
+      - aggravatingFactors
+      - baseAmount
+      - evidenceUrl
+      - finalAmount
+      - infractionDateTime
+      - infractionType
+      - licensePlate
+      - location
+    AppealRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+          maxLength: 2000
+          minLength: 0
+      required:
+      - reason
+    AnnulRequest:
+      type: object
+      properties:
+        annulmentReason:
+          type: string
+          maxLength: 1000
+          minLength: 0
+      required:
+      - annulmentReason
+    InfractionSuggestionRequest:
+      type: object
+      properties:
+        description:
+          type: string
+          maxLength: 500
+          minLength: 0
+      required:
+      - description
+    InfractionSuggestionResponse:
+      type: object
+      properties:
+        infractionType:
+          type: string
+          enum:
+          - UNPAID_PARKING
+          - SPEEDING
+          - RED_LIGHT
+          - ILLEGAL_PARKING
+          - NO_LICENSE
+          - RECKLESS_DRIVING
+          - OTHER
+        aggravatingFactors:
+          type: array
+          items:
+            type: string
         source:
           type: string
-          enum: [AI, MANUAL]
         promptVersion:
           type: string
-          nullable: true
-          example: v1
-    ProblemDetail:
+    CreateVehicleImpoundmentRequest:
       type: object
-      required: [type, title, status, detail, instance]
       properties:
-        type:
+        licensePlate:
           type: string
-          format: uri
-        title:
+          maxLength: 15
+          minLength: 0
+        ownerNationalId:
+          type: string
+          maxLength: 255
+          minLength: 0
+        reason:
+          type: string
+          maxLength: 255
+          minLength: 0
+        depotLocation:
+          type: string
+          maxLength: 255
+          minLength: 0
+        entryDateTime:
+          type: string
+          format: date-time
+        originType:
+          type: string
+          enum:
+          - INFRACTION
+          - OPERATION
+        originId:
+          type: string
+          format: uuid
+      required:
+      - depotLocation
+      - entryDateTime
+      - licensePlate
+      - originId
+      - originType
+      - ownerNationalId
+      - reason
+    VehicleImpoundmentResponse:
+      type: object
+      properties:
+        impoundmentId:
+          type: string
+          format: uuid
+        licensePlate:
+          type: string
+        ownerNationalId:
+          type: string
+        reason:
+          type: string
+        depotLocation:
+          type: string
+        entryDateTime:
+          type: string
+          format: date-time
+        originType:
+          type: string
+          enum:
+          - INFRACTION
+          - OPERATION
+        originId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+          - IMPOUNDED
+          - RELEASED
+        paymentReference:
+          type: string
+        verifiedRequirements:
+          type: array
+          items:
+            type: string
+        towingAndStorageFee:
+          type: number
+        releasedBy:
+          type: string
+    ReleaseImpoundmentRequest:
+      type: object
+      properties:
+        verifiedRequirements:
+          type: array
+          items:
+            type: string
+            maxLength: 255
+            minLength: 0
+          minItems: 1
+        towingAndStorageFee:
+          type: number
+          minimum: 0.0
+        paymentReference:
+          type: string
+          maxLength: 255
+          minLength: 0
+        paymentReferenceValid:
+          type: boolean
+      required:
+      - towingAndStorageFee
+      - verifiedRequirements
+    LoginRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        gmail:
+          type: string
+        dni:
+          type: string
+        password:
+          type: string
+          minLength: 1
+      required:
+      - password
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        role:
+          type: string
+          enum:
+          - ADMINISTRADOR
+          - INSPECTOR
+          - CIUDADANO
+          - AUDITOR
+        expiresInSeconds:
+          type: integer
+          format: int64
+    AccidentPerson:
+      type: object
+      properties:
+        nationalId:
+          type: string
+          maxLength: 255
+          minLength: 0
+        injuryLevel:
+          type: string
+          enum:
+          - NONE
+          - MINOR
+          - SEVERE
+      required:
+      - injuryLevel
+      - nationalId
+    AccidentVehicle:
+      type: object
+      properties:
+        licensePlate:
+          type: string
+          maxLength: 255
+          minLength: 0
+        ownerNationalId:
+          type: string
+          maxLength: 255
+          minLength: 0
+      required:
+      - licensePlate
+    CreateRoadAccidentRequest:
+      type: object
+      properties:
+        accidentDateTime:
+          type: string
+          format: date-time
+        location:
+          $ref: '#/components/schemas/Location'
+        involvesInfrastructureDamage:
+          type: boolean
+        damageDescription:
+          type: string
+          maxLength: 255
+          minLength: 0
+        vehicles:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccidentVehicle'
+        persons:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccidentPerson'
+        originTicketId:
+          type: string
+          maxLength: 255
+          minLength: 0
+        damageDescriptionValid:
+          type: boolean
+      required:
+      - accidentDateTime
+      - location
+      - persons
+      - vehicles
+    RoadAccidentResponse:
+      type: object
+      properties:
+        accidentId:
+          type: string
+          format: uuid
+        accidentDateTime:
+          type: string
+          format: date-time
+        location:
+          $ref: '#/components/schemas/Location'
+        involvesInfrastructureDamage:
+          type: boolean
+        damageDescription:
+          type: string
+        vehicles:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccidentVehicle'
+        persons:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccidentPerson'
+        inspectorId:
           type: string
         status:
+          type: string
+          enum:
+          - PRELIMINARY
+          - VERIFIED
+        originTicketId:
+          type: string
+    UpdateTrafficOperationRequest:
+      type: object
+      properties:
+        zone:
+          type: string
+          maxLength: 200
+          minLength: 1
+        endDateTime:
+          type: string
+          format: date-time
+        assignedInspectors:
+          type: array
+          items:
+            type: string
+            maxLength: 255
+            minLength: 0
+        assignedUnits:
+          type: array
+          items:
+            type: string
+            maxLength: 255
+            minLength: 0
+    UpdateInfractionRequest:
+      type: object
+      properties:
+        licensePlate:
+          type: string
+          maxLength: 15
+          minLength: 1
+        location:
+          $ref: '#/components/schemas/Location'
+        evidenceUrl:
+          type: array
+          items:
+            type: string
+            maxLength: 255
+            minLength: 0
+        offenderNationalId:
+          type: string
+          maxLength: 255
+          minLength: 0
+        vehicleOwnerTaxId:
+          type: string
+          maxLength: 255
+          minLength: 0
+        debtorId:
+          type: string
+          maxLength: 255
+          minLength: 0
+        debtorIdType:
+          type: string
+          enum:
+          - DNI
+          - CUIT
+        baseAmount:
+          type: number
+          minimum: 0.0
+        aggravatingFactors:
+          type: array
+          items:
+            type: string
+            maxLength: 255
+            minLength: 0
+        finalAmount:
+          type: number
+          minimum: 0.0
+        finalAmountValid:
+          type: boolean
+        debtorIdentificationComplete:
+          type: boolean
+    UpdateVehicleImpoundmentRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+          maxLength: 255
+          minLength: 1
+        depotLocation:
+          type: string
+          maxLength: 200
+          minLength: 1
+        ownerNationalId:
+          type: string
+          maxLength: 30
+          minLength: 1
+    UpdateRoadAccidentRequest:
+      type: object
+      properties:
+        accidentDateTime:
+          type: string
+          format: date-time
+        location:
+          $ref: '#/components/schemas/Location'
+        involvesInfrastructureDamage:
+          type: boolean
+        damageDescription:
+          type: string
+          maxLength: 255
+          minLength: 0
+        vehicles:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccidentVehicle'
+        persons:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccidentPerson'
+        status:
+          type: string
+          enum:
+          - PRELIMINARY
+          - VERIFIED
+        damageDescriptionValid:
+          type: boolean
+    CurrentUserResponse:
+      type: object
+      properties:
+        userId:
+          type: string
+        role:
+          type: string
+          enum:
+          - ADMINISTRADOR
+          - INSPECTOR
+          - CIUDADANO
+          - AUDITOR
+        nationalId:
+          type: string
+        actorType:
+          type: string
+        citizenId:
+          type: string
+    OutboxEventResponse:
+      type: object
+      properties:
+        eventId:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+        correlationId:
+          type: string
+          format: uuid
+        causationId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+          - PENDING
+          - PUBLISHED
+          - FAILED
+        attempts:
           type: integer
-        detail:
+          format: int32
+        lastError:
           type: string
-        instance:
+        createdAt:
           type: string
-          format: uri-reference
-      additionalProperties: true
-security:
-  - bearerAuth: []
+          format: date-time
+        publishedAt:
+          type: string
+          format: date-time
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

@@ -17,7 +17,7 @@ public class AiProperties {
 
     public AiProperties(@Value("${ai.enabled:false}") boolean enabled,
             @Value("${ai.groq.api-key:}") String apiKey,
-            @Value("${ai.model:llama-3.1-8b-instant}") String model,
+            @Value("${ai.model:openai/gpt-oss-20b}") String model,
             @Value("${ai.timeout-ms:5000}") long timeoutMs,
             @Value("${ai.groq.url:https://api.groq.com/openai/v1/chat/completions}") String url,
             @Value("${ai.breaker.failures:3}") int breakerFailures,
