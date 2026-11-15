@@ -148,6 +148,13 @@ class OutboxIntegrationTest {
         assertThat(filas.stream().filter(e -> e.getAttempts() == 1).findFirst().orElseThrow().getLastError())
                 .isEqualTo("AmqpConnectException <- ConnectException: Connection refused");
 
+        // Aunque se superen los max-attempts (3), un broker caído nunca deja el evento FAILED.
+        relay.relayPending();
+        relay.relayPending();
+        relay.relayPending();
+        assertThat(outbox.findAll()).allMatch(e -> e.getStatus() == OutboxStatus.PENDING);
+        assertThat(outbox.findAll().stream().mapToInt(OutboxEvent::getAttempts).max().orElseThrow()).isGreaterThan(3);
+
         doNothing().when(transport).send(any());
         assertThat(relay.relayPending()).isEqualTo(2);
         assertThat(outbox.findAll()).allMatch(e -> e.getStatus() == OutboxStatus.PUBLISHED && e.getLastError() == null);

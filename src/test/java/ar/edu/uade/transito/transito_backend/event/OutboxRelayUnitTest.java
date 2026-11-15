@@ -45,4 +45,14 @@ class OutboxRelayUnitTest {
         scheduler.run();
         org.mockito.Mockito.verify(relay, org.mockito.Mockito.times(2)).relayPending();
     }
+
+    @Test
+    @DisplayName("TC-BE-OUT-08: se consideran broker inalcanzable las fallas de conexión, IO y timeout de AMQP")
+    void brokerInalcanzable() {
+        assertThat(OutboxRelay.isBrokerUnreachable(new AmqpConnectException(new ConnectException("x")))).isTrue();
+        assertThat(OutboxRelay.isBrokerUnreachable(new org.springframework.amqp.AmqpIOException(
+                new java.io.IOException(new java.net.UnknownHostException("rabbitmq"))))).isTrue();
+        assertThat(OutboxRelay.isBrokerUnreachable(new org.springframework.amqp.AmqpTimeoutException("t"))).isTrue();
+        assertThat(OutboxRelay.isBrokerUnreachable(new IllegalStateException("x"))).isFalse();
+    }
 }

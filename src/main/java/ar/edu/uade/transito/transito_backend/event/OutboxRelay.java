@@ -5,6 +5,8 @@ import ar.edu.uade.transito.transito_backend.model.enums.OutboxStatus;
 import ar.edu.uade.transito.transito_backend.repository.OutboxEventRepository;
 import org.slf4j.Logger;
 import org.springframework.amqp.AmqpConnectException;
+import org.springframework.amqp.AmqpIOException;
+import org.springframework.amqp.AmqpTimeoutException;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,6 +27,8 @@ import java.util.UUID;
  * <ul>
  *   <li>Ante error: suma un intento, guarda el error (sin payload) y reprograma con backoff exponencial;
  *       tras {@code maxAttempts} queda FAILED. Un evento que falla no frena a los demás.</li>
+ *   <li>Broker inalcanzable: corta la vuelta (el resto espera sin gastar intentos) y el evento sigue
+ *       PENDING sin importar cuántos intentos lleve: se publica apenas vuelve el broker.</li>
  *   <li>Idempotencia entre relays concurrentes: cada evento se toma con un update condicional (lease);
  *       solo un relay lo obtiene, así no se publica dos veces.</li>
  *   <li>Entrega "al menos una vez": si el proceso muere entre el envío y el marcado, se reenvía al vencer
@@ -105,8 +109,9 @@ public class OutboxRelay {
         try {
             transport.send(event);
         } catch (RuntimeException ex) {
-            registerFailure(id, ex);
-            return ex instanceof AmqpConnectException ? Outcome.BROKER_UNREACHABLE : Outcome.FAILED;
+            boolean brokerUnreachable = isBrokerUnreachable(ex);
+            registerFailure(id, ex, brokerUnreachable);
+            return brokerUnreachable ? Outcome.BROKER_UNREACHABLE : Outcome.FAILED;
         }
         tx.executeWithoutResult(status -> repository.findById(id).ifPresent(e -> {
             e.setStatus(OutboxStatus.PUBLISHED);
@@ -117,13 +122,20 @@ public class OutboxRelay {
         return Outcome.PUBLISHED;
     }
 
-    private void registerFailure(UUID id, RuntimeException ex) {
+    /** Fallas de conexión con el broker (caído, DNS, timeout): no son culpa del evento. */
+    static boolean isBrokerUnreachable(Throwable ex) {
+        return ex instanceof AmqpConnectException || ex instanceof AmqpIOException || ex instanceof AmqpTimeoutException;
+    }
+
+    private void registerFailure(UUID id, RuntimeException ex, boolean brokerUnreachable) {
         String error = describe(ex);
         tx.executeWithoutResult(status -> repository.findById(id).ifPresent(e -> {
             int attempts = e.getAttempts() + 1;
             e.setAttempts(attempts);
             e.setLastError(error);
-            if (attempts >= maxAttempts) {
+            // Con el broker caído el evento nunca pasa a FAILED: sigue PENDING (backoff con tope) hasta que
+            // vuelva, así no se pierde aunque la caída dure horas. FAILED es solo para errores del propio evento.
+            if (attempts >= maxAttempts && !brokerUnreachable) {
                 e.setStatus(OutboxStatus.FAILED);
                 log.error("[outbox] evento FAILED tras {} intentos type={} eventId={} error={}",
                         attempts, e.getEventType(), e.getEventId(), error);
