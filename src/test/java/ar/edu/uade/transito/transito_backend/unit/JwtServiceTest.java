@@ -18,7 +18,7 @@ class JwtServiceTest {
     private final AuthenticatedUser user = new AuthenticatedUser("u-1", "30111222", Role.ADMINISTRADOR);
 
     @Test
-    @DisplayName("TC-BE-JWT-01: genera y parsea un token con subject, nationalId y role")
+    @DisplayName("TC-BE-JWT-01: genera y parsea un token con subject y role; el DNI se resuelve del lado servidor")
     void roundTrip() {
         JwtService service = new JwtService(SECRET, 120);
         var claims = service.parseClaims(service.generateToken(user));
@@ -26,6 +26,33 @@ class JwtServiceTest {
         assertThat(service.extractNationalId(claims)).isEqualTo("30111222");
         assertThat(service.extractRole(claims)).isEqualTo(Role.ADMINISTRADOR);
         assertThat(claims.getExpiration()).isAfter(claims.getIssuedAt());
+        assertThat(claims).doesNotContainKey("nationalId");
+    }
+
+    @Test
+    @DisplayName("TC-BE-JWT-07 (DEF-06): el payload del token no incluye el DNI")
+    void tokenWithoutNationalId() {
+        String payload = new String(java.util.Base64.getUrlDecoder()
+                .decode(new JwtService(SECRET, 120).generateToken(user).split("\\.")[1]), java.nio.charset.StandardCharsets.UTF_8);
+        assertThat(payload).doesNotContain("30111222").doesNotContain("nationalId");
+    }
+
+    @Test
+    @DisplayName("TC-BE-JWT-08 (DEF-06): token anterior con claim nationalId sigue funcionando (compatibilidad)")
+    void legacyTokenFallback() {
+        JwtService service = new JwtService(SECRET, 120);
+        String legacy = io.jsonwebtoken.Jwts.builder().subject("u-legacy").claim("role", "CIUDADANO").claim("nationalId", "30777888")
+                .signWith(io.jsonwebtoken.security.Keys.hmacShaKeyFor(SECRET.getBytes(java.nio.charset.StandardCharsets.UTF_8))).compact();
+        assertThat(service.extractNationalId(service.parseClaims(legacy))).isEqualTo("30777888");
+    }
+
+    @Test
+    @DisplayName("TC-BE-JWT-09 (DEF-06): subject desconocido y sin claim → DNI null")
+    void unknownSubject() {
+        JwtService emisor = new JwtService(SECRET, 120);
+        JwtService otraInstancia = new JwtService(SECRET, 120);
+        var claims = otraInstancia.parseClaims(emisor.generateToken(user));
+        assertThat(otraInstancia.extractNationalId(claims)).isNull();
     }
 
     @Test

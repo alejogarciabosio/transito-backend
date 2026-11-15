@@ -13,7 +13,6 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -360,13 +359,13 @@ class SecurityEvidenceTests extends AbstractIntegrationTest {
         assertThat(ok.getResponse().getHeader("Access-Control-Allow-Origin")).isNull();
     }
 
-    @Tag("bug")
     @Test
-    @DisplayName("SEC-DATA-01: el JWT no transporta datos personales (DNI) — minimización")
+    @DisplayName("SEC-DATA-01: el JWT no transporta datos personales (DNI) — minimización (DEF-06)")
     void jwtHasNoPii() throws Exception {
         String payload = new String(Base64.getUrlDecoder().decode(token(CIUDADANO).split("\\.")[1]), StandardCharsets.UTF_8);
         System.out.println("EVIDENCIA JWT payload=" + payload);
-        assertThat(payload).doesNotContain(CIUDADANO.nationalId());
+        assertThat(payload).doesNotContain(CIUDADANO.nationalId()).doesNotContain("nationalId")
+                .contains("\"sub\"").contains("\"role\"");
     }
 
     // ---------------------------------------------------------------- Resiliencia REST

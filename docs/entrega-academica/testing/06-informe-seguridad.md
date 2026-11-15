@@ -19,7 +19,7 @@ Evidencia "corrida D1" = ejecución del grupo `bug` del 15/11; "verify" = `./mvn
 | SEC-D01 | Sin DNI, CUIT ni `debtorId` en logs | NO CUMPLE | `LoggingEventPublisher` registra `data` completo (`event/LoggingEventPublisher.java:17`); en producción con broker habilitado el bean no está activo (por confirmar la variable). No hay test de logs | DEF-05 |
 | SEC-D02 | Sin secretos hardcodeados; todo por variables | NO CUMPLE completamente | Código: `StubIdentityValidator` con contraseñas fijas, activo si no se define `USERS_REST_ENABLED`. `application.properties` usa `${VAR}`. gitleaks: 0 con `.gitleaksignore`, 4 sin él (`reports/b2.md`, `reports/b2b.md`). `docker-compose.yml` en `main` tiene valores por defecto de desarrollo para `JWT_SECRET` y `DB_PASSWORD` (observado en B2; la rama del compose de A1 pasó a `${VAR:?}`) | DEF-01, DEF-12 |
 | SEC-05 | Límite de intentos de login | CUMPLE | `auth/LoginRateLimitFilter` (10 fallos por minuto por IP, configurable); `SecurityEvidenceTests.bruteForce` devuelve 429. El límite por IP detrás de un proxy no fue probado (NO VERIFICABLE) | |
-| SEC-09 | Sin DNI en el JWT | NO CUMPLE | `SecurityEvidenceTests.jwtHasNoPii` FALLA (corrida D1): el payload incluye `nationalId` | DEF-06 |
+| SEC-09 | Sin DNI en el JWT | CUMPLE (rama `fix/s11-jwt-sin-dni`) | `SecurityEvidenceTests.jwtHasNoPii` PASA: el payload solo trae `sub`, `role`, `iat`, `exp` (+`actorType`/`citizenId` con M1); el DNI se resuelve en el servidor y se expone solo en `GET /api/v1/auth/me` | DEF-06 |
 
 ## 2. Criterios adicionales pedidos
 | Tema | Estado | Evidencia | Defecto |

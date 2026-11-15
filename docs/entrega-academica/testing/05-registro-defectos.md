@@ -21,7 +21,7 @@ Estados: Abierto, Corregido (en `main`, verificado con test), Aceptado (riesgo a
 | DEF-03 | Adaptador REST de M1 no arrancaba (Jackson) | Mayor | Corregido (PR #23, en #25) |
 | DEF-04 | Sin registro de eventos publicados (regla 9.3 del TP) | Mayor | Abierto |
 | DEF-05 | Logs con payload completo de eventos (`LoggingEventPublisher`) | Mayor | Abierto |
-| DEF-06 | DNI (`nationalId`) dentro del JWT | Mayor | Abierto |
+| DEF-06 | DNI (`nationalId`) dentro del JWT | Mayor | Corregido (PR `fix/s11-jwt-sin-dni`) |
 | DEF-07 | Un corte se activa antes de `startDate` | Menor | Abierto |
 | DEF-08 | `causationId` null en `streetClosureEnded` | Menor (a confirmar con Core) | Abierto |
 | DEF-09 | Swagger público en producción | Menor | Abierto |
@@ -66,7 +66,7 @@ Estados: Abierto, Corregido (en `main`, verificado con test), Aceptado (riesgo a
 - **Matiz verificado**: ese bean solo se activa con `core.rabbitmq.enabled=false`; `RabbitMqEventPublisher` no registra el payload (solo `debug` de eventos internos). Si Railway tiene `CORE_RABBITMQ_ENABLED=true` (el tablero dice que conectó con Core, pero no revisé las variables), el defecto aplica a local y desarrollo y no a producción: en ese caso bajaría a Menor. **Estado**: Abierto. **Workaround**: no usar el publicador de logs en entornos con datos reales. Falta una prueba de logs (SEC-D01).
 
 ### DEF-06 DNI en el JWT
-- **Pasos**: login y decodificar el payload. **Obtenido**: el payload incluye el claim `nationalId` (corrida del 15/11 de `SecurityEvidenceTests.jwtHasNoPii`: FALLA). **Esperado**: sin datos personales (SEC-09). **Workaround**: ninguno técnico simple; el frontend y los filtros por titular usan el claim. **Estado**: Abierto.
+- **Pasos**: login y decodificar el payload. **Obtenido**: el payload incluye el claim `nationalId` (corrida del 15/11 de `SecurityEvidenceTests.jwtHasNoPii`: FALLA). **Esperado**: sin datos personales (SEC-09). **Workaround**: ninguno técnico simple; el frontend y los filtros por titular usan el claim. **Estado**: Corregido: el token ya no incluye el DNI; el backend lo resuelve por subject (`NationalIdRegistry` al emitir el token, `IdentityValidator.findNationalId` en el stub, claim viejo aceptado por compatibilidad hasta que venzan los tokens previos) y el frontend lo pide a `GET /api/v1/auth/me`.
 
 ### DEF-07 Activación antes de `startDate`
 - **Obtenido**: `StreetClosureService.activate` solo valida el estado `APPROVED`; la prueba real mostró activación 7 s antes (plan de entrega). **Workaround**: operativo (activar dentro de la ventana). **Estado**: Abierto.

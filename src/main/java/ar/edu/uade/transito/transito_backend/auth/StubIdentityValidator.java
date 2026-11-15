@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,5 +69,13 @@ public class StubIdentityValidator implements IdentityValidator {
             throw new InvalidCredentialsException("Usuario o contraseña inválidos");
         }
         return new AuthenticatedUser(user.userId(), user.nationalId(), user.role());
+    }
+
+    @Override
+    public Optional<String> findNationalId(String subject) {
+        return USERS.stream()
+                .filter(u -> u.userId().equals(subject))
+                .map(StubUser::nationalId)
+                .findFirst();
     }
 }
