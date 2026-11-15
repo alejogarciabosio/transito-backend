@@ -31,7 +31,7 @@ Estados: Abierto, Corregido (en `main`, verificado con test), Aceptado (riesgo a
 | DEF-13 | State no implementado como patrón en el corte de calle | Mayor (criterio académico) | Abierto |
 | DEF-14 | Outbox transaccional no implementado | Mayor | Abierto |
 | DEF-15 | BOLA: un ciudadano lee y cierra la sesión de estacionamiento de otro | Mayor | Abierto |
-| DEF-16 | Infracción sin evidencia se acepta (201) | Mayor | Abierto |
+| DEF-16 | Infracción sin evidencia se acepta (201) | Mayor | Resuelto (PR fix/s15) |
 | DEF-17 | `PATCH /infractions` parcial devuelve 400 en la reproducción BUG-BE-09a | Menor (probable test desactualizado) | A confirmar |
 | DEF-18 | Pruebas de reproducción BUG-BE-02 y 14 desactualizadas ("affectedSections es obligatorio") | Menor (deuda de tests) | Abierto |
 | DEF-19 | Importe base, reincidencia y costo de acarreo/estadía no se calculan en el servidor | Mayor | Abierto |
@@ -97,7 +97,7 @@ Estados: Abierto, Corregido (en `main`, verificado con test), Aceptado (riesgo a
 - **Workaround**: los identificadores son UUID no enumerables, lo que reduce la explotación pero no la elimina. **Estado**: Abierto.
 
 ### DEF-16 Evidencia no exigida
-- **Obtenido**: alta de infracción con `evidenceUrl=[]` devuelve 201 (`BugReproductionTest.bug04`: FALLA el 15/11). HU-INF-01 y RF-INF-05 exigen evidencia o validación. **Workaround**: el frontend podría exigirla (NO VERIFICADO). **Estado**: Abierto.
+- **Obtenido**: alta de infracción con `evidenceUrl=[]` devuelve 201 (`BugReproductionTest.bug04`: FALLA el 15/11). HU-INF-01 y RF-INF-05 exigen evidencia o validación. **Resolución (PO)**: se acepta con evidencia, o sin ella si la registra un INSPECTOR autenticado cuyo id es el `inspectorId` (regla en `InfractionValidationRule`; si no, 400 Problem Details). `bug04` se reemplazó por `InfractionEvidenceRuleTests` e `InfractionValidationRuleTest`. **Estado**: Resuelto.
 
 ### DEF-17 y DEF-18 Pruebas desactualizadas
 - `bug09a` envía `finalAmount=1` y espera 200; recibe 400, coherente con `ServiceBusinessRulesTests.infractionPatchRejectsAnInvalidFinalAmountAfterMerge`. Probable test desactualizado: no lo di por defecto del producto. `bug02` y `bug14` fallan al preparar el corte por un cambio de contrato en el handler. Acción: actualizarlos o retirarlos.
