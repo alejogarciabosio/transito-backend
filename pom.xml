@@ -5,7 +5,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
 <parent>
 <groupId>org.springframework.boot</groupId>
 <artifactId>spring-boot-starter-parent</artifactId>
-<version>4.1.0</version>
+<version>4.1.2</version>
 <relativePath/>
 </parent>
 <groupId>ar.edu.uade.transito</groupId>
@@ -31,6 +31,8 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
 <!-- Los tests con @Tag("bug") reproducen bugs abiertos: se excluyen del build normal.
      Para correrlos: ./mvnw test -Dbugs.excluded=none -Dgroups=bug -Djacoco.skip=true -->
 <bugs.excluded>bug</bugs.excluded>
+<!-- CVE: Spring Boot 4.1.2 aun gestiona amqp-client 5.30.0 (vulnerable); se fija la version minima con todos los fixes (mismo major 5.x) -->
+<rabbit-amqp-client.version>5.34.0</rabbit-amqp-client.version>
 </properties>
 <dependencies>
 <dependency>

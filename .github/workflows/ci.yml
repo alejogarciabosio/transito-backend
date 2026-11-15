@@ -32,3 +32,29 @@ jobs:
       - uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  dependencias:
+    name: Escaneo de dependencias (Trivy)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+      # Se escanea el jar construido (dependencias reales y transitivas), no solo el pom.
+      - name: Construir jar
+        run: ./mvnw -B -q -DskipTests package
+      - name: Trivy - falla con CVE HIGH/CRITICAL que tengan fix
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: rootfs
+          scan-ref: target
+          scanners: vuln
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: '1'
+          version: 'v0.76.2'
