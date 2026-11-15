@@ -67,6 +67,7 @@ public final class InfractionMapper {
                 infraction.getStatus(),
                 infraction.getOriginOperationId(),
                 infraction.getOriginTicketId(),
-                infraction.getOriginParkingSessionId());
+                infraction.getOriginParkingSessionId(),
+                infraction.getAppealReason());
     }
 }

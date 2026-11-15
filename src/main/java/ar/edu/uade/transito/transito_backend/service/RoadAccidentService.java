@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 import java.time.ZoneId;
 
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,19 +62,19 @@ public class RoadAccidentService {
 
     @Transactional(readOnly = true)
     public List<RoadAccident> findAll() {
-        return roadAccidentRepository.findAll();
+        return withCollections(roadAccidentRepository.findAll());
     }
 
     @Transactional(readOnly = true)
     public List<RoadAccident> findInvolving(String nationalId) {
-        return roadAccidentRepository.findInvolving(nationalId).stream()
+        return withCollections(roadAccidentRepository.findInvolving(nationalId)).stream()
                 .sorted(Comparator.comparing(RoadAccident::getAccidentDateTime).reversed())
                 .toList();
     }
 
     @Transactional(readOnly = true)
     public RoadAccident findById(UUID accidentId) {
-        return roadAccidentRepository.findById(accidentId)
+        return roadAccidentRepository.findById(accidentId).map(RoadAccidentService::withCollections)
                 .orElseThrow(() -> new ResourceNotFoundException("RoadAccident no encontrado: " + accidentId));
     }
 
@@ -119,5 +120,21 @@ public class RoadAccidentService {
         }
 
         return roadAccidentRepository.save(existing);
+    }
+
+    /**
+     * Inicializa las colecciones lazy DENTRO de la transacción (spring.jpa.open-in-view=false): el controller
+     * mapea la entidad después de que el servicio liberó la conexión. Con hibernate.default_batch_fetch_size
+     * cada colección se carga en lotes (una consulta cada 500 entidades), no una por fila (N+1).
+     */
+    private static RoadAccident withCollections(RoadAccident e) {
+        Hibernate.initialize(e.getVehicles());
+        Hibernate.initialize(e.getPersons());
+        return e;
+    }
+
+    private static List<RoadAccident> withCollections(List<RoadAccident> list) {
+        list.forEach(RoadAccidentService::withCollections);
+        return list;
     }
 }

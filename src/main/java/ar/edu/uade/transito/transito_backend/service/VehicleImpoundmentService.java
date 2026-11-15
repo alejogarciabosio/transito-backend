@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,17 +49,17 @@ public class VehicleImpoundmentService {
 
     @Transactional(readOnly = true)
     public List<VehicleImpoundment> findAll() {
-        return vehicleImpoundmentRepository.findAll();
+        return withCollections(vehicleImpoundmentRepository.findAll());
     }
 
     @Transactional(readOnly = true)
     public List<VehicleImpoundment> findByOwnerNationalId(String ownerNationalId) {
-        return vehicleImpoundmentRepository.findByOwnerNationalId(ownerNationalId);
+        return withCollections(vehicleImpoundmentRepository.findByOwnerNationalId(ownerNationalId));
     }
 
     @Transactional(readOnly = true)
     public VehicleImpoundment findById(UUID impoundmentId) {
-        return vehicleImpoundmentRepository.findById(impoundmentId)
+        return vehicleImpoundmentRepository.findById(impoundmentId).map(VehicleImpoundmentService::withCollections)
                 .orElseThrow(() -> new ResourceNotFoundException("VehicleImpoundment no encontrado: " + impoundmentId));
     }
 
@@ -126,5 +127,20 @@ public class VehicleImpoundmentService {
             throw new InvalidRequestException(
                     "La referencia de pago es obligatoria cuando el costo es mayor que cero");
         }
+    }
+
+    /**
+     * Inicializa las colecciones lazy DENTRO de la transacción (spring.jpa.open-in-view=false): el controller
+     * mapea la entidad después de que el servicio liberó la conexión. Con hibernate.default_batch_fetch_size
+     * cada colección se carga en lotes (una consulta cada 500 entidades), no una por fila (N+1).
+     */
+    private static VehicleImpoundment withCollections(VehicleImpoundment e) {
+        Hibernate.initialize(e.getVerifiedRequirements());
+        return e;
+    }
+
+    private static List<VehicleImpoundment> withCollections(List<VehicleImpoundment> list) {
+        list.forEach(VehicleImpoundmentService::withCollections);
+        return list;
     }
 }

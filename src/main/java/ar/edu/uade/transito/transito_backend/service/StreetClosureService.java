@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.UUID;
 
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,7 +46,7 @@ public class StreetClosureService {
 
     @Transactional(readOnly = true)
     public List<StreetClosure> findAll() {
-        return streetClosureRepository.findAll();
+        return withCollections(streetClosureRepository.findAll());
     }
 
     /**
@@ -54,13 +55,13 @@ public class StreetClosureService {
      */
     @Transactional(readOnly = true)
     public List<StreetClosure> findCurrent() {
-        return streetClosureRepository.findByStatusInOrderByStartDateAsc(
-                List.of(StreetClosureStatus.APPROVED, StreetClosureStatus.ACTIVE));
+        return withCollections(streetClosureRepository.findByStatusInOrderByStartDateAsc(
+                List.of(StreetClosureStatus.APPROVED, StreetClosureStatus.ACTIVE)));
     }
 
     @Transactional(readOnly = true)
     public StreetClosure findById(UUID streetClosureId) {
-        return streetClosureRepository.findById(streetClosureId)
+        return streetClosureRepository.findById(streetClosureId).map(StreetClosureService::withCollections)
                 .orElseThrow(() -> new ResourceNotFoundException("StreetClosure no encontrado: " + streetClosureId));
     }
 
@@ -189,5 +190,23 @@ public class StreetClosureService {
 
     private static void transition(StreetClosure closure, StreetClosureState next) {
         closure.setStatus(next.status());
+    }
+
+    /**
+     * Inicializa las colecciones lazy DENTRO de la transacción (spring.jpa.open-in-view=false): el controller
+     * mapea la entidad después de que el servicio liberó la conexión. Con hibernate.default_batch_fetch_size
+     * cada colección se carga en lotes (una consulta cada 500 entidades), no una por fila (N+1).
+     */
+    private static StreetClosure withCollections(StreetClosure e) {
+        Hibernate.initialize(e.getAffectedStreet());
+        Hibernate.initialize(e.getAffectedSections());
+        Hibernate.initialize(e.getDetours());
+        Hibernate.initialize(e.getConditions());
+        return e;
+    }
+
+    private static List<StreetClosure> withCollections(List<StreetClosure> list) {
+        list.forEach(StreetClosureService::withCollections);
+        return list;
     }
 }

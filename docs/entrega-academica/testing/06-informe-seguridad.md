@@ -3,7 +3,7 @@
 Actualizado: 15/11/2026 ~18:45 ART (estado final), sobre `main` `57b2765` (PR #48, desplegado) y frontend `1f0187d` (PR #10). Estados: **CUMPLE** (hay test o evidencia ejecutada), **NO CUMPLE** (hay evidencia de incumplimiento), **NO VERIFICABLE** (sin evidencia ejecutada; incluye "PENDIENTE" cuando otro agente lo está midiendo). Ningún CUMPLE se basa en inferencia: si no hay ejecución, no se marca.
 Referencias: OWASP Top 10 2025 / ASVS 5.0 y OWASP API Top 10, según la matriz del TPO.
 
-Evidencia "verify" = `./mvnw -q -B verify` sobre `57b2765` (497 tests, 0 fallos, 93,74 % de líneas, corrida D3 y job `test` del CI de `main`); "Newman" = job `api-tests` del CI de `main` (273 requests, 695 aserciones, 0 fallas, los 6 `[KI-n]` corregidos); "ZAP" = activo autenticado local (s8) y baseline del CI de `main`.
+Evidencia "verify" = `./mvnw -q -B verify` sobre `integration/entrega4-f` (518 tests, 0 fallos, 94,34 % de líneas, corrida I7; antes 497 sobre `57b2765`, D3 y job `test` del CI de `main`); "Newman" = job `api-tests` del CI de `main` (273 requests, 695 aserciones, 0 fallas, los 6 `[KI-n]` corregidos); "ZAP" = activo autenticado local (s8) y baseline del CI de `main`.
 
 ## 1. Matriz SEC del TPO (checkpoint 3)
 | Id | Criterio | Estado | Evidencia | Defecto |

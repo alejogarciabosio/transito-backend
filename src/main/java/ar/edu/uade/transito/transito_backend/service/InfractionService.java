@@ -6,6 +6,7 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,17 +56,20 @@ public class InfractionService {
 
     @Transactional(readOnly = true)
     public List<Infraction> findAll() {
-        return infractionRepository.findAll();
+        // Dos consultas con JOIN (no N+1 ni lotes con IN de cientos de ids, que en Postgres recorren la tabla por lote).
+        List<Infraction> all = infractionRepository.findAllFetchingEvidenceUrl();
+        infractionRepository.fetchAggravatingFactorsOfAll();
+        return all;
     }
 
     @Transactional(readOnly = true)
     public List<Infraction> findByOffenderNationalId(String offenderNationalId) {
-        return infractionRepository.findByOffenderNationalId(offenderNationalId);
+        return withCollections(infractionRepository.findByOffenderNationalId(offenderNationalId));
     }
 
     @Transactional(readOnly = true)
     public Infraction findById(UUID infractionId) {
-        return infractionRepository.findById(infractionId)
+        return infractionRepository.findById(infractionId).map(InfractionService::withCollections)
                 .orElseThrow(() -> new ResourceNotFoundException("Infraction no encontrada: " + infractionId));
     }
 
@@ -112,6 +116,7 @@ public class InfractionService {
     public Infraction appeal(UUID infractionId, String reason) {
         Infraction existing = findById(infractionId);
         existing.setStatus(InfractionStates.of(existing).appeal(existing).status());
+        existing.setAppealReason(reason);
         Infraction saved = infractionRepository.save(existing);
 
         eventPublisher.publish(EventEnvelope.of("infractionAppealed",
@@ -158,5 +163,21 @@ public class InfractionService {
     /** La hora guardada es local argentina; el contrato v4 exige ISO 8601 con offset (-03:00). */
     static OffsetDateTime toMunicipalOffset(LocalDateTime localDateTime) {
         return localDateTime == null ? null : localDateTime.atZone(MUNICIPAL_TIME_ZONE).toOffsetDateTime();
+    }
+
+    /**
+     * Inicializa las colecciones lazy DENTRO de la transacción (spring.jpa.open-in-view=false): el controller
+     * mapea la entidad después de que el servicio liberó la conexión. Con hibernate.default_batch_fetch_size
+     * cada colección se carga en lotes (una consulta cada 500 entidades), no una por fila (N+1).
+     */
+    private static Infraction withCollections(Infraction e) {
+        Hibernate.initialize(e.getEvidenceUrl());
+        Hibernate.initialize(e.getAggravatingFactors());
+        return e;
+    }
+
+    private static List<Infraction> withCollections(List<Infraction> list) {
+        list.forEach(InfractionService::withCollections);
+        return list;
     }
 }
