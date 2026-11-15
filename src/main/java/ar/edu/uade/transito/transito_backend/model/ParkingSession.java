@@ -43,4 +43,11 @@ public class ParkingSession {
     private boolean paid;
 
     private String paymentReference;
+
+    /**
+     * Identificador (subject del JWT) del ciudadano que inició la sesión; null si la creó un inspector
+     * o si es anterior a DEF-15. Interno: no se expone en el DTO de respuesta.
+     */
+    @Column(name = "owner_username")
+    private String ownerUsername;
 }

@@ -126,7 +126,7 @@ public class StreetClosureService {
                 saved.getStreetClosureId(),
                 saved.getClosureRequestId(),
                 OffsetDateTime.now(MUNICIPAL_TIME_ZONE),
-                notes), saved.getSourceCorrelationId(), null));
+                notes), saved.getSourceCorrelationId(), saved.getSourceEventId()));
 
         return saved;
     }
@@ -142,7 +142,7 @@ public class StreetClosureService {
             StreetClosure saved = streetClosureRepository.save(closure);
             eventPublisher.publish(EventEnvelope.of("streetClosureEnded", new StreetClosureEndedPayload(
                     saved.getStreetClosureId(), saved.getClosureRequestId(), OffsetDateTime.now(MUNICIPAL_TIME_ZONE),
-                    "Cierre automático al vencer el horario autorizado."), saved.getSourceCorrelationId(), null));
+                    "Cierre automático al vencer el horario autorizado."), saved.getSourceCorrelationId(), saved.getSourceEventId()));
         }
 
         for (StreetClosure closure : streetClosureRepository

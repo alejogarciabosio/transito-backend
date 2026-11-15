@@ -26,13 +26,17 @@ class StreetClosureIntegrationTest extends AbstractIntegrationTest {
     private static final String REQUESTED_TO = "2026-10-02T00:00:00-03:00";
 
     private String requestClosure(String moduleCode) {
+        return requestClosure(moduleCode, UUID.randomUUID(), null);
+    }
+
+    private String requestClosure(String moduleCode, UUID eventId, UUID correlationId) {
         dispatchIncoming("streetClosureRequested", "{\"closureRequestId\":\"REQ-" + UUID.randomUUID() + "\","
                 + "\"sourceModule\":\"" + moduleCode + "\","
                 + "\"sourceRef\":\"INT-025\",\"reason\":\"Intervención planificada\","
                 + "\"affectedSections\":[{\"street\":\"Av. Rivadavia\",\"from\":\"Av. La Plata\",\"to\":\"Muñiz\",\"direction\":\"BOTH\"}],"
                 + "\"requestedFrom\":\"" + REQUESTED_FROM + "\","
                 + "\"requestedTo\":\"" + REQUESTED_TO + "\","
-                + "\"requestedAt\":\"2026-09-01T15:58:00-03:00\"}");
+                + "\"requestedAt\":\"2026-09-01T15:58:00-03:00\"}", eventId, correlationId);
         return streetClosureRepository.findAll().get((int) streetClosureRepository.count() - 1).getStreetClosureId().toString();
     }
 
@@ -108,6 +112,32 @@ class StreetClosureIntegrationTest extends AbstractIntegrationTest {
         // un rechazado no se puede aprobar ni activar
         post("/street-closures/" + id + "/approval", SUPERVISOR, APPROVE).andExpect(status().isConflict());
         post("/street-closures/" + id + "/activation", OPERADOR, null).andExpect(status().isConflict());
+    }
+
+    @Test
+    @DisplayName("TC-BE-SC-09: Approved/Rejected/Ended conservan correlationId y usan causationId = eventId de la solicitud")
+    void responsesKeepCorrelationAndCausation() throws Exception {
+        UUID requestEventId = UUID.randomUUID();
+        UUID correlationId = UUID.randomUUID();
+        String id = requestClosure("obras", requestEventId, correlationId);
+        post("/street-closures/" + id + "/approval", SUPERVISOR, APPROVE).andExpect(status().isOk());
+        post("/street-closures/" + id + "/activation", OPERADOR, null).andExpect(status().isOk());
+        post("/street-closures/" + id + "/completion", OPERADOR, "{\"notes\":\"ok\"}").andExpect(status().isOk());
+
+        UUID rejectedEventId = UUID.randomUUID();
+        UUID rejectedCorrelationId = UUID.randomUUID();
+        String rejectedId = requestClosure("ambiente", rejectedEventId, rejectedCorrelationId);
+        post("/street-closures/" + rejectedId + "/rejection", SUPERVISOR, "{\"rejectionReason\":\"Horario pico\"}")
+                .andExpect(status().isOk());
+
+        for (String type : new String[] {"streetClosureApproved", "streetClosureEnded"}) {
+            var envelope = events.ofType(type).get(0);
+            assertThat(envelope.getCorrelationId()).as(type + ".correlationId").isEqualTo(correlationId);
+            assertThat(envelope.getCausationId()).as(type + ".causationId").isEqualTo(requestEventId);
+        }
+        var rejected = events.ofType("streetClosureRejected").get(0);
+        assertThat(rejected.getCorrelationId()).isEqualTo(rejectedCorrelationId);
+        assertThat(rejected.getCausationId()).isEqualTo(rejectedEventId);
     }
 
     @Test
