@@ -8860,7 +8860,7 @@
           }
         },
         {
-          "name": "Otro origen (otra IP) no se ve afectado → 200",
+          "name": "Otro origen (otra IP) y otro usuario no se ven afectados → 200",
           "event": [
             {
               "listen": "test",
@@ -8888,7 +8888,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"admin1\",\n  \"password\": \"admin123\"\n}"
+              "raw": "{\n  \"username\": \"inspector1\",\n  \"password\": \"inspector123\"\n}"
             },
             "url": "{{base_url}}/api/v1/auth/login",
             "auth": {
