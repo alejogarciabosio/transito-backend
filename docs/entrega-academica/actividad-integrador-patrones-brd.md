@@ -33,6 +33,8 @@ Al aprobar se publica streetClosureApproved. streetClosureActivated es interno d
 
 ## 2. Patrones aplicados y ADR
 
+> **Versión vigente de los ADR:** [`docs/adr/`](../adr/README.md). El ADR-002 de abajo está **reemplazado** por [`docs/adr/ADR-002-adapter-identidad-m1.md`](../adr/ADR-002-adapter-identidad-m1.md) (M1 por REST con `RestIdentityValidator`, propiedad `users.rest.enabled`; `SoapIdentityValidator` y `USERS_SOAP_ENABLED` ya no existen). Se conserva como registro histórico.
+
 ### ADR-001 - GRASP Controller para casos de uso REST
 
 **Estado:** Aceptada - 20/10/2026  

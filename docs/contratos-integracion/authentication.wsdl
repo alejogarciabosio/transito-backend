@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions name="AuthenticationService" targetNamespace="https://transito.uade.edu.ar/soap/authentication"
+  xmlns:tns="https://transito.uade.edu.ar/soap/authentication" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.xmlsoap.org/wsdl/">
+  <documentation>Fachada SOAP de M7. La autenticación se delega al REST de M1.</documentation>
+  <types><xsd:schema targetNamespace="https://transito.uade.edu.ar/soap/authentication">
+    <xsd:element name="authenticateUserRequest"><xsd:complexType><xsd:sequence>
+      <xsd:element name="gmail" type="xsd:string"/><xsd:element name="password" type="xsd:string"/>
+    </xsd:sequence></xsd:complexType></xsd:element>
+    <xsd:element name="authenticateUserResponse"><xsd:complexType><xsd:sequence>
+      <xsd:element name="token" type="xsd:string"/><xsd:element name="role" type="xsd:string"/>
+      <xsd:element name="expiresInSeconds" type="xsd:long"/>
+    </xsd:sequence></xsd:complexType></xsd:element>
+  </xsd:schema></types>
+  <message name="AuthenticateUserInput"><part name="parameters" element="tns:authenticateUserRequest"/></message>
+  <message name="AuthenticateUserOutput"><part name="parameters" element="tns:authenticateUserResponse"/></message>
+  <portType name="AuthenticationPortType"><operation name="authenticateUser">
+    <input message="tns:AuthenticateUserInput"/><output message="tns:AuthenticateUserOutput"/>
+  </operation></portType>
+  <binding name="AuthenticationSoapBinding" type="tns:AuthenticationPortType">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <operation name="authenticateUser"><soap:operation soapAction="authenticateUser"/>
+      <input><soap:body use="literal"/></input><output><soap:body use="literal"/></output>
+    </operation>
+  </binding>
+  <service name="AuthenticationService"><port name="AuthenticationPort" binding="tns:AuthenticationSoapBinding">
+    <soap:address location="/soap/authentication"/>
+  </port></service>
+</definitions>

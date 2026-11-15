@@ -47,7 +47,8 @@ services:
     entrypoint: ["sh", "-c", "rabbitmqadmin -H rabbitmq -u module_transito -p \"$$RABBITMQ_PASS\" import /definitions.json"]
     restart: "no"
 
-  # Mock (WireMock) de M1 (POST /auth/usuario/login) y de Core (module-token y publications).
+  # Mock (WireMock, versión fija) de M1 (POST /auth/usuario/login), de Core (module-token y publications)
+  # y del proveedor de IA (POST /openai/v1/chat/completions, respuesta tipo Groq para la demo local).
   mocks:
     image: wiremock/wiremock:3.9.1
     command: ["--disable-banner"]
@@ -96,6 +97,11 @@ services:
       CORE_RABBITMQ_TLS_ENABLED: "false"
       CORE_BASE_URL: http://mocks:8080
       USERS_REST_URL: http://mocks:8080/auth/usuario/login
+      # IA (opcional, apagada por defecto). En local apunta al mock de WireMock que imita Groq chat/completions
+      # (docker/wiremock/mappings/groq-chat-completions.json). Para la demo: AI_ENABLED=true y GROQ_API_KEY=cualquier-texto en .env.
+      AI_ENABLED: ${AI_ENABLED:-false}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      AI_GROQ_URL: ${AI_GROQ_URL:-http://mocks:8080/openai/v1/chat/completions}
 
   # Frontend (repo hermano): descomentar si está clonado al lado de este repo.
   # frontend:
