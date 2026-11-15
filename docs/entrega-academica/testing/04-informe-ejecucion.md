@@ -91,6 +91,12 @@ Observaciones: medido antes de los PR #31/#39/#48 (outbox, State, límite por us
 ### 4.4 Seguridad dinámica y dependencias
 Ver `06-informe-seguridad.md`. ZAP: [evidencias/zap](evidencias/zap/README.md) y job `zap-baseline`. Trivy: job `dependencias` del CI.
 
+
+### 4.5 Ambiente de pruebas
+- **Ambiente de testing: compose local reproducible** (`docker compose up`, un comando, ~75 s desde cero): backend, PostgreSQL, RabbitMQ y simuladores de M1, Core e IA (WireMock). Es el mismo ambiente que levanta el CI en cada PR (Newman, ZAP y E2E corren contra él) y el que usan los tests con Testcontainers (PostgreSQL + RabbitMQ reales).
+- **Integración entre módulos:** validada en producción (Railway) coordinada con Core, que monitorea entregas, intentos y DLQ (ver sección 7).
+- No se usó un entorno de test separado en la nube por costo: el entorno `test` de Railway quedó sin desplegar.
+
 ## 5. Defectos encontrados en esta ronda
 Ver `05-registro-defectos.md`. Hallazgos del 15/11: KI-2 (Newman), 25 CVE (Trivy), 500 con textos largos/NUL (ZAP), `causationId` nulo (Core), fecha sin offset (M5), constraint sin `EXPIRED` (latente), KI-3/4/5 (Newman), CORP (ZAP), `updateTicketStatus` fuera del esquema de Core (revisión de contrato), y al cierre: `show-sql` ruidoso en producción (DEF-32) e incompatibilidad del consumidor de M3 con `causationId` (DEF-33). Todos menos DEF-32, DEF-33 y los preexistentes DEF-07/10/17/18/19/20/21 quedaron cerrados y desplegados.
 

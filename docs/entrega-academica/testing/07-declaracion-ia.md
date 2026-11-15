@@ -6,7 +6,7 @@ Fecha: 15/11/2026 (estado final, `main` `57b2765`). Regla del equipo: todo test 
 | Herramienta | Uso | Datos que recibe |
 |---|---|---|
 | Claude Code (modelos Claude de Anthropic), con subagentes que trabajan en carpetas separadas (A1-A3, B2, B2b, B3b, B3f, B4, I1-I5, D1-D3, T1, T2, S1-S15) | escribir y revisar código, tests, scripts, documentación de QA; ejecutar comandos locales (`./mvnw verify`, `npm run test:coverage`, Docker, gitleaks) | el código de los repos y los reportes. Reglas de trabajo: sin secretos, sin tocar producción sin permiso |
-| Groq (modelo por defecto `llama-3.1-8b-instant`) | proveedor de la **feature de IA del producto** (sugerencia de tipo y agravantes de infracción). Apagada por defecto (`AI_ENABLED=false`) | solo el texto libre del inspector, con datos personales enmascarados (`PiiMasker`) |
+| Groq (modelo `openai/gpt-oss-20b`; el anterior `llama-3.1-8b-instant` fue retirado por Groq) | proveedor de la **feature de IA del producto** (sugerencia de tipo y agravantes de infracción). Apagada por defecto en el código (`AI_ENABLED=false`); **activada en producción desde el 15/11** con clave de Groq (verificado: sugiere `ILLEGAL_PARKING` + `ZONA_ESCOLAR`) | solo el texto libre del inspector, con datos personales enmascarados (`PiiMasker`) |
 
 No se usó IA para decidir veredictos de seguridad ni para firmar resultados sin ejecución.
 
