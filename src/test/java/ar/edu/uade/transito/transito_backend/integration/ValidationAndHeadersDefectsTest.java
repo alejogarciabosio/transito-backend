@@ -65,6 +65,9 @@ class ValidationAndHeadersDefectsTest extends AbstractIntegrationTest {
                 .andExpect(status().isForbidden());
         put("/parking-zones/" + UUID.randomUUID(), INSPECTOR, "{}")
                 .andExpect(status().isForbidden());
+        // JSON malformado: también 403 para el rol sin permiso, 400 para el autorizado.
+        post("/impoundments", CIUDADANO, "{no-json").andExpect(status().isForbidden());
+        post("/impoundments", INSPECTOR, "{no-json").andExpect(status().isBadRequest());
     }
 
     @Test
