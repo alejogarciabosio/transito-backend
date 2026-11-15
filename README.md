@@ -20,7 +20,7 @@ Crear un archivo `.env` en la raíz con las variables entregadas por el equipo:
 DB_URL=jdbc:postgresql://host:5432/database
 DB_USER=usuario
 DB_PASSWORD=contraseña
-JWT_SECRET=un-secreto-de-al-menos-32-bytes
+JWT_SECRET=<JWT_SECRET: mínimo 32 bytes aleatorios>
 CORS_ALLOWED_ORIGINS=http://localhost:5173
 ```
 

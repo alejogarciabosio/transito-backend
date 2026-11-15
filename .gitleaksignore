@@ -1,0 +1,15 @@
+# Falsos positivos / hallazgos ya resueltos en el historial de git (formato commit:archivo:regla:línea).
+# En HEAD ya no hay hallazgos (gitleaks detect --no-git da 0). No se reescribió el historial.
+
+# Contraseña de cuentas de prueba del módulo M1 (otro equipo), commit histórico de docs/Respuestas de Ro.md.
+# Ya no está en HEAD (reemplazada por un placeholder). Es una cuenta de un ambiente académico de prueba, sin datos reales.
+83cbfb35bdf54bfb05db225840428a9a43b21b8e:docs/Respuestas de Ro.md:generic-api-key:152
+
+# README.md: ejemplo de JWT_SECRET con texto placeholder ("un-...-de-al-menos-32-bytes"), no es un secreto real. Reemplazado en HEAD.
+467ca3d4fba4ad545f5e55812393c8fe89196dfd:README.md:generic-api-key:23
+
+# openapi.yaml: valor de ejemplo del campo "token" en la respuesta de login (documentación, no es un JWT válido). Reemplazado por <token-jwt>.
+93d8dcdb10697c044d9a346714837c220abcded6:openapi.yaml:generic-api-key:52
+
+# ACTIVIDAD-INTEGRADORA-API-REST.md: mismo token de ejemplo de documentación, no válido. Reemplazado por <token-jwt>.
+93d8dcdb10697c044d9a346714837c220abcded6:ACTIVIDAD-INTEGRADORA-API-REST.md:generic-api-key:211
