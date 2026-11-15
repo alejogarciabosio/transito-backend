@@ -8,11 +8,13 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import ar.edu.uade.transito.transito_backend.auth.AuthenticatedUser;
 import ar.edu.uade.transito.transito_backend.exception.InvalidStateTransitionException;
 import ar.edu.uade.transito.transito_backend.exception.ResourceNotFoundException;
 import ar.edu.uade.transito.transito_backend.model.Infraction;
 import ar.edu.uade.transito.transito_backend.model.ParkingSession;
 import ar.edu.uade.transito.transito_backend.model.enums.InfractionType;
+import ar.edu.uade.transito.transito_backend.model.enums.Role;
 import ar.edu.uade.transito.transito_backend.repository.InfractionRepository;
 import ar.edu.uade.transito.transito_backend.repository.ParkingSessionRepository;
 import ar.edu.uade.transito.transito_backend.repository.ParkingZoneRepository;
@@ -28,6 +30,15 @@ public class ParkingSessionService {
     private final InfractionRepository infractionRepository;
     private final ParkingZoneRepository parkingZoneRepository;
     private final InfractionService infractionService;
+
+    /**
+     * Inicia la sesión registrando como dueño al ciudadano autenticado (DEF-15). Si la inicia
+     * otro rol (inspector), el dueño queda null. El dueño nunca se toma del body.
+     */
+    public ParkingSession start(ParkingSession session, AuthenticatedUser user) {
+        session.setOwnerUsername(user != null && user.role() == Role.CIUDADANO ? user.userId() : null);
+        return start(session);
+    }
 
     public ParkingSession start(ParkingSession session) {
         var zone = parkingZoneRepository.findById(session.getZoneId())
@@ -52,8 +63,32 @@ public class ParkingSessionService {
                 .orElseThrow(() -> new ResourceNotFoundException("ParkingSession no encontrada: " + sessionId));
     }
 
+    /**
+     * Igual que {@link #findById(UUID)} pero aplicando autorización a nivel de objeto (DEF-15 / KI-1):
+     * un CIUDADANO solo ve sus propias sesiones; si no es suya (o es legacy sin dueño) se responde
+     * exactamente igual que un id inexistente (404), para no revelar su existencia. Otros roles: sin cambios.
+     */
+    @Transactional(readOnly = true)
+    public ParkingSession findById(UUID sessionId, AuthenticatedUser user) {
+        ParkingSession session = findById(sessionId);
+        if (user != null && user.role() == Role.CIUDADANO
+                && (session.getOwnerUsername() == null || !session.getOwnerUsername().equals(user.userId()))) {
+            throw new ResourceNotFoundException("ParkingSession no encontrada: " + sessionId);
+        }
+        return session;
+    }
+
+    /** Cierra la sesión verificando primero la pertenencia (antes de cualquier validación de estado o escritura). */
+    public ParkingSession close(UUID sessionId, AuthenticatedUser user) {
+        return doClose(findById(sessionId, user));
+    }
+
     public ParkingSession close(UUID sessionId) {
-        ParkingSession existing = findById(sessionId);
+        return doClose(findById(sessionId));
+    }
+
+    private ParkingSession doClose(ParkingSession existing) {
+        UUID sessionId = existing.getSessionId();
         if (existing.getEndDateTime() != null) {
             throw new InvalidStateTransitionException("La sesión " + sessionId + " ya está cerrada");
         }

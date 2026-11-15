@@ -193,4 +193,86 @@ class ParkingIntegrationTest extends AbstractIntegrationTest {
             assertThat(events.all()).isEmpty();
         }
     }
+
+    @Nested
+    @DisplayName("DEF-15 / KI-1: BOLA en sesiones (/parking-sessions/{id})")
+    class Ownership {
+
+        private ParkingSession stored(String id) {
+            return parkingSessionRepository.findById(UUID.fromString(id)).orElseThrow();
+        }
+
+        @Test
+        @DisplayName("TC-BE-PS-BOLA-01: el dueño lee y cierra su sesión → 200; queda registrado como dueño")
+        void ownerAccess() throws Exception {
+            String id = startSession(createZone("Z"));
+            assertThat(stored(id).getOwnerUsername()).isEqualTo(CIUDADANO.userId());
+            get("/parking-sessions/" + id, CIUDADANO).andExpect(status().isOk())
+                    .andExpect(jsonPath("$.sessionId").value(id))
+                    .andExpect(jsonPath("$.ownerUsername").doesNotExist());
+            post("/parking-sessions/" + id + "/closure", CIUDADANO, null).andExpect(status().isOk())
+                    .andExpect(jsonPath("$.endDateTime", notNullValue()));
+        }
+
+        @Test
+        @DisplayName("TC-BE-PS-BOLA-02: otro ciudadano → 404 Problem Details en lectura y cierre; la sesión no cambia")
+        void otherCitizenGets404() throws Exception {
+            String id = startSession(createZone("Z"));
+            events.clear();
+            get("/parking-sessions/" + id, OTRO_CIUDADANO)
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.status").value(404))
+                    .andExpect(jsonPath("$.title").exists())
+                    .andExpect(jsonPath("$.licensePlate").doesNotExist());
+            post("/parking-sessions/" + id + "/closure", OTRO_CIUDADANO, null)
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.status").value(404));
+            assertThat(stored(id).getEndDateTime()).as("la closure ajena no cerró la sesión").isNull();
+            assertThat(events.all()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("TC-BE-PS-BOLA-03: sesión ya cerrada ajena → 404 (no 409: no revela existencia ni estado)")
+        void closedForeignSessionGets404() throws Exception {
+            String id = startSession(createZone("Z"));
+            post("/parking-sessions/" + id + "/closure", CIUDADANO, null).andExpect(status().isOk());
+            post("/parking-sessions/" + id + "/closure", OTRO_CIUDADANO, null).andExpect(status().isNotFound());
+        }
+
+        @Test
+        @DisplayName("TC-BE-PS-BOLA-04: sesión legacy (owner null) → 404 para ciudadano, 200 para inspector")
+        void legacySession() throws Exception {
+            String id = startSession(createZone("Z"));
+            ParkingSession legacy = stored(id);
+            legacy.setOwnerUsername(null);
+            parkingSessionRepository.save(legacy);
+            get("/parking-sessions/" + id, CIUDADANO).andExpect(status().isNotFound());
+            post("/parking-sessions/" + id + "/closure", CIUDADANO, null).andExpect(status().isNotFound());
+            assertThat(stored(id).getEndDateTime()).isNull();
+            get("/parking-sessions/" + id, INSPECTOR).andExpect(status().isOk());
+            post("/parking-sessions/" + id + "/closure", INSPECTOR, null).andExpect(status().isOk());
+        }
+
+        @Test
+        @DisplayName("TC-BE-PS-BOLA-05: inspector lee y cierra sesiones de ciudadanos → 200; si la crea él, owner null")
+        void inspectorUnchanged() throws Exception {
+            String zone = createZone("Z");
+            String id = startSession(zone);
+            get("/parking-sessions/" + id, INSPECTOR).andExpect(status().isOk());
+            post("/parking-sessions/" + id + "/closure", INSPECTOR, null).andExpect(status().isOk());
+            String byInspector = read(post("/parking-sessions", INSPECTOR, Payloads.session(zone))
+                    .andExpect(status().isCreated()).andReturn(), "$.sessionId");
+            assertThat(stored(byInspector).getOwnerUsername()).isNull();
+            get("/parking-sessions/" + byInspector, CIUDADANO).andExpect(status().isNotFound());
+        }
+
+        @Test
+        @DisplayName("TC-BE-PS-BOLA-06: el cliente no puede fijar el dueño desde el body")
+        void ownerNotSettableFromBody() throws Exception {
+            String zone = createZone("Z");
+            String body = Payloads.session(zone).replace("{", "{\"ownerUsername\":\"" + OTRO_CIUDADANO.userId() + "\",");
+            String id = read(post("/parking-sessions", CIUDADANO, body).andExpect(status().isCreated()).andReturn(), "$.sessionId");
+            assertThat(stored(id).getOwnerUsername()).isEqualTo(CIUDADANO.userId());
+        }
+    }
 }
