@@ -115,8 +115,8 @@ class MutationKillingOperationsClosuresTest {
         assertThat(closed.getEndDateTime()).isNotNull();
         var env = published(publisher);
         assertThat(env.getEventType()).isEqualTo("updateTicketStatus");
-        assertThat(env.getData().toString()).contains("REJECTED").contains(ticket.toString())
-                .contains("sin una acción aplicable");
+        assertThat(env.getData().toString()).contains("RESOLVED").contains(ticket.toString())
+                .contains("NO_FURTHER_ACTION_REQUIRED").contains("no fue necesario").doesNotContain("REJECTED");
     }
 
     @Test
@@ -133,7 +133,7 @@ class MutationKillingOperationsClosuresTest {
         service.close(resolvedId, OperationResolution.INFRACTION_CREATED);
         var env = published(publisher);
         assertThat(env.getData().toString()).contains("RESOLVED").contains("satisfactoriamente")
-                .contains("INFRACTION_CREATED");
+                .contains("ACTION_COMPLETED").contains("Operativo " + resolvedId + "; resolución INFRACTION_CREATED");
 
         for (String legacyTicket : new String[] {"TCK-123", "", "  ", null}) {
             UUID id = UUID.randomUUID();

@@ -2,7 +2,6 @@ package ar.edu.uade.transito.transito_backend.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -102,15 +101,16 @@ public class TrafficOperationService {
         }
         try {
             UUID ticketId = UUID.fromString(operation.getTicketId());
-            boolean rejected = operation.getResolution() == OperationResolution.NO_ACTION;
-            String updateType = rejected ? "REJECTED" : "RESOLVED";
-            String message = rejected
-                    ? "La verificación de Tránsito finalizó sin una acción aplicable."
-                    : "La verificación de Tránsito finalizó satisfactoriamente.";
+            // NO_ACTION: el reclamo se verificó y no requiere acción; no es un rechazo del reclamo.
+            boolean noAction = operation.getResolution() == OperationResolution.NO_ACTION;
+            String resolutionType = noAction ? "NO_FURTHER_ACTION_REQUIRED" : "ACTION_COMPLETED";
+            String message = noAction
+                    ? "Tránsito verificó el reclamo y no fue necesario tomar acciones adicionales."
+                    : "La verificación de Tránsito finalizó satisfactoriamente y se tomaron las medidas correspondientes.";
+            String internalMessage = "Operativo " + operation.getOperationId()
+                    + "; resolución " + operation.getResolution().name();
             eventPublisher.publish(EventEnvelope.of("updateTicketStatus",
-                    UpdateTicketStatusPayload.completed(ticketId, updateType, message,
-                            Map.of("operationId", operation.getOperationId().toString(),
-                                    "resolution", operation.getResolution().name())),
+                    UpdateTicketStatusPayload.resolved(ticketId, message, internalMessage, resolutionType),
                     operation.getSourceCorrelationId(), operation.getSourceEventId()));
         } catch (IllegalArgumentException ignored) {
             // Only M2-originated operations use UUID ticket identifiers and receive M2 updates.
