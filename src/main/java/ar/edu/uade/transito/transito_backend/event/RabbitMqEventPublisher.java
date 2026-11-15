@@ -39,6 +39,9 @@ public class RabbitMqEventPublisher implements EventPublisher {
             message.getMessageProperties().setUserId(moduleUserId);
             return message;
         });
+        // Solo metadatos del sobre: nunca el payload (puede tener datos personales).
+        log.info("[event-published] type={} eventId={} correlationId={}",
+                event.getEventType(), event.getEventId(), event.getCorrelationId());
     }
 
 }

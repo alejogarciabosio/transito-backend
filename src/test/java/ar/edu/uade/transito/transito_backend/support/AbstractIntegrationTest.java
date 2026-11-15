@@ -116,7 +116,14 @@ public abstract class AbstractIntegrationTest {
      * {@code dataJson} es solo el contenido de "data"; acá se arma el sobre completo.
      */
     protected void dispatchIncoming(String eventType, String dataJson) {
-        String envelope = "{\"eventId\":\"" + java.util.UUID.randomUUID() + "\","
+        dispatchIncoming(eventType, dataJson, java.util.UUID.randomUUID(), null);
+    }
+
+    /** Variante que fija eventId/correlationId del sobre entrante para validar la trazabilidad. */
+    protected void dispatchIncoming(String eventType, String dataJson, java.util.UUID eventId,
+                                    java.util.UUID correlationId) {
+        String envelope = "{\"eventId\":\"" + eventId + "\","
+                + (correlationId == null ? "" : "\"correlationId\":\"" + correlationId + "\",")
                 + "\"eventType\":\"" + eventType + "\","
                 + "\"occurredAt\":\"" + java.time.OffsetDateTime.now() + "\","
                 + "\"sourceModule\":\"test\","

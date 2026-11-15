@@ -59,7 +59,10 @@ class OtherServicesTest {
         var publisher = mock(EventPublisher.class);
         var service = new StreetClosureService(repo, publisher);
         OffsetDateTime now = OffsetDateTime.parse("2026-10-18T12:00:00-03:00");
+        UUID sourceEventId = UUID.randomUUID();
+        UUID sourceCorrelationId = UUID.randomUUID();
         StreetClosure active = StreetClosure.builder().streetClosureId(UUID.randomUUID()).closureRequestId("A")
+                .sourceEventId(sourceEventId).sourceCorrelationId(sourceCorrelationId)
                 .status(StreetClosureStatus.ACTIVE).build();
         StreetClosure approved = StreetClosure.builder().streetClosureId(UUID.randomUUID()).closureRequestId("B")
                 .status(StreetClosureStatus.APPROVED).build();
@@ -73,7 +76,11 @@ class OtherServicesTest {
         assertThat(approved.getStatus()).isEqualTo(StreetClosureStatus.EXPIRED);
         verify(repo).save(active);
         verify(repo).save(approved);
-        verify(publisher).publish(any());
+        var captor = org.mockito.ArgumentCaptor.forClass(ar.edu.uade.transito.transito_backend.event.EventEnvelope.class);
+        verify(publisher).publish(captor.capture());
+        assertThat(captor.getValue().getEventType()).isEqualTo("streetClosureEnded");
+        assertThat(captor.getValue().getCorrelationId()).isEqualTo(sourceCorrelationId);
+        assertThat(captor.getValue().getCausationId()).isEqualTo(sourceEventId);
     }
 
     @Test
