@@ -58,3 +58,47 @@ jobs:
           ignore-unfixed: true
           exit-code: '1'
           version: 'v0.76.2'
+
+  api-tests:
+    name: Pruebas de API (Newman contra compose local)
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Crear .env de desarrollo (valores ficticios generados en el runner)
+        run: |
+          {
+            echo "DB_URL=jdbc:postgresql://db:5432/transito"
+            echo "DB_USER=transito"
+            echo "DB_PASSWORD=$(openssl rand -hex 12)"
+            echo "JWT_SECRET=$(openssl rand -hex 32)"
+            echo "CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173"
+            echo "USERS_REST_ENABLED=false"
+            echo "CORE_RABBITMQ_PASSWORD=$(openssl rand -hex 12)"
+            echo "CORE_MODULE_SECRET=$(openssl rand -hex 12)"
+          } > .env
+      - name: Levantar el compose local (db, rabbitmq, mocks, backend)
+        run: docker compose up --build -d
+      - name: Esperar a que el backend esté UP
+        run: |
+          for i in $(seq 1 60); do
+            curl -sf http://localhost:8080/actuator/health >/dev/null && exit 0
+            sleep 5
+          done
+          docker compose logs backend | tail -50
+          exit 1
+      - name: Correr Newman (colección Postman)
+        run: tests/run-newman.sh
+      - name: Subir reportes (JUnit y HTML)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: newman-reports
+          path: tests/reports/
+          retention-days: 7
+      - name: Apagar el compose
+        if: always()
+        run: docker compose down -v

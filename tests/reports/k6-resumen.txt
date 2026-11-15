@@ -1,0 +1,57 @@
+k6 - 2026-11-15T19:12Z - 50 VUs x 5m contra compose local (pool Hikari por defecto = 3). exit=0 (0 = umbrales OK, 99 = umbral incumplido)
+  █ THRESHOLDS 
+
+    http_req_duration
+    ✓ 'p(95)<500' p(95)=341.26ms
+
+    http_req_failed
+    ✓ 'rate<0.01' rate=0.01%
+
+    t_list_infractions
+    ✓ 'p(95)<500' p(95)=472.4ms
+
+    t_login
+    ✓ 'p(95)<500' p(95)=149.93ms
+
+    t_street_closures_current
+    ✓ 'p(95)<500' p(95)=357.85ms
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 35923  119.450572/s
+    checks_succeeded...: 99.98% 35916 out of 35923
+    checks_failed......: 0.01%  7 out of 35923
+
+    ✗ login 200
+      ↳  99% — ✓ 11974 / ✗ 1
+    ✓ listado 200
+    ✗ cortes 200
+      ↳  99% — ✓ 11968 / ✗ 6
+
+    CUSTOM
+    t_list_infractions.............: avg=116.5ms min=3.82ms   med=49.93ms max=2.65s    p(90)=294.45ms p(95)=472.4ms 
+    t_login........................: avg=34.55ms min=0s       med=10.69ms max=963.79ms p(90)=87.46ms  p(95)=149.93ms
+    t_street_closures_current......: avg=76.59ms min=0s       med=19.95ms max=2.11s    p(90)=213.61ms p(95)=357.85ms
+
+    HTTP
+    http_req_duration..............: avg=75.88ms min=0s       med=23.33ms max=2.65s    p(90)=195.2ms  p(95)=341.26ms
+      { expected_response:true }...: avg=75.9ms  min=462.79µs med=23.33ms max=2.65s    p(90)=195.23ms p(95)=341.29ms
+    http_req_failed................: 0.01%  7 out of 35923
+    http_reqs......................: 35923  119.450572/s
+
+    EXECUTION
+    iteration_duration.............: avg=1.25s   min=1s       med=1.09s   max=31.07s   p(90)=1.66s    p(95)=1.98s   
+    iterations.....................: 11975  39.819074/s
+    vus............................: 50     min=50         max=50
+    vus_max........................: 50     min=50         max=50
+
+    NETWORK
+    data_received..................: 222 MB 737 kB/s
+    data_sent......................: 7.5 MB 25 kB/s
+
+
+
+
+running (5m00.7s), 00/50 VUs, 11975 complete and 0 interrupted iterations
+carga ✓ [ 100% ] 50 VUs  5m0s

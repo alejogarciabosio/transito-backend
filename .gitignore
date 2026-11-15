@@ -33,3 +33,9 @@ build/
 .vscode/
 .env
 .DS_Store
+
+### Reportes pesados de pruebas (se versionan solo los resúmenes) ###
+tests/reports/*
+!tests/reports/.gitkeep
+!tests/reports/k6-resumen.txt
+!tests/reports/zap-resumen.md
