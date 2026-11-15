@@ -11,8 +11,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.HandlerMethod;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import ar.edu.uade.transito.transito_backend.exception.InvalidCredentialsException;
 import ar.edu.uade.transito.transito_backend.exception.InvalidRequestException;
@@ -23,9 +27,13 @@ import ar.edu.uade.transito.transito_backend.exception.UsersAccountForbiddenExce
 import ar.edu.uade.transito.transito_backend.exception.UsersServiceUnavailableException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
+import lombok.RequiredArgsConstructor;
 
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class GlobalExceptionHandler {
+
+    private final HandlerAuthorizationChecker authorizationChecker;
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ProblemDetail> handleNotFound(ResourceNotFoundException ex, HttpServletRequest request) {
@@ -75,7 +83,10 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ProblemDetail> handleMalformedRequest(HttpMessageNotReadableException ex,
-            HttpServletRequest request) {
+            HttpServletRequest request, HandlerMethod handlerMethod) {
+        if (authorizationChecker.isDenied(handlerMethod)) {
+            return forbidden(request);
+        }
         return build(HttpStatus.BAD_REQUEST, "invalid-request", "El cuerpo de la solicitud es inválido", request);
     }
 
@@ -87,7 +98,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ProblemDetail> handleValidation(MethodArgumentNotValidException ex,
-            HttpServletRequest request) {
+            HttpServletRequest request, HandlerMethod handlerMethod) {
+        // DEF-27 / KI-3: autorización antes que validación.
+        if (authorizationChecker.isDenied(handlerMethod)) {
+            return forbidden(request);
+        }
         Map<String, String> errors = new LinkedHashMap<>();
         ex.getBindingResult().getFieldErrors().forEach(error ->
                 errors.putIfAbsent(error.getField(), error.getDefaultMessage()));
@@ -104,6 +119,31 @@ public class GlobalExceptionHandler {
         ex.getConstraintViolations().forEach(violation ->
                 errors.putIfAbsent(violation.getPropertyPath().toString(), violation.getMessage()));
         return buildWithErrors("La solicitud contiene datos inválidos", errors, request);
+    }
+
+    // DEF-28 / KI-4: parámetro o cabecera obligatoria faltante → Problem Details (RFC 9457).
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ProblemDetail> handleMissingParameter(MissingServletRequestParameterException ex,
+            HttpServletRequest request) {
+        return build(HttpStatus.BAD_REQUEST, "invalid-request",
+                "Falta el parámetro obligatorio '" + ex.getParameterName() + "'", request);
+    }
+
+    @ExceptionHandler(ServletRequestBindingException.class)
+    public ResponseEntity<ProblemDetail> handleRequestBinding(ServletRequestBindingException ex,
+            HttpServletRequest request) {
+        return build(HttpStatus.BAD_REQUEST, "invalid-request", "La solicitud está incompleta", request);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ProblemDetail> handleTypeMismatch(MethodArgumentTypeMismatchException ex,
+            HttpServletRequest request) {
+        return build(HttpStatus.BAD_REQUEST, "invalid-request",
+                "El parámetro '" + ex.getName() + "' tiene un formato inválido", request);
+    }
+
+    private ResponseEntity<ProblemDetail> forbidden(HttpServletRequest request) {
+        return build(HttpStatus.FORBIDDEN, "forbidden", "No tenés permiso para acceder a este recurso", request);
     }
 
     private ResponseEntity<ProblemDetail> buildWithErrors(String detail, Map<String, String> errors,
