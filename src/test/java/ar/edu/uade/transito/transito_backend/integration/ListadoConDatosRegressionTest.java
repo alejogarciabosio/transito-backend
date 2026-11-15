@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
+import static ar.edu.uade.transito.transito_backend.support.TestUsers.CIUDADANO;
 import static ar.edu.uade.transito.transito_backend.support.TestUsers.INSPECTOR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -50,6 +51,29 @@ class ListadoConDatosRegressionTest extends AbstractIntegrationTest {
                     .andExpect(jsonPath("$[0].evidenceUrl[0]").value("https://evidencias/foto1.jpg"))
                     .andExpect(jsonPath("$[%d].aggravatingFactors[0]".formatted(FILAS - 1)).value("zona escolar"));
             // 1 consulta de infracciones + 1 lote por colección (antes: 1 + 2·40 = 81).
+            assertThat(stats.getPrepareStatementCount()).isLessThanOrEqualTo(3);
+        } finally {
+            stats.setStatisticsEnabled(false);
+        }
+    }
+
+    @Test
+    @DisplayName("GET /infractions con descargos: appealReason incluido sin N+1 (columna simple de la entidad)")
+    void listadoConDescargoSinNMasUno() throws Exception {
+        for (int i = 0; i < FILAS; i++) {
+            var created = post("/infractions", INSPECTOR, Payloads.infraction(CIUDADANO.nationalId()))
+                    .andExpect(status().isCreated()).andReturn();
+            post("/infractions/" + read(created, "$.infractionId") + "/appeal", CIUDADANO,
+                    "{\"reason\":\"Descargo " + i + "\"}").andExpect(status().isOk());
+        }
+        Statistics stats = entityManagerFactory.unwrap(SessionFactory.class).getStatistics();
+        stats.setStatisticsEnabled(true);
+        stats.clear();
+        try {
+            get("/infractions", INSPECTOR)
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$", hasSize(FILAS)))
+                    .andExpect(jsonPath("$[*].appealReason", hasSize(FILAS)));
             assertThat(stats.getPrepareStatementCount()).isLessThanOrEqualTo(3);
         } finally {
             stats.setStatisticsEnabled(false);
