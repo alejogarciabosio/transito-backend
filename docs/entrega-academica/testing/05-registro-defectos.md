@@ -54,6 +54,8 @@ Estados: **Abierto**, **Cerrado** (corregido en `main`, desplegado y verificado 
 | DEF-35 | Frontend: el panel no muestra el texto del descargo | Menor | **En corrección** (PR frontend #12, `fix/s19-fallas-ui`; parcial, ver detalle) |
 | DEF-36 | Frontend: el botón "Marcar impago" sigue visible tras marcar la sesión (un segundo clic da 409) | Menor | **En corrección** (PR frontend #12, `fix/s19-fallas-ui`) |
 | DEF-37 | Frontend: borrar una tarifa con sesiones activas muestra un error genérico (409 sin traducir) | Menor | **En corrección** (PR frontend #12, `fix/s19-fallas-ui`) |
+| DEF-38 | Listado de infracciones degradado con muchos datos: N+1 de colecciones y open-in-view agotan el pool (p95 10 s, 25 % de HTTP 500 a 50 VU con 5 950 infracciones) | Mayor | **En corrección**: corregido en PR backend `perf/s21-listado-infracciones`, pendiente de merge |
+| DEF-39 | Spring Boot genera e imprime al arrancar "Using generated security password" (usuario en memoria que no se usa) | Menor | **En corrección**: corregido en el mismo PR, pendiente de merge |
 
 ## Detalle de los cerrados en el deploy final (PR #48, `57b2765`)
 ### DEF-04 y DEF-14 Registro de eventos publicados y Transactional Outbox (Cerrados)
@@ -157,6 +159,16 @@ Estados: **Abierto**, **Cerrado** (corregido en `main`, desplegado y verificado 
 - **DEF-36** "Marcar impago": el botón seguía visible y el segundo intento daba 409. El PR oculta el botón con `originParkingSessionId` y muestra el `detail` del Problem Details si igual llega 409. Menor: el backend ya protege la regla.
 - **DEF-37** Borrar tarifa con sesiones activas: el 409 se mostraba como error genérico. El PR lo traduce a un mensaje claro. Menor: solo mensaje.
 
+### DEF-38 Listado de infracciones degradado con muchos datos — En corrección (Mayor)
+- **Hallado** con k6 (PR #53, `load.js` 50 VU con la base poblada) y reproducido localmente: con 5 950 infracciones, p95 10,1 s y 24,6-25,6 % de HTTP 500 (`Connection is not available` del pool Hikari de 3 conexiones).
+- **Causa raíz** (log de sentencias de PostgreSQL): cada `GET /infractions` ejecutaba 11 901 consultas (1 + una por fila para `evidenceUrl` y otra para `aggravatingFactors`), en la vista gracias a `spring.jpa.open-in-view=true`, que además retenía la conexión hasta terminar de serializar 3,6 MB.
+- **Por qué Mayor**: degrada el servicio y arrastra a otros endpoints (cortes vigentes p95 7,8 s); workaround: volumen real bajo. No es Crítico: no hay pérdida de datos.
+- **Corrección** (PR backend `perf/s21-listado-infracciones`): `open-in-view=false`; colecciones inicializadas dentro de la transacción de solo lectura del servicio; listado completo con 2 JOIN FETCH; `hibernate.default_batch_fetch_size=500` para el resto (cortes, operativos, accidentes, acarreos). Contrato REST, entidades y esquema sin cambios; pool sigue en 3.
+- **Verificación**: `ListadoConDatosRegressionTest` (40 filas en ≤ 3 consultas) y toda la suite con open-in-view apagado. k6 50 VU x 5 min: p95 global 309 ms, listado 424 ms, 0 HTTP 500 (`evidencias/k6/con-datos.md`). Se cierra con el merge y el deploy.
+
+### DEF-39 Password generado en el log de arranque — En corrección (Menor)
+- `UserDetailsServiceAutoConfiguration` creaba un usuario en memoria (que no se usa: la autenticación es JWT) e imprimía su contraseña al arrancar, también en Railway. Corrección (mismo PR): se excluye esa autoconfiguración en `TransitoBackendApplication`; verificado: el log de arranque ya no la muestra, el login JWT sigue igual (suite completa y k6) y un test comprueba que no hay `UserDetailsService`.
+
 ### DEF-07 Activación antes de `startDate` — Abierto
 - La activación (`ApprovedState.activate`) solo valida el estado; no compara con `startDate`. **Workaround**: operativo.
 
@@ -183,18 +195,18 @@ Estados: **Abierto**, **Cerrado** (corregido en `main`, desplegado y verificado 
 - El payload existe pero no se publica a Core (el catálogo registrado tiene 6 tipos). Confirmar con la PO.
 
 ## Conteo por severidad y riesgo de salida
-Criterio del profesor: 0 Bloqueantes, 0 Críticos, como máximo 3 Mayores abiertos (con workaround). Los Aceptados se cuentan aparte. "En corrección" cuenta como abierto hasta el merge. Total registrado: 37 defectos.
+Criterio del profesor: 0 Bloqueantes, 0 Críticos, como máximo 3 Mayores abiertos (con workaround). Los Aceptados se cuentan aparte. "En corrección" cuenta como abierto hasta el merge. Total registrado: 39 defectos.
 | Severidad | Abiertos (incluye en corrección) | Cerrados | Aceptados | Límite (abiertos) | ¿Cumple? |
 |---|---|---|---|---|---|
 | Bloqueante | 0 | 0 | 0 | 0 | Sí |
 | Crítica | **0** | 3 (DEF-01, 23, 24) | 0 | 0 | Sí |
-| Mayor | **4** (DEF-19, 20, 33; DEF-34 en corrección) | 16 (DEF-02, 03, 04, 05, 06, 08, 11, 13, 14, 15, 16, 22, 25, 26, 29, 31) | 0 | 3 | **No hasta el merge del PR frontend #12**; con #12 mergeado: 3, sí |
-| Menor | **8** (DEF-07, 10, 17, 18, 21; DEF-35, 36, 37 en corrección) | 4 (DEF-27, 28, 30, 32) | 2 (DEF-09, 12) | sin límite | — |
-| **Total** | **12** | **23** | **2** | | |
+| Mayor | **5** (DEF-19, 20, 33; DEF-34 y DEF-38 en corrección) | 16 (DEF-02, 03, 04, 05, 06, 08, 11, 13, 14, 15, 16, 22, 25, 26, 29, 31) | 0 | 3 | **No hasta el merge del PR frontend #12 y del PR backend de DEF-38**; con ambos mergeados: 3, sí |
+| Menor | **9** (DEF-07, 10, 17, 18, 21; DEF-35, 36, 37, 39 en corrección) | 4 (DEF-27, 28, 30, 32) | 2 (DEF-09, 12) | sin límite | — |
+| **Total** | **14** | **23** | **2** | | |
 
-**Riesgo de salida (sin maquillar)**: hay 0 Bloqueantes, 0 Críticos y 4 Mayores abiertos; DEF-34 ya está corregido en el PR frontend #12 y, al mergearlo y desplegarlo, quedan 3 (en el límite). No se bajó ninguna severidad para llegar al número. Salvedades:
+**Riesgo de salida (sin maquillar)**: hay 0 Bloqueantes, 0 Críticos y 5 Mayores abiertos; DEF-34 (PR frontend #12) y DEF-38 (PR backend `perf/s21-listado-infracciones`) ya están corregidos en PR y, al mergearlos y desplegarlos, quedan 3 (en el límite). No se bajó ninguna severidad para llegar al número. Salvedades:
 1. **Mergear el PR frontend #12 antes de la entrega** es condición para cumplir el límite de Mayores.
 2. DEF-20 tiene workaround operativo documentado (`hu-pendientes.md`), no técnico; conviene que la PO confirme la decisión de alcance.
 3. DEF-33 depende de un deploy de M3; si M3 no lo adapta antes de la entrega, el flujo de cortes con M3 queda sin re-probar.
 4. DEF-32 y la ampliación de DEF-05 quedan cerrados en código (PR #50); en producción se cierran con el deploy de `main`.
-5. Cualquier Mayor nuevo deja el criterio sin cumplir.
+5. Cualquier Mayor nuevo deja el criterio sin cumplir. DEF-38 (nuevo, 15/11) ya está corregido en el PR backend `perf/s21-listado-infracciones`: **mergearlo antes de la entrega** es condición para cumplir el límite.
