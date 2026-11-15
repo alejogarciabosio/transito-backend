@@ -43,17 +43,17 @@ Content-Type: application/json
 
 Guardar el `token` (ej. en memoria o `localStorage`) y el `role` (para mostrar/ocultar botones según lo que ese usuario puede hacer). El token expira en `expiresInSeconds` segundos — hoy no hay refresh token, así que al expirar hay que loguear de nuevo.
 
-**Usuarios de prueba disponibles hoy** (hardcodeados en el backend, van a cambiar cuando se conecte el módulo de Usuarios real):
+**Usuarios de prueba** (documento archivado; hoy solo existen `ciudadano1`, `inspector1` y `admin1`, y sus contraseñas ya no están en el código: salen de las variables `STUB_PASSWORD_*`, ver `docs/seguridad/credenciales.md`):
 
 | username | password | role |
 |---|---|---|
-| `inspector1` | `inspector123` | `INSPECTOR` |
-| `supervisor1` | `supervisor123` | `SUPERVISOR` |
-| `auditor1` | `auditor123` | `AUDITOR` |
-| `operador1` | `operador123` | `OPERADOR_CONTROL` |
-| `deposito1` | `deposito123` | `PERSONAL_DEPOSITO` |
-| `admin1` | `admin123` | `ADMIN_MUNICIPAL` |
-| `ciudadano1` | `ciudadano123` | `CIUDADANO` |
+| `inspector1` | (ver nota) | `INSPECTOR` |
+| `supervisor1` | (ver nota) | `SUPERVISOR` |
+| `auditor1` | (ver nota) | `AUDITOR` |
+| `operador1` | (ver nota) | `OPERADOR_CONTROL` |
+| `deposito1` | (ver nota) | `PERSONAL_DEPOSITO` |
+| `admin1` | (ver nota) | `ADMIN_MUNICIPAL` |
+| `ciudadano1` | (ver nota) | `CIUDADANO` |
 
 ### 2.2 Cómo mandar el token
 

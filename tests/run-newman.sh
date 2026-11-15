@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Corre la colección Postman con Newman contra el compose LOCAL (nunca producción).
-# Uso: tests/run-newman.sh            (requiere `docker compose up -d` y un .env con JWT_SECRET y CORE_RABBITMQ_PASSWORD)
+# Uso: tests/run-newman.sh            (requiere `docker compose up -d` y un .env con JWT_SECRET, CORE_RABBITMQ_PASSWORD y STUB_PASSWORD_*)
 # Variables opcionales: BASE_URL (def. http://localhost:8080), RABBIT_URL (def. http://localhost:15672)
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -14,6 +14,10 @@ envval() { [ -n "${!1:-}" ] && { printf '%s' "${!1}"; return; }; [ -f .env ] && 
 JWT_SECRET="$(envval JWT_SECRET)"
 RABBIT_PASS="$(envval CORE_RABBITMQ_PASSWORD)"
 [ -n "$JWT_SECRET" ] && [ -n "$RABBIT_PASS" ] || { echo "Falta JWT_SECRET o CORE_RABBITMQ_PASSWORD (en .env o en el entorno)." >&2; exit 2; }
+PASS_CIUDADANO1="$(envval STUB_PASSWORD_CIUDADANO1)"
+PASS_INSPECTOR1="$(envval STUB_PASSWORD_INSPECTOR1)"
+PASS_ADMIN1="$(envval STUB_PASSWORD_ADMIN1)"
+[ -n "$PASS_CIUDADANO1" ] && [ -n "$PASS_INSPECTOR1" ] && [ -n "$PASS_ADMIN1" ] || { echo "Faltan STUB_PASSWORD_CIUDADANO1/INSPECTOR1/ADMIN1 (en .env o en el entorno)." >&2; exit 2; }
 
 curl -sf "$BASE_URL/actuator/health" >/dev/null || { echo "El backend no responde en $BASE_URL. Levantá el compose primero." >&2; exit 2; }
 
@@ -42,6 +46,7 @@ set +e
 "${NEWMAN[@]}" run tests/postman/transito-api.postman_collection.json \
   -e tests/postman/transito-local.postman_environment.json \
   --env-var "base_url=$BASE_URL" --env-var "run_id=$RUN_ID" --env-var "jwt_secret=$JWT_SECRET" \
+  --env-var "password_ciudadano1=$PASS_CIUDADANO1" --env-var "password_inspector1=$PASS_INSPECTOR1" --env-var "password_admin1=$PASS_ADMIN1" \
   --reporters cli,junit,htmlextra \
   --reporter-junit-export tests/reports/newman-junit.xml \
   --reporter-htmlextra-export tests/reports/newman-report.html \
