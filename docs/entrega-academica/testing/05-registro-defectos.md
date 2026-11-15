@@ -51,9 +51,10 @@ Estados: **Abierto**, **Cerrado** (corregido en `main`, desplegado y verificado 
 | DEF-32 | `spring.jpa.show-sql=true` en producción: el relay del outbox imprime un SELECT cada 2 s | Menor | **Cerrado** (PR #50, en `integration/entrega4-e`; pendiente de deploy) |
 | DEF-33 | Incompatibilidad temporal con el consumidor de M3: rechaza `streetClosureEnded` con `causationId` no nulo | Mayor | **Abierto** (nuevo, mitigado) |
 | DEF-34 | Frontend: los adjuntos del descargo no se envían (el input acepta archivos que se descartan sin aviso) | Mayor | **En corrección**: corregido en PR frontend #12 (`fix/s19-fallas-ui`), pendiente de merge |
-| DEF-35 | Frontend: el panel no muestra el texto del descargo | Menor | **En corrección** (PR frontend #12, `fix/s19-fallas-ui`; parcial, ver detalle) |
+| DEF-35 | Frontend: el panel no muestra el texto del descargo | Menor | **En corrección** (PR frontend #12, `fix/s19-fallas-ui`; se completa con DEF-38) |
 | DEF-36 | Frontend: el botón "Marcar impago" sigue visible tras marcar la sesión (un segundo clic da 409) | Menor | **En corrección** (PR frontend #12, `fix/s19-fallas-ui`) |
 | DEF-37 | Frontend: borrar una tarifa con sesiones activas muestra un error genérico (409 sin traducir) | Menor | **En corrección** (PR frontend #12, `fix/s19-fallas-ui`) |
+| DEF-38 | Backend: el texto del descargo no se persistía (se recibía en `AppealRequest.reason` y se perdía) | Mayor | **Corregido en PR** (backend `fix/s20-persistir-descargo`), pendiente de merge; vinculado a DEF-35 |
 
 ## Detalle de los cerrados en el deploy final (PR #48, `57b2765`)
 ### DEF-04 y DEF-14 Registro de eventos publicados y Transactional Outbox (Cerrados)
@@ -153,9 +154,15 @@ Estados: **Abierto**, **Cerrado** (corregido en `main`, desplegado y verificado 
 
 ### DEF-35, DEF-36 y DEF-37 Fallas de UI del frontend — En corrección (Menores)
 - **Hallados** al escribir el manual de usuario (S18). Corrección en PR frontend #12 (`fix/s19-fallas-ui`), pendiente de merge.
-- **DEF-35** Texto del descargo: `InfractionResponse` no devuelve el motivo (el backend no lo guarda; solo viaja en `infractionAppealed`). El front ya muestra `appealReason` si llega y explica el pendiente; exponerlo exige una columna nueva (esquema congelado): decisión del equipo. Menor: no se pierde el dato para Core ni para el flujo.
+- **DEF-35** Texto del descargo: `InfractionResponse` no devuelve el motivo (el backend no lo guarda; solo viaja en `infractionAppealed`). El front ya muestra `appealReason` si llega y explica el pendiente. La causa raíz es DEF-38 (el equipo aprobó la columna nueva); con ese PR mergeado DEF-35 queda resuelto sin más cambios en el front.
 - **DEF-36** "Marcar impago": el botón seguía visible y el segundo intento daba 409. El PR oculta el botón con `originParkingSessionId` y muestra el `detail` del Problem Details si igual llega 409. Menor: el backend ya protege la regla.
 - **DEF-37** Borrar tarifa con sesiones activas: el 409 se mostraba como error genérico. El PR lo traduce a un mensaje claro. Menor: solo mensaje.
+
+### DEF-38 El texto del descargo no se persistía — Corregido en PR (Mayor)
+- **Hallado** al analizar DEF-35: `POST /api/v1/infractions/{id}/appeal` valida `reason` (`@NotBlank`, `@Size(max = 2000)`) y lo publica en `infractionAppealed`, pero `Infraction` no tenía dónde guardarlo: el descargo no quedaba en la base y nadie de Tránsito (inspector, administrador, auditor) podía leerlo después para resolver la apelación.
+- **Por qué Mayor**: pérdida silenciosa del dato central de un trámite del ciudadano. No es Crítico porque el texto sí llegaba a Core en el evento.
+- **Corrección** (PR backend `fix/s20-persistir-descargo`, pendiente de merge): columna nueva `infractions.appeal_reason` (`varchar(2000)`, nullable, sin default; la crea `ddl-auto=update`, igual que `owner_username`), se guarda en la transición PENDING_APPEAL → APPEALED y se expone como campo **opcional** `appealReason` en `InfractionResponse` (aditivo; mismas reglas de acceso que el GET: titular y personal). No se agrega a ningún evento nuevo (`infractionConfirmed`/`infractionAnulled` no lo llevan) ni se loguea. `infractionAppealed` mantiene su campo `reason` como antes (contrato congelado).
+- **Verificación**: tests TC-BE-INF-15b/15c/15d en `InfractionIntegrationTest`; migración probada en el compose local (fila apelada en `main` queda con `appeal_reason` null, la app arranca UP sobre la misma base y una apelación nueva guarda el texto).
 
 ### DEF-07 Activación antes de `startDate` — Abierto
 - La activación (`ApprovedState.activate`) solo valida el estado; no compara con `startDate`. **Workaround**: operativo.
