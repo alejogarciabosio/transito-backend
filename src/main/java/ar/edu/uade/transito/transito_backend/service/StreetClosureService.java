@@ -13,10 +13,11 @@ import ar.edu.uade.transito.transito_backend.event.EventPublisher;
 import ar.edu.uade.transito.transito_backend.event.payload.StreetClosureApprovedPayload;
 import ar.edu.uade.transito.transito_backend.event.payload.StreetClosureEndedPayload;
 import ar.edu.uade.transito.transito_backend.event.payload.StreetClosureRejectedPayload;
-import ar.edu.uade.transito.transito_backend.exception.InvalidStateTransitionException;
 import ar.edu.uade.transito.transito_backend.exception.ResourceNotFoundException;
 import ar.edu.uade.transito.transito_backend.model.StreetClosure;
 import ar.edu.uade.transito.transito_backend.model.enums.StreetClosureStatus;
+import ar.edu.uade.transito.transito_backend.model.state.StreetClosureState;
+import ar.edu.uade.transito.transito_backend.model.state.StreetClosureStates;
 import ar.edu.uade.transito.transito_backend.repository.StreetClosureRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -64,9 +65,7 @@ public class StreetClosureService {
 
     public StreetClosure approve(UUID streetClosureId, StreetClosure changes) {
         StreetClosure existing = findById(streetClosureId);
-        requireStatus(existing, StreetClosureStatus.REQUESTED);
-
-        existing.setStatus(StreetClosureStatus.APPROVED);
+        transition(existing, stateOf(existing).approve(existing));
         existing.setDetours(changes.getDetours());
         existing.setConditions(changes.getConditions());
         if (changes.getStartDate() != null) {
@@ -92,9 +91,7 @@ public class StreetClosureService {
 
     public StreetClosure reject(UUID streetClosureId, String rejectionReason) {
         StreetClosure existing = findById(streetClosureId);
-        requireStatus(existing, StreetClosureStatus.REQUESTED);
-
-        existing.setStatus(StreetClosureStatus.REJECTED);
+        transition(existing, stateOf(existing).reject(existing));
         StreetClosure saved = streetClosureRepository.save(existing);
 
         eventPublisher.publish(EventEnvelope.of("streetClosureRejected", new StreetClosureRejectedPayload(
@@ -107,9 +104,7 @@ public class StreetClosureService {
 
     public StreetClosure activate(UUID streetClosureId, String activatedBy) {
         StreetClosure existing = findById(streetClosureId);
-        requireStatus(existing, StreetClosureStatus.APPROVED);
-
-        existing.setStatus(StreetClosureStatus.ACTIVE);
+        transition(existing, stateOf(existing).activate(existing));
         StreetClosure saved = streetClosureRepository.save(existing);
 
         return saved;
@@ -117,9 +112,7 @@ public class StreetClosureService {
 
     public StreetClosure finish(UUID streetClosureId, String notes) {
         StreetClosure existing = findById(streetClosureId);
-        requireStatus(existing, StreetClosureStatus.ACTIVE);
-
-        existing.setStatus(StreetClosureStatus.FINISHED);
+        transition(existing, stateOf(existing).finish(existing));
         StreetClosure saved = streetClosureRepository.save(existing);
 
         eventPublisher.publish(EventEnvelope.of("streetClosureEnded", new StreetClosureEndedPayload(
@@ -138,7 +131,7 @@ public class StreetClosureService {
     public void expireDueClosures(OffsetDateTime now) {
         for (StreetClosure closure : streetClosureRepository
                 .findByStatusAndEndDateLessThanEqual(StreetClosureStatus.ACTIVE, now)) {
-            closure.setStatus(StreetClosureStatus.FINISHED);
+            transition(closure, stateOf(closure).expire(closure));
             StreetClosure saved = streetClosureRepository.save(closure);
             eventPublisher.publish(EventEnvelope.of("streetClosureEnded", new StreetClosureEndedPayload(
                     saved.getStreetClosureId(), saved.getClosureRequestId(), OffsetDateTime.now(MUNICIPAL_TIME_ZONE),
@@ -147,16 +140,17 @@ public class StreetClosureService {
 
         for (StreetClosure closure : streetClosureRepository
                 .findByStatusAndEndDateLessThanEqual(StreetClosureStatus.APPROVED, now)) {
-            closure.setStatus(StreetClosureStatus.EXPIRED);
+            transition(closure, stateOf(closure).expire(closure));
             streetClosureRepository.save(closure);
         }
     }
 
-    private void requireStatus(StreetClosure closure, StreetClosureStatus expected) {
-        if (closure.getStatus() != expected) {
-            throw new InvalidStateTransitionException(
-                    "El corte de calle " + closure.getStreetClosureId() + " debe estar en estado " + expected
-                            + " (actual: " + closure.getStatus() + ")");
-        }
+    /** Patrón State: el objeto estado decide si la operación es válida (si no, 409). */
+    private static StreetClosureState stateOf(StreetClosure closure) {
+        return StreetClosureStates.of(closure);
+    }
+
+    private static void transition(StreetClosure closure, StreetClosureState next) {
+        closure.setStatus(next.status());
     }
 }
