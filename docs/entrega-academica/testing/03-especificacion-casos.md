@@ -1,13 +1,13 @@
 # 03 - Especificación de casos de prueba
 
-Convenciones: Tipo = P (positivo), N (negativo), B (borde). Prioridad = A (alta), M (media), B (baja). "Auto" indica la clase y método real (verificados con `git grep`); `no` significa que el caso está definido pero no tiene test (se ejecuta a mano o está PENDIENTE). Los usuarios de prueba (ciudadano, inspector, administrador) son los del stub de desarrollo; sus contraseñas no se reproducen aquí. Los ids `TC-BE-*` son los que ya aparecen en los `@DisplayName` de los tests; los `TC-PEND-*` y `TC-IA-*` los definió este informe.
+Convenciones: Tipo = P (positivo), N (negativo), B (borde). Prioridad = A (alta), M (media), B (baja). "Auto" indica la clase y método real (verificados con `git grep`); `no` significa que el caso está definido pero no tiene test (se ejecuta a mano o está PENDIENTE). Los usuarios de prueba (ciudadano, inspector, administrador) son los del validador local; sus contraseñas salen de variables de entorno (DEF-01) y no se reproducen aquí. Estado del código: `main` `57b2765` (15/11/2026). Los ids `TC-BE-*` son los que ya aparecen en los `@DisplayName` de los tests; los `TC-PEND-*` y `TC-IA-*` los definió este informe.
 
 Prefijo de rutas: `/api/v1`. "Corte" = `StreetClosure`. Todas las rutas con rol exigen `Authorization: Bearer <jwt>`.
 
 ## A. Login y roles
 | Id | Precondición | Datos | Pasos | Resultado esperado | Prio | Tipo | Auto |
 |---|---|---|---|---|---|---|---|
-| TC-BE-AUTH-01 | Stub activo | usuario y clave válidos de inspector | POST `/auth/login` | 200 con JWT que lleva el rol | A | P | `AuthAndSecurityIntegrationTest.loginOk` |
+| TC-BE-AUTH-01 | Validador local activo, variables `STUB_PASSWORD_*` definidas | usuario y clave válidos de inspector | POST `/auth/login` | 200 con JWT que lleva el rol | A | P | `AuthAndSecurityIntegrationTest.loginOk` |
 | TC-BE-AUTH-02 | idem | clave incorrecta | POST `/auth/login` | 401 Problem Details, sin token | A | N | `AuthAndSecurityIntegrationTest.loginFails` |
 | TC-BE-AUTH-03 | idem | body sin `username` | POST `/auth/login` | 400/401 controlado, nunca 500 | M | N | `BugReproductionTest.bug03_loginWithoutUsername` (excluido del build; pasó el 15/11) |
 | TC-BE-SEC-02 | sin sesión | sin cabecera | GET `/infractions` | 401 | A | N | `AuthAndSecurityIntegrationTest.noToken` |
@@ -19,7 +19,9 @@ Prefijo de rutas: `/api/v1`. "Corte" = `StreetClosure`. Todas las rutas con rol 
 | SEC-MA-03 | login | body con campo extra `role` | POST `/auth/login` | no se escalan privilegios | A | N | `SecurityEvidenceTests.loginRoleEscalation` |
 | TC-BE-JWT-03/04/05 | | token vencido; otro secreto; secreto de menos de 256 bits | validar | excepción / la app no arranca | M | N/B | `unit/JwtServiceTest.expired`, `otherSecret`, `weakSecret` |
 | TC-BE-AUTH-M1 | `users.rest.enabled=true`, M1 simulado | 200 `auth=true`; 401; 200 `auth=false`; 500; timeout; conexión rechazada | POST `/auth/login` | 200; 401; 502 (comportamiento actual, ver DEF-10); 502; 503; 503 | A | P/N/B | `RestIdentityContextTest.loginOk/loginInvalid/loginAuthFalse/loginUpstreamError/loginTimeout/loginConnectionRefused` |
-| TC-AUT-PROD | producción | cuenta del stub | POST `/auth/login` en Railway | NO DEBERÍA entrar (debería validar con M1); hoy el stub sigue activo según el tablero | A | N | no (DEF-01) |
+| TC-BE-AUTH-04b | variable `STUB_PASSWORD_<USUARIO>` sin definir | clave cualquiera | POST `/auth/login` | 401 y WARN con el nombre de la variable, nunca el valor | A | N | `TC-BE-AUTH-04b` (DEF-01) |
+| TC-AUT-PROD | producción | las 3 cuentas de prueba, contraseñas cargadas en Railway | POST `/auth/login` en Railway | 200 con JWT sin DNI; sin contraseñas en el código | A | P | no, manual: verificado por el equipo tras el deploy de #39 |
+| TC-BE-AUTH-ME | ciudadano autenticado; sin token | | GET `/auth/me` | 200 con su DNI; 401 sin token; el JWT no trae `nationalId` | A | N | `JwtSinDniIntegrationTest.loginAndMe`, `meRequiresAuth`; `SecurityEvidenceTests.jwtHasNoPii` |
 
 ## B. Infracciones (F1)
 | Id | Precondición | Datos | Pasos | Resultado esperado | Prio | Tipo | Auto |
@@ -29,7 +31,8 @@ Prefijo de rutas: `/api/v1`. "Corte" = `StreetClosure`. Todas las rutas con rol 
 | TC-BE-INF-03 | inspector | alta | POST | NO se publica `infractionConfirmed` | A | N | `InfractionIntegrationTest.registerDoesNotNotifyRentas` |
 | TC-BE-INF-04 | ciudadano | alta | POST | 403 | A | N | `InfractionIntegrationTest.otherRolesForbidden`; `ApiWorkflowIntegrationTests.citizenCannotCreateInfraction` |
 | TC-BE-INF-V1 | inspector | importes negativos, final < base, deudor incompleto | POST | 400 con campos | A | N | `RequestValidationTests.rejectsInvalidInfractionAmountsAndIncompleteDebtorIdentification` |
-| BUG-BE-04 | inspector | alta con `evidenceUrl=[]` | POST | 400 (la HU exige evidencia) | A | N | `BugReproductionTest.bug04_infractionWithoutEvidence`: FALLA, devuelve 201 (DEF-16) |
+| TC-BE-INF-EV1 | inspector autenticado | alta con `evidenceUrl=[]` | POST `/infractions` | 201: la valida el inspector del token (regla del enunciado, decisión de la PO) | A | B | `InfractionEvidenceRuleTests.inspectorWithoutEvidenceIsCreated` |
+| TC-BE-INF-EV2 | servicio, sin evidencia | administrador, o `inspectorId` distinto del usuario | `InfractionService.register` | 400 "requiere evidencia o la validación de un inspector" | A | N | `InfractionValidationRuleTest.adminWithoutEvidenceIsRejected`, `inspectorWithForeignInspectorIdIsRejected`, `blankEvidenceDoesNotCountAndNoUserIsRejected` |
 | SEC-MA-01 | inspector | campos `status`, `id`, importe no permitidos | POST | se ignoran | A | N | `SecurityEvidenceTests.massAssignmentInfraction` |
 | SEC-INJ-01 | inspector | cadenas SQL/NoSQL/XSS/JNDI en la patente | POST y apelación | sin 5xx, datos íntegros | A | N | `SecurityEvidenceTests.injection` |
 | TC-BE-INF-06/07 | dos ciudadanos | id ajeno | GET `/infractions/mine`, GET `/infractions/{id}` | solo las propias; ajena 403 | A | N | `InfractionIntegrationTest.mine`, `detailOwnership`; `SecurityEvidenceTests.bolaInfractions` |
@@ -60,6 +63,7 @@ Prefijo de rutas: `/api/v1`. "Corte" = `StreetClosure`. Todas las rutas con rol 
 | TC-BE-SC-05 | corte `REQUESTED`, administrador | motivo | POST `/rejection` | `REJECTED`, evento `streetClosureRejected` con motivo | A | P | `StreetClosureIntegrationTest.reject` |
 | TC-BE-SC-06 | corte aprobado; inspector | | POST `/activation`, luego `/completion` con observaciones | `ACTIVE`, luego `FINISHED` con `streetClosureEnded`; la activación no publica evento | A | P | `StreetClosureIntegrationTest.fullLifecycle` |
 | TC-BE-SC-07 | cortes en distintos estados | activar `REQUESTED`; finalizar `APPROVED`; aprobar dos veces | POST | 409 y estado sin cambios | A | N | `StreetClosureIntegrationTest.invalidTransitions`; `OtherServicesTest.closureApproveOnlyFromRequested` |
+| TC-BE-SC-09 | corte solicitado por evento con `eventId` y `correlationId` | aprobar, rechazar, finalizar | POST | los eventos de respuesta conservan `correlationId` y `causationId` = `eventId` de la solicitud | A | P | `StreetClosureIntegrationTest.responsesKeepCorrelationAndCausation` |
 | TC-BE-SC-07b | corte `REJECTED` | rechazar de nuevo | POST rejection | 409 | A | N | `AdditionalServiceCoverageTests.streetClosureCanBeRejectedOnlyWhileRequested` |
 | TC-BE-SC-08 | roles | inspector aprueba; administrador activa; ciudadano consulta listado | POST/GET | 403 | A | N | `StreetClosureIntegrationTest.permissions` |
 | TC-BE-SC-U02 | corte ACTIVE y otro APPROVED con ventana vencida | scheduler | `expireDueClosures` | ACTIVE termina y se publica `streetClosureEnded`; APPROVED pasa a `EXPIRED` | M | B | `OtherServicesTest.expireDueClosures` |
@@ -68,7 +72,8 @@ Prefijo de rutas: `/api/v1`. "Corte" = `StreetClosure`. Todas las rutas con rol 
 | TC-PEND-14 | corte aprobado con `startDate` en el futuro | activar ahora | POST activation | debería rechazar (409/422) | M | B | no (la regla no existe; en la prueba real se activó 7 s antes, DEF-07) |
 | TC-PEND-14b | corte activado | activar | POST activation | debería publicarse `streetClosureActivated` (RF-COR-11) | B | P | no (el test `fullLifecycle` afirma lo contrario; DEF-21) |
 | TC-PEND-04 | evento `urbanServiceScheduled`/`treePruningScheduled`/`treeRiskDetected` | evento válido | despacho | queda disponible para evaluar | B | P | no (NO IMPLEMENTADO, DEF-20) |
-| TC-REAL-M3 | producción, evento de M3 | corte real | aprobar, activar, finalizar con `prueba-prod.sh` | M3 recibe `streetClosureApproved` y `streetClosureEnded` | A | P | no, manual 15/11 (EV-5; ids PENDIENTES de adjuntar) |
+| TC-REAL-M3 | producción, evento de M3 | corte real | aprobar, activar, finalizar con `prueba-prod.sh` | M3 recibe `streetClosureApproved` y `streetClosureEnded` | A | P | no, manual 15/11: PASÓ (ids en 04 sección 7). Re-prueba con `causationId` PENDIENTE (DEF-33) |
+| TC-REAL-M6 | producción, evento de M6 | corte real | aprobar, activar, finalizar | M6 confirma ambos eventos con ids originales | A | P | no, manual 15/11: PASÓ (04 sección 7) |
 
 ## D. Operativos, accidentes, retenidos (F3, F4, F5)
 | Id | Precondición | Datos | Pasos | Resultado esperado | Prio | Tipo | Auto |
@@ -84,6 +89,7 @@ Prefijo de rutas: `/api/v1`. "Corte" = `StreetClosure`. Todas las rutas con rol 
 | TC-BE-ACC-04/05 | accidente verificado | editar; volver a PRELIMINARY | PATCH | 409 | A | N | `verifiedIsFinal`, `preliminaryStatusIgnored`; `StateTransitionTests.verifiedAccidentCannotBeModified` |
 | TC-BE-ACC-06 | inspector | enum inválido | POST/PATCH | 400 | M | N | `RoadAccidentIntegrationTest.invalidEnum` |
 | TC-BE-EVT-01/02/03 | ticket de M2 | ROUTED a M7; ticket de otra área; PROGRESS | evento `ticketUpdated` | crea operativo y publica `updateTicketStatus`; se ignora; se ignora | A | P/N | `TicketEventListenerIntegrationTest.routedToTransito`, `otherArea`, `otherUpdateTypes` |
+| TC-BE-EVT-SCH | esquemas JSON de Core (M2 v1.78) | `ticketUpdated` válido, sin calle; cierre con las 3 resoluciones; formato viejo | serializar con el conversor de producción y validar | STARTED y RESOLVED válidos; calle "Sin definir"; el formato viejo es rechazado | A | P/N | `CoreSchemaContractTest` (5 tests) |
 | TC-BE-IMP-01 | inspector | patente, motivo, depósito, `originType` | POST `/impoundments` | IMPOUNDED y `vehicleImpounded` | A | P | `VehicleImpoundmentIntegrationTest.register_publishesEvent` |
 | TC-BE-IMP-04 | administrador, retención activa | requisitos verificados, referencia de pago | POST `/impoundments/{id}/release` | RELEASED, `releasedBy` del token, `vehicleReleased` | A | P | `VehicleImpoundmentIntegrationTest.release` |
 | TC-BE-IMP-V | administrador | costo > 0 sin referencia de pago | POST release | 400 | A | N | `RequestValidationTests.requiresPaymentReferenceForPaidVehicleRelease`; `ServiceBusinessRulesTests.vehicleReleaseRequiresPaymentReferenceWhenThereIsAFee` |
@@ -104,9 +110,10 @@ Prefijo de rutas: `/api/v1`. "Corte" = `StreetClosure`. Todas las rutas con rol 
 | TC-BE-PT-05 | zona con sesión abierta | borrar tarifa | DELETE | 409 | M | N | `ParkingIntegrationTest.deleteWithOpenSessions` |
 | TC-BE-PS-01 | ciudadano | zona activa; `paid` y `endDateTime` enviados por el cliente | POST `/parking-sessions` | 201 impaga y abierta; campos ignorados | A | N | `ParkingIntegrationTest.start`; `SecurityEvidenceTests.massAssignmentSession` |
 | TC-BE-PS-03 | sesión abierta | cerrar dos veces | POST closure | 200 y luego 409 | M | B | `ParkingIntegrationTest.close` |
-| TC-BE-PS-05 | inspector, sesión impaga | `baseAmount` | POST `/unpaid-flag` | infracción UNPAID_PARKING (200) | A | P | `BugReproductionTest.bug01_flagUnpaidAlways500` (excluido; pasó el 15/11, antes daba 500) |
+| TC-BE-PS-05 | inspector, sesión impaga | `baseAmount` | POST `/unpaid-flag` | infracción UNPAID_PARKING (200) | A | P | `ValidationAndHeadersDefectsTest.unpaidFlagValidAmountStillWorks`; `bug01_flagUnpaidAlways500` (grupo `bug`, pasa) |
+| TC-BE-PS-05c | inspector, sesión impaga | `baseAmount` 0 o ausente | POST `/unpaid-flag` | 400 Problem Details, sin crear infracción | A | N | `ValidationAndHeadersDefectsTest.unpaidFlagRejectsInvalidAmount` (DEF-29) |
 | TC-BE-PS-05b | sesión paga; usuario ciudadano; ya marcada | marcar | POST unpaid-flag | 409; 403; 409 | A | N | `ParkingIntegrationTest.flagUnpaidRules`; `ServiceBusinessRulesTests.parkingSessionCannotGenerateMoreThanOneUnpaidInfraction` |
-| SEC-BOLA-04 | sesión de ciudadano A | usuario ciudadano B | GET y POST closure | 403/404 | A | N | `SecurityEvidenceTests.bolaParkingSession`: FALLA, 200 y 200 (DEF-15) |
+| SEC-BOLA-04 | sesión de ciudadano A | usuario ciudadano B | GET y POST closure | 404 y estado sin cambios | A | N | `SecurityEvidenceTests.bolaParkingSession`; `ParkingIntegrationTest.otherCitizenGets404`, `closedForeignSessionGets404` (DEF-15 cerrado) |
 | TC-PEND-08 | sesión vencida | | consulta de control | queda como incumplimiento pendiente de validación | M | P | no (NO IMPLEMENTADO, DEF-20) |
 | TC-PEND-09 | incumplimiento pendiente | descartar | POST | no genera infracción | M | N | no (NO IMPLEMENTADO, DEF-20) |
 
@@ -116,13 +123,16 @@ Prefijo de rutas: `/api/v1`. "Corte" = `StreetClosure`. Todas las rutas con rol 
 | TC-BE-EVT-04 | | | crear `EventEnvelope` | `eventId`, `eventType`, `occurredAt`, `sourceModule=transito`, `data` | M | P | `EventInfrastructureTest.envelope` |
 | TC-BE-HEALTH | broker de Core caído | | GET `/actuator/health` | 200 UP en menos de 2 s | A | N | `HealthWithBrokerDownTest.healthIsUpFastWithBrokerDown` |
 | TC-BROKER-LOCAL | compose local | parar y arrancar RabbitMQ | evento nuevo tras reconexión | reconecta (~9 s medido por A1) y procesa | A | N | no, manual (`reports/a1.md`) |
-| TC-PEND-OUTBOX | broker caído durante una aprobación | | aprobar, levantar broker | el evento se entrega luego (outbox) | A | N | no (NO IMPLEMENTADO, DEF-14) |
-| TC-PEND-13 | evento publicado | | consultar registro de publicados | existe registro local | M | P | no (NO IMPLEMENTADO, DEF-04) |
+| TC-BE-OUTBOX | broker caído durante una confirmación | | confirmar, levantar broker | el evento queda PENDING y se publica al volver el broker; un rollback no deja evento; sin duplicados con relays en paralelo | A | N | `OutboxIntegrationTest.brokerCaidoYVuelve`, `rollbackNoDejaEvento`, `sinDuplicadosEnParalelo`, `failedTrasNIntentosSinBloquear` (DEF-14) |
+| TC-BE-OUTBOX-REG | evento publicado | administrador; ciudadano | GET `/admin/outbox` | registro local sin payload; 403 para ciudadano | M | P | `OutboxIntegrationTest.endpointRegistro`; `OutboxContractTest.filaConMetadatosDelSobre` (DEF-04) |
 | REST-IDEM-01 | inspector | misma `Idempotency-Key` dos veces | POST `/infractions` x2 | se crea un único recurso | A | B | `SecurityEvidenceTests.idempotency` |
 | REST-ETAG | recurso existente | `If-None-Match`; `If-Match` viejo | GET; PATCH | 304; 412 Problem Details | M | B | `SecurityEvidenceTests.etag`, `notModified`; `EtagServerTest.optimisticConcurrency` |
 | SEC-ERR-01 | | JSON roto, tipo inválido, id inexistente, método no permitido | varias | sin stack trace ni SQL | A | N | `SecurityEvidenceTests.errorsDoNotLeak` |
 | SEC-XXE-01 | endpoint SOAP | DOCTYPE con entidad externa | POST `/soap/authentication` | no se resuelve, sin filtrar archivos, < 500 | A | N | `SecurityEvidenceTests.xxe` |
-| SEC-D01 | evento publicado con DNI | | revisar logs | no aparecen DNI ni `debtorId` | A | N | no (NO CUMPLE, DEF-05) |
+| SEC-D01 | evento publicado o rechazado con DNI y patente | | capturar logs | no aparecen DNI, patente ni `debtorId` | A | N | `EventLoggingSinPiiTest`, `IncomingEventLoggingSinPiiTest` (DEF-05) |
+| SEC-AUTHZ-01 | rol sin permiso | body inválido | POST a endpoint protegido | 403, no 400 | M | N | `ValidationAndHeadersDefectsTest.authorizationBeforeValidation` (DEF-27) |
+| SEC-ERR-02 | | parámetro obligatorio faltante; tipo inválido | GET `/parking-tariffs` | 400 `application/problem+json` | M | N | `ValidationAndHeadersDefectsTest.missingRequestParamIsProblemDetails`, `typeMismatchIsProblemDetails` (DEF-28) |
+| SEC-HDR-01 | | | cualquier respuesta | cabecera `Cross-Origin-Resource-Policy: same-site` | B | P | `ValidationAndHeadersDefectsTest.corpHeaderPresent` (DEF-30) |
 
 ## G. IA (modo manual y degradación)
 | Id | Precondición | Datos | Pasos | Resultado esperado | Prio | Tipo | Auto |
@@ -151,4 +161,4 @@ Prefijo de rutas: `/api/v1`. "Corte" = `StreetClosure`. Todas las rutas con rol 
 ## Conteo de tipos
 Se cuenta una fila de las tablas anteriores como un caso (algunas filas agrupan varios tests). El conteo se hace sobre la columna Tipo; las filas con tipo mixto (P/N, N/B) se cuentan como negativas o de borde.
 
-Resultado del conteo (script sobre esta misma tabla): 112 filas; 33 positivas puras, 79 negativas o de borde (incluye las mixtas) = 70,5 %, por encima del 40 % exigido. De las 112 filas, las marcadas `no` en Auto no tienen test automatizado: son los casos de brecha (`TC-PEND-*`), las pruebas manuales (`TC-REAL-M3`, `TC-BROKER-LOCAL`) y las pendientes de ejecución (`TC-IA-08`).
+Resultado del conteo (script sobre esta misma tabla, `main` `57b2765`): **122 filas**; 37 positivas puras, 85 negativas o de borde (incluye las mixtas) = **69,7 %**, por encima del 40 % exigido. 105 filas tienen test automatizado; las 17 marcadas `no` en Auto son los casos de brecha (`TC-PEND-*`), las pruebas manuales (`TC-AUT-PROD`, `TC-REAL-M3`, `TC-REAL-M6`, `TC-BROKER-LOCAL`) y las pendientes de ejecución (`TC-IA-08`). Respecto del borrador anterior (112 filas) se agregaron los casos de los defectos cerrados el 15/11 (evidencia o inspector, `causationId`, esquema de Core, outbox, `/auth/me`, `@Valid`, 403 antes que 400, Problem Details, CORP) y se reemplazaron los que describían defectos ya corregidos.
