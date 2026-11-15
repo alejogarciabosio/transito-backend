@@ -2,7 +2,7 @@
 # En HEAD ya no hay hallazgos (gitleaks detect --no-git da 0). No se reescribió el historial.
 
 # Contraseña de cuentas de prueba del módulo M1 (otro equipo), commit histórico de docs/Respuestas de Ro.md.
-# Ya no está en HEAD (reemplazada por un placeholder). Se pidió al equipo de M1 rotarla.
+# Ya no está en HEAD (reemplazada por un placeholder). Es una cuenta de un ambiente académico de prueba, sin datos reales.
 83cbfb35bdf54bfb05db225840428a9a43b21b8e:docs/Respuestas de Ro.md:generic-api-key:152
 
 # README.md: ejemplo de JWT_SECRET con texto placeholder ("un-...-de-al-menos-32-bytes"), no es un secreto real. Reemplazado en HEAD.
