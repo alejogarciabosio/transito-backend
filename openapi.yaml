@@ -49,7 +49,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/LoginResponse' }
-              example: { token: "eyJhbGciOiJIUzI1NiJ9...", role: INSPECTOR, expiresInSeconds: 7200 }
+              example: { token: "<token-jwt>", role: INSPECTOR, expiresInSeconds: 7200 }
         '400': { $ref: '#/components/responses/BadRequest' }
         '401':
           description: Credenciales inválidas (M1 devolvió AuthenticationFault)
@@ -173,6 +173,35 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
 
+  /v1/infractions/suggestions:
+    post:
+      tags: [Infracciones]
+      summary: Sugerir tipo y agravantes de infracción con IA (INSPECTOR)
+      description: >-
+        Ayuda opcional: el inspector escribe un texto libre y el sistema sugiere `infractionType` y
+        agravantes (catálogo REINCIDENCIA, ZONA_ESCOLAR, ALTA_VELOCIDAD, RESISTENCIA). No registra ni confirma nada;
+        una persona siempre decide. Responde 200 con `source: MANUAL` (tipo null, lista vacía) si la IA está apagada
+        (`AI_ENABLED=false`), falla, tarda más de 5 s, devuelve salida inválida o el circuito está abierto.
+        Nunca devuelve 5xx por falla del proveedor. Los datos personales se enmascaran antes de enviarse.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InfractionSuggestionRequest'
+      responses:
+        '200':
+          description: Sugerencia (source AI) o modo manual (source MANUAL)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InfractionSuggestionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
   /v1/infractions/mine:
     get:
       tags: [Infracciones]
@@ -406,6 +435,35 @@ components:
           schema: { $ref: '#/components/schemas/ProblemDetail' }
 
   schemas:
+    InfractionSuggestionRequest:
+      type: object
+      required: [description]
+      properties:
+        description:
+          type: string
+          minLength: 1
+          maxLength: 500
+          description: Texto libre del inspector (se enmascaran DNI/CUIT, patentes, emails y teléfonos antes de enviarlo).
+    InfractionSuggestionResponse:
+      type: object
+      required: [infractionType, aggravatingFactors, source, promptVersion]
+      properties:
+        infractionType:
+          type: string
+          nullable: true
+          enum: [UNPAID_PARKING, SPEEDING, RED_LIGHT, ILLEGAL_PARKING, NO_LICENSE, RECKLESS_DRIVING, OTHER]
+        aggravatingFactors:
+          type: array
+          items:
+            type: string
+            enum: [REINCIDENCIA, ZONA_ESCOLAR, ALTA_VELOCIDAD, RESISTENCIA]
+        source:
+          type: string
+          enum: [AI, MANUAL]
+        promptVersion:
+          type: string
+          nullable: true
+          example: v1
     ProblemDetail:
       type: object
       description: RFC 9457 — Problem Details for HTTP APIs. Admite campos de extensión.

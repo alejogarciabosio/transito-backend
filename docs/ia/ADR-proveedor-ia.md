@@ -1,0 +1,8 @@
+# ADR — Proveedor de IA: Groq detrás de `AiGateway`
+
+- **Estado:** propuesto (4.ª entrega). **Fecha:** 2026-11-15.
+- **Contexto:** hace falta una feature de IA básica, barata, rápida (timeout 5 s) y apagable, sin acoplar el sistema a un proveedor.
+- **Decisión:** interfaz `AiGateway` (Adapter/Facade) con un único adaptador `GroqAiGateway` sobre la API compatible con OpenAI de Groq (`POST https://api.groq.com/openai/v1/chat/completions`, `Authorization: Bearer`, `response_format: json_object`, temperatura 0). Modelo por `AI_MODEL`; por defecto `llama-3.1-8b-instant` (listado como modelo de producción en la documentación pública de Groq al 15/11/2026; la API acepta JSON mode en todos los modelos). Si se prefiere `openai/gpt-oss-20b`, también está listado y soporta `json_schema`, pero es un modelo de razonamiento: más tokens/latencia.
+- **Motivos:** latencia baja, formato OpenAI estándar (cambiar de proveedor = otro adaptador), plan gratuito con límites de uso, sin SDK ni dependencias nuevas (`java.net.http.HttpClient`, igual que `RestIdentityValidator`).
+- **Consecuencias / riesgos:** los datos salen a un tercero (mitigado con enmascarado y minimización); límites del plan gratuito (si se superan → 429 → MANUAL); la disponibilidad y los límites de cada modelo deben confirmarse en la consola de Groq antes de la demo (la documentación consultada no mostraba los límites del plan gratuito por modelo); el circuito y el flag `AI_ENABLED` acotan el impacto.
+- **Alternativas descartadas:** SDK propietario (dependencia y acoplamiento), modelo local (infra no disponible en Railway Hobby), no usar IA (no cumple el requisito de la entrega).

@@ -146,10 +146,10 @@ Con la IP habilitada y las credenciales entregadas, coordinamos una prueba compl
 
 "Ciudadano
 - Gmail: testuser@gmail.com
-- Password: clave-segura-1
+- Password: <contraseña acordada con M1, no versionada>
 Empleado
 - Gmail: admin@municipio.gob.ar
-- Password: Empleado.2026
+- Password: <contraseña acordada con M1, no versionada>
 Ambas se utilizan en POST https://ciudadanos-m1-backend.onrender.com/auth/usuario/login, enviando los campos gmail y password.
 
 Avísennos el resultado para cerrar la prueba de integración."

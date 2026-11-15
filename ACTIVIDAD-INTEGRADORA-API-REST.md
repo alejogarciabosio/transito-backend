@@ -153,7 +153,7 @@ Aclaración del propio documento: *"la integración SOAP con M1 se plantea como 
 ```http
 POST /v1/infractions/93fd4382-2343-4f3f-a127-9328b29fc520/confirmation HTTP/1.1
 Host: transito-backend-production-28d6.up.railway.app
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
+Authorization: Bearer <token-jwt>
 ```
 
 **Response `200 OK`**
@@ -208,7 +208,7 @@ Content-Type: application/json
 ```
 ```json
 200 OK
-{ "token": "eyJhbGciOiJIUzI1NiJ9...", "role": "INSPECTOR", "expiresInSeconds": 7200 }
+{ "token": "<token-jwt>", "role": "INSPECTOR", "expiresInSeconds": 7200 }
 ```
 
 ### 4.3 Error en Problem Details — M1 no responde en 5 s (la pregunta clave)

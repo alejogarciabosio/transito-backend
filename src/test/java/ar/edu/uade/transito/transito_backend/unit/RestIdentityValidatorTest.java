@@ -17,7 +17,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpServer;
 
 import ar.edu.uade.transito.transito_backend.auth.AuthenticatedUser;
@@ -27,6 +26,7 @@ import ar.edu.uade.transito.transito_backend.exception.UsersAccountForbiddenExce
 import ar.edu.uade.transito.transito_backend.exception.UsersServiceBadGatewayException;
 import ar.edu.uade.transito.transito_backend.exception.UsersServiceUnavailableException;
 import ar.edu.uade.transito.transito_backend.model.enums.Role;
+import tools.jackson.databind.ObjectMapper;
 
 /** Cliente REST de M1 (Usuarios) contra un servidor HTTP local que simula sus respuestas. */
 @DisplayName("RestIdentityValidator (login vía M1)")

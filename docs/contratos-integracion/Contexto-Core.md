@@ -32,7 +32,7 @@ El token lo obtienen con:
   
 La respuesta devuelta es:
 
-  { "accessToken": "eyJ...", "tokenType": "Bearer", "expiresIn": 900, "kind": "module" }
+  { "accessToken": "<token-jwt>", "tokenType": "Bearer", "expiresIn": 900, "kind": "module" }
 
 Dura 15 minutos y no hay refresh: cuando expira se pide otro. El secret vive en la configuración del backend de cada equipo y no lo usa ninguna persona. 
 
