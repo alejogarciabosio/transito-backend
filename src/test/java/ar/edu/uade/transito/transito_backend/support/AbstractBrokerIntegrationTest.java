@@ -133,9 +133,14 @@ public abstract class AbstractBrokerIntegrationTest {
 
     /** Publica en la cola que consume la app (default exchange), como lo haría Core al rutear. */
     protected static void publishToTransitoQueue(String body) {
+        publishToTransitoQueue(body, null);
+    }
+
+    /** Variante con la propiedad AMQP message-id (la que el log de rechazo puede mostrar). */
+    protected static void publishToTransitoQueue(String body, String messageId) {
         withChannel(channel -> {
             AMQP.BasicProperties props = new AMQP.BasicProperties.Builder()
-                    .contentType("application/json").deliveryMode(2).build();
+                    .contentType("application/json").deliveryMode(2).messageId(messageId).build();
             channel.basicPublish("", TRANSITO_QUEUE, props, body.getBytes(StandardCharsets.UTF_8));
             return null;
         });

@@ -14,6 +14,9 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -26,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * termina en la DLQ cuando la cola tiene DLX, como en Core.
  */
 @DisplayName("Testcontainers: consumidor idempotente y DLQ con RabbitMQ real")
+@ExtendWith(OutputCaptureExtension.class)
 class ConsumerRabbitContainerIntegrationTest extends AbstractBrokerIntegrationTest {
 
     private static final Duration TIMEOUT = Duration.ofSeconds(30);
@@ -107,5 +111,30 @@ class ConsumerRabbitContainerIntegrationTest extends AbstractBrokerIntegrationTe
         assertThat(closures.findByClosureRequestId("REQ-INV-" + invalidoId)).isEmpty();
         long pendientes = withChannel(ch -> ch.messageCount(TRANSITO_QUEUE));
         assertThat(pendientes).as("nada reencolado").isZero();
+    }
+
+    @Test
+    @DisplayName("TC-BE-TC-05: un JSON roto con DNI y patente va a la DLQ y el log no muestra el cuerpo (DEF-05)")
+    void jsonRotoNoFiltraDatosPersonalesAlLog(CapturedOutput output) {
+        String dni = "27999111";
+        String patente = "AC987ZX";
+        String messageId = "msg-" + UUID.randomUUID();
+        // Valor sin comillas: el mensaje de Jackson ("Unrecognized token '...'") citaría patente y DNI.
+        String jsonRoto = "{\"eventType\":\"streetClosureRequested\",\"data\":{\"offenderNationalId\":\"" + dni
+                + "\",\"vehiculo\": " + patente + "_" + dni + "}}";
+
+        publishToTransitoQueue(jsonRoto, messageId);
+        publicarCentinelaYEsperar();
+
+        await().atMost(TIMEOUT).pollInterval(Duration.ofMillis(200))
+                .until(() -> withChannel(ch -> ch.messageCount(DLQ)) >= 1);
+        assertThat(drain(DLQ)).extracting(AbstractBrokerIntegrationTest::body).containsExactly(jsonRoto);
+
+        await().atMost(TIMEOUT).until(() -> output.getAll().contains(messageId));
+        assertThat(output.getAll())
+                .as("solo metadatos: messageId, cola y tipo de error")
+                .contains("[event-rejected]", "messageId=" + messageId, "queue=" + TRANSITO_QUEUE)
+                .doesNotContain(dni)
+                .doesNotContain(patente);
     }
 }
