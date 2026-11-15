@@ -15,7 +15,7 @@ Regla: solo figuran datos que existen en los reportes de los agentes, en el CI o
 | E2E Playwright | 7/7 en el CI de `main` del frontend; 3 corridas sin inestables | CI frontend; `reports/i2.md` |
 | Accesibilidad axe | 0 violaciones en 360/768/1280 | `reports/i2.md`, `reports/a3.md` |
 | Contrato y negativos (Newman) | **273 requests, 695 aserciones, 0 fallas**; los 6 casos de defectos conocidos `[KI-1]`..`[KI-5b]` informan "corregido" (0 omitidos) | job `api-tests` del CI de `main` (run 43764963355) |
-| Carga (k6, 50 VU × 5 min) | **p95 = 341 ms**, errores 0,01 % (7 de 35 923), 119 req/s | `reports/t1.md` (medido antes de los PR #31/#39/#48) |
+| Carga (k6, 50 VU × 5 min) | **p95 = 13,3 ms**, errores 0,00 % (0 de 44 259), 147 req/s; peor endpoint: listado de infracciones p95 16,4 ms (con base vacía; ver 4.2 para base poblada) | [evidencias/k6](evidencias/k6/README.md), `main` `b3b990f`, 15/11 (antes: 341 ms, `reports/t1.md`) |
 | Mutation (PIT) | **67 %** perfil del pom (200/299); **92 %** alcance ampliado (321/348) | `reports/t2.md`, `mutation-resumen.md` (medido antes de los PR #31/#39/#48) |
 | ZAP | activo autenticado: **0 High, 0 Medium** (s8); baseline del CI de `main`: 0 FAIL, 1 WARN informativo (Non-Storable Content), 67 PASS; la alerta Low de CORP ya no aparece | `reports/s8.md`, [evidencias/zap](evidencias/zap/README.md), job `zap-baseline` |
 | Dependencias | Trivy backend **0 High/Critical** con fix (antes 25); frontend `npm audit` 0 y Trivy 0 | job `dependencias` del CI de `main`; `reports/s2.md`, `reports/t2.md` |
@@ -36,7 +36,7 @@ Nota sobre conteos: los reportes intermedios informan 285, 364, 437, 496 y 497 t
 | Frontend unitario/componentes (Vitest) | 60 | 60 | 0 | 0 | corrida D3 sobre `1f0187d` |
 | E2E (Playwright, API simulada) | 7 | 7 | 0 | 0 | CI de `main` del frontend (antes: 3 corridas × 7, I2) |
 | Contrato / API (Newman, compose local) | 273 requests / 695 aserciones | 695 | 0 | 0 omitidas | CI de `main` |
-| Carga (k6, compose local) | 35 923 requests | umbrales cumplidos (exit 0) | 7 requests (0,01 %) | | `reports/t1.md` |
+| Carga (k6, compose local) | 44 259 requests | umbrales cumplidos (exit 0) | 0 | | [evidencias/k6](evidencias/k6/README.md) (`b3b990f`, 15/11) |
 | Seguridad dinámica (ZAP, compose local) | activo (34 rutas) + baseline en CI | 0 High / 0 Medium | 0 FAIL en baseline | | `reports/s8.md`, CI de `main` |
 | Integración real con otros módulos | ver sección 7 | | | | |
 
@@ -66,15 +66,15 @@ Diferencia con la corrida del grupo `bug` anterior (D1, 22 tests): `bolaParkingS
 | Duración de los jobs del CI (PR #48) | test 2 min 25 s; Newman 2 min 30 s; ZAP 3 min 15 s; Trivy 1 min 37 s; Sonar 3 min 10 s | `reports/i5.md` |
 
 ### 4.2 Performance (k6)
-Escenario: 50 VU durante 5 minutos; login + `GET /api/v1/infractions` + `GET /api/v1/street-closures/current`; compose local con pool Hikari de 3 conexiones (igual que producción). Umbrales: p95 < 500 ms y errores < 1 %.
-| Métrica | Valor |
-|---|---|
-| p95 global | 341 ms (cumple) |
-| Errores | 0,01 % (7 de 35 923) (cumple) |
-| Throughput | 119 req/s |
-| p95 por endpoint | login 150 ms; listado de infracciones 472 ms (cerca del límite); cortes 358 ms |
-| Máximos | 2,6 s; una iteración llegó a 31 s |
-Observaciones: medido antes de los PR #31/#39/#48 (outbox, State, límite por usuario). La causa de los 7 errores no se investigó (sospecha: contención del pool de 3 conexiones). El listado de infracciones no está paginado y su tiempo crece con la base. Repetir k6 sobre `57b2765`: no se hizo (no es un faltante del criterio, que ya se cumplió, pero el relay del outbox comparte el pool). Resumen en `tests/reports/k6-resumen.txt`.
+Corrida final: **15/11/2026 22:33 UTC sobre `main` `b3b990f`** (con Transactional Outbox), imagen `grafana/k6:1.3.0` (versión fija), compose local (`-p k6`) con pool Hikari de 3 conexiones (igual que producción), base vacía al inicio. Mismo script `tests/k6/load.js`: 50 VU durante 5 minutos; login + `GET /api/v1/infractions` + `GET /api/v1/street-closures/current`. Umbrales: p95 < 500 ms (global y por endpoint) y errores < 1 %. Evidencia: [evidencias/k6](evidencias/k6/README.md).
+| Métrica | `b3b990f` (15/11, con outbox) | Corrida anterior (T1, antes de #31/#39/#48) |
+|---|---|---|
+| p95 global | **13,3 ms (cumple)** | 341 ms |
+| Errores | **0,00 % (0 de 44 259) (cumple)** | 0,01 % (7 de 35 923) |
+| Throughput | 147 req/s | 119 req/s |
+| p95 por endpoint | login 10,5 ms; listado de infracciones 16,4 ms; cortes 11,9 ms | login 150 ms; listado 472 ms; cortes 358 ms |
+| Máximos | 282 ms | 2,6 s; una iteración de 31 s |
+Complementarios (misma fecha y commit, fuera del criterio): (a) `tests/k6/outbox.js`, 50 VU × 2 min de `POST /api/v1/infractions` (publica `infractionRegistered` vía outbox; token reutilizado): p95 28,5 ms, 0 errores en 5 951; los 5 950 eventos quedaron PUBLISHED ~110 s después del fin de la carga (relay ≈ 25 eventos/s: `batch-size` 50 cada 2 s; demora creación→publicación p95 120 s), 0 FAILED. (b) `load.js` 1 min con la base poblada (5 950 infracciones): **p95 10,1 s y 25,6 % de errores**, todos HTTP 500 por timeout del pool Hikari (10 s, 3 activas, hasta 47 en espera): el listado sin paginar (3,6 MB, ~1,9 s aislado) acapara conexiones. Observaciones: la mejora frente a T1 no es atribuible solo al código (T1 no registró estado de la base ni versión de k6). El riesgo abierto es el listado sin paginar; mitigación sugerida (no hecha): paginación opcional aditiva y respuesta 503 ante timeout del pool.
 
 ### 4.3 Quality Gate
 | Puerta | Umbral | Resultado |
