@@ -53,7 +53,7 @@ class LoginRateLimitIntegrationTest extends AbstractIntegrationTest {
             login("ciudadano1", "mala" + i, "181.0.0." + i).andExpect(status().isUnauthorized());
         }
         // Ni siquiera la contraseña correcta pasa mientras la cuenta está bloqueada.
-        login("ciudadano1", "ciudadano123", "181.0.0.200")
+        login("ciudadano1", "test-ciudadano1-pass", "181.0.0.200")
                 .andExpect(status().isTooManyRequests())
                 .andExpect(jsonPath("$.status").value(429));
     }
@@ -65,7 +65,7 @@ class LoginRateLimitIntegrationTest extends AbstractIntegrationTest {
             login("ciudadano1", "mala" + i, "181.0.0." + i).andExpect(status().isUnauthorized());
         }
         login("ciudadano1", "mala", "181.0.0.250").andExpect(status().isTooManyRequests());
-        login("inspector1", "inspector123", "190.0.0.1").andExpect(status().isOk());
+        login("inspector1", "test-inspector1-pass", "190.0.0.1").andExpect(status().isOk());
     }
 
     @Test
@@ -83,7 +83,7 @@ class LoginRateLimitIntegrationTest extends AbstractIntegrationTest {
         for (int i = 0; i < MAX - 1; i++) {
             login("ciudadano1", "mala" + i, "181.0.1." + i).andExpect(status().isUnauthorized());
         }
-        login("ciudadano1", "ciudadano123", "181.0.1.100").andExpect(status().isOk());
+        login("ciudadano1", "test-ciudadano1-pass", "181.0.1.100").andExpect(status().isOk());
         for (int i = 0; i < MAX - 1; i++) {
             login("ciudadano1", "mala" + i, "181.0.2." + i).andExpect(status().isUnauthorized());
         }

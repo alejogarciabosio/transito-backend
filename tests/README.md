@@ -11,7 +11,7 @@ docker compose up --build -d
 curl http://localhost:8080/actuator/health   # {"status":"UP",...}
 ```
 
-Usuarios locales: `ciudadano1/ciudadano123`, `inspector1/inspector123`, `admin1/admin123`.
+Usuarios locales: `ciudadano1`, `inspector1`, `admin1`; sus contraseñas salen del `.env` (`STUB_PASSWORD_CIUDADANO1`, `STUB_PASSWORD_INSPECTOR1`, `STUB_PASSWORD_ADMIN1`, valores de desarrollo en `.env.example`). Los scripts las leen del `.env` sin imprimirlas.
 
 ## 1. Pruebas de API (Postman + Newman)
 

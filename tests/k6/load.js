@@ -11,6 +11,7 @@ const BASE = __ENV.BASE_URL || 'http://host.docker.internal:8080';
 const API = `${BASE}/api/v1`;
 const VUS = parseInt(__ENV.VUS || '50');
 const DURATION = __ENV.DURATION || '5m';
+// Contraseña de inspector1 del compose local: la pasa tests/run-k6.sh desde .env (STUB_PASSWORD_INSPECTOR1).
 
 const tLogin = new Trend('t_login', true);
 const tList = new Trend('t_list_infractions', true);
@@ -33,7 +34,7 @@ const JSON_HDR = { 'Content-Type': 'application/json' };
 
 export default function () {
   // Cada iteración loguea a inspector1 (credenciales de desarrollo del compose local).
-  const login = http.post(`${API}/auth/login`, JSON.stringify({ username: 'inspector1', password: 'inspector123' }), { headers: JSON_HDR, tags: { endpoint: 'login' } });
+  const login = http.post(`${API}/auth/login`, JSON.stringify({ username: 'inspector1', password: __ENV.STUB_PASSWORD_INSPECTOR1 }), { headers: JSON_HDR, tags: { endpoint: 'login' } });
   tLogin.add(login.timings.duration);
   const ok = check(login, { 'login 200': (r) => r.status === 200 });
   if (!ok) { sleep(1); return; }

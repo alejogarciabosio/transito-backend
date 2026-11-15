@@ -63,7 +63,7 @@
                   "const b=L.J();",
                   "L.status(200);",
                   "pm.test(\"token JWT + role + expiresInSeconds\",()=>{pm.expect(b.token).to.be.a(\"string\").and.match(/^[\\w-]+\\.[\\w-]+\\.[\\w-]+$/);pm.expect(b.role).to.eql(\"CIUDADANO\");pm.expect(b.expiresInSeconds).to.eql(7200);});",
-                  "pm.test(\"no filtra la contraseña\",()=>pm.expect(pm.response.text()).to.not.include(\"ciudadano123\"));",
+                  "pm.test(\"no filtra la contraseña\",()=>pm.expect(pm.response.text()).to.not.include(pm.variables.get(\"password_ciudadano1\")));",
                   "pm.collectionVariables.set(\"ciu_token\", b.token);"
                 ]
               }
@@ -79,7 +79,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"ciudadano1\",\n  \"password\": \"ciudadano123\"\n}"
+              "raw": "{\n  \"username\": \"ciudadano1\",\n  \"password\": \"{{password_ciudadano1}}\"\n}"
             },
             "url": "{{base_url}}/api/v1/auth/login",
             "auth": {
@@ -99,7 +99,7 @@
                   "const b=L.J();",
                   "L.status(200);",
                   "pm.test(\"token JWT + role + expiresInSeconds\",()=>{pm.expect(b.token).to.be.a(\"string\").and.match(/^[\\w-]+\\.[\\w-]+\\.[\\w-]+$/);pm.expect(b.role).to.eql(\"INSPECTOR\");pm.expect(b.expiresInSeconds).to.eql(7200);});",
-                  "pm.test(\"no filtra la contraseña\",()=>pm.expect(pm.response.text()).to.not.include(\"inspector123\"));",
+                  "pm.test(\"no filtra la contraseña\",()=>pm.expect(pm.response.text()).to.not.include(pm.variables.get(\"password_inspector1\")));",
                   "pm.collectionVariables.set(\"ins_token\", b.token);"
                 ]
               }
@@ -115,7 +115,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"inspector1\",\n  \"password\": \"inspector123\"\n}"
+              "raw": "{\n  \"username\": \"inspector1\",\n  \"password\": \"{{password_inspector1}}\"\n}"
             },
             "url": "{{base_url}}/api/v1/auth/login",
             "auth": {
@@ -135,7 +135,7 @@
                   "const b=L.J();",
                   "L.status(200);",
                   "pm.test(\"token JWT + role + expiresInSeconds\",()=>{pm.expect(b.token).to.be.a(\"string\").and.match(/^[\\w-]+\\.[\\w-]+\\.[\\w-]+$/);pm.expect(b.role).to.eql(\"ADMINISTRADOR\");pm.expect(b.expiresInSeconds).to.eql(7200);});",
-                  "pm.test(\"no filtra la contraseña\",()=>pm.expect(pm.response.text()).to.not.include(\"admin123\"));",
+                  "pm.test(\"no filtra la contraseña\",()=>pm.expect(pm.response.text()).to.not.include(pm.variables.get(\"password_admin1\")));",
                   "pm.collectionVariables.set(\"adm_token\", b.token);"
                 ]
               }
@@ -151,7 +151,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"admin1\",\n  \"password\": \"admin123\"\n}"
+              "raw": "{\n  \"username\": \"admin1\",\n  \"password\": \"{{password_admin1}}\"\n}"
             },
             "url": "{{base_url}}/api/v1/auth/login",
             "auth": {
@@ -8851,7 +8851,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"admin1\",\n  \"password\": \"admin123\"\n}"
+              "raw": "{\n  \"username\": \"admin1\",\n  \"password\": \"{{password_admin1}}\"\n}"
             },
             "url": "{{base_url}}/api/v1/auth/login",
             "auth": {
@@ -8888,7 +8888,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"inspector1\",\n  \"password\": \"inspector123\"\n}"
+              "raw": "{\n  \"username\": \"inspector1\",\n  \"password\": \"{{password_inspector1}}\"\n}"
             },
             "url": "{{base_url}}/api/v1/auth/login",
             "auth": {

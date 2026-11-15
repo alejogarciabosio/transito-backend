@@ -7,10 +7,14 @@ cd "$(dirname "$0")/.."
 BASE_URL="${BASE_URL:-http://host.docker.internal:8080}"
 case "$BASE_URL" in http://host.docker.internal:*|http://localhost:*|http://127.0.0.1:*) ;; *) echo "BASE_URL debe ser el compose local. Abortando." >&2; exit 2;; esac
 curl -sf http://localhost:8080/actuator/health >/dev/null || { echo "El backend no responde en localhost:8080." >&2; exit 2; }
+# Contraseña de inspector1 desde el entorno o .env (sin imprimirla ni hacer source); se pasa a docker por nombre, no por valor.
+if [ -z "${STUB_PASSWORD_INSPECTOR1:-}" ] && [ -f .env ]; then STUB_PASSWORD_INSPECTOR1="$(grep -E '^STUB_PASSWORD_INSPECTOR1=' .env | head -1 | cut -d= -f2- || true)"; fi
+[ -n "${STUB_PASSWORD_INSPECTOR1:-}" ] || { echo "Falta STUB_PASSWORD_INSPECTOR1 (en .env o en el entorno)." >&2; exit 2; }
+export STUB_PASSWORD_INSPECTOR1
 mkdir -p tests/reports
 set +e
 docker run --rm -i --add-host=host.docker.internal:host-gateway \
-  -e BASE_URL="$BASE_URL" -e VUS="${VUS:-50}" -e DURATION="${DURATION:-5m}" \
+  -e BASE_URL="$BASE_URL" -e VUS="${VUS:-50}" -e DURATION="${DURATION:-5m}" -e STUB_PASSWORD_INSPECTOR1 \
   -v "$PWD/tests:/tests" grafana/k6:latest run --no-color \
   --summary-export /tests/reports/k6-summary.json /tests/k6/load.js 2>&1 | tee tests/reports/k6-salida.log
 RC=${PIPESTATUS[0]}
