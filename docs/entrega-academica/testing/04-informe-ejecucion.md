@@ -38,7 +38,7 @@ Detalle de la corrida del grupo `bug` (comando: `./mvnw -q -B test -Dbugs.exclud
 | Test | Resultado | Lectura |
 |---|---|---|
 | `SecurityEvidenceTests.bolaParkingSession` | FALLA: lectura 200 y cierre 200 con otro ciudadano | defecto real (DEF-15) |
-| `SecurityEvidenceTests.jwtHasNoPii` | FALLA: el payload del JWT contiene el claim `nationalId` | defecto real (DEF-06) |
+| `SecurityEvidenceTests.jwtHasNoPii` | PASA tras el fix de DEF-06 (antes: el payload contenía `nationalId`) | defecto corregido (DEF-06) |
 | `BugReproductionTest.bug04_infractionWithoutEvidence` | FALLA: 201 en lugar de 400 | defecto real (DEF-16) |
 | `BugReproductionTest.bug09a_patchInfractionPartial` | FALLA: 400 en lugar de 200 | probable test desactualizado (`finalAmount=1` queda menor que el importe base tras el merge); no confirmado como defecto (DEF-17) |
 | `BugReproductionTest.bug02_approveWithoutDetours`, `bug14_affectedStreetAlwaysEmpty` | ERROR: "affectedSections es obligatorio" al preparar el corte | test desactualizado respecto del handler; no hay veredicto sobre el producto (DEF-18) |
