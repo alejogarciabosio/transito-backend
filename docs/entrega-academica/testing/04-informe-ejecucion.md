@@ -25,7 +25,7 @@ Regla: solo figuran datos que existen en los reportes de los agentes, en el CI o
 | CI de `main` | backend: 6 jobs del workflow en verde (test, gitleaks, Trivy, Newman, ZAP, Sonar QG) + SonarCloud Code Analysis; frontend: test, E2E, Sonar, gitleaks en verde | GitHub Actions |
 | Integración real con otros módulos | M3 corte ✅, M6 corte ✅, M3 accidente ✅; M3 re-prueba, M5, M2 y M1 pendientes | sección 7 |
 
-Nota sobre conteos: los reportes intermedios informan 285, 364, 437, 496 y 497 tests porque se midieron sobre ramas anteriores; el número actual es **512** (suma de los `<testsuite tests>` de Surefire sobre `integration/entrega4-e`: 497 + 5 Testcontainers + 3 OpenAPI + 2 WSDL + 6 IA − 1 ajuste de `ApiContractSmokeTests`).
+Nota sobre conteos: los reportes intermedios informan 285, 364, 437, 496 y 497 tests porque se midieron sobre ramas anteriores; el número actual es **512** (suma de los `<testsuite tests>` de Surefire sobre `integration/entrega4-e`; incluye los tests nuevos de #50 y #51).
 
 ## 2. Resultados por nivel
 | Nivel | Ejecutados | Pasados | Fallados | Bloqueados | Fuente / nota |
