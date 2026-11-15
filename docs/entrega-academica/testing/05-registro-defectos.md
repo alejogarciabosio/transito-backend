@@ -1,6 +1,7 @@
 # 05 - Registro de defectos
 
-Fecha: 15/11/2026. Fuente: código de `main` (`git grep`), reportes de agentes y la corrida del grupo `bug` del agente D1.
+Actualizado: 15/11/2026 ~18:00 ART. Versión de referencia: `main` del backend en `c196d7a` (merge del PR #39, desplegado en Railway como `c196d7a`) y `main` del frontend (PR #9 mergeado).
+Fuentes: código de `main` (`git grep`, cada afirmación de "cerrado" se revisó en el código), reportes de los agentes (s1, s2, s4-s10, t1, t2), `TABLERO.md` y `pruebas-modulos-15-11.md`. No se hicieron pruebas nuevas contra producción para este registro.
 
 ## Severidades usadas
 No tuve a mano el PDF de la cátedra con las definiciones del profesor; usé estas definiciones de trabajo y **hay que contrastarlas con las del profesor antes de entregar**:
@@ -11,118 +12,157 @@ No tuve a mano el PDF de la cátedra con las definiciones del profesor; usé est
 | Mayor | incumple un requisito o criterio importante o degrada el servicio; existe workaround |
 | Menor | desvío cosmético, de bajo riesgo o de documentación |
 
-Estados: Abierto, Corregido (en `main`, verificado con test), Aceptado (riesgo aceptado por decisión documentada).
+Estados: **Abierto**, **En desarrollo** (abierto, con trabajo en curso; sigue contando como abierto), **Cerrado** (corregido en `main`, desplegado y verificado con test o prueba), **Aceptado** (riesgo aceptado por decisión documentada).
 
 ## Tabla resumen
-| Id | Título | Severidad propuesta | Estado |
+| Id | Título | Severidad | Estado |
 |---|---|---|---|
-| DEF-01 | Credenciales de desarrollo fijas activas en producción (stub de login) | Crítica | Abierto |
-| DEF-02 | `/actuator/health` colgado con el broker caído | Mayor | Corregido (PR #24, en #25) |
-| DEF-03 | Adaptador REST de M1 no arrancaba (Jackson) | Mayor | Corregido (PR #23, en #25) |
-| DEF-04 | Sin registro de eventos publicados (regla 9.3 del TP) | Mayor | Abierto |
-| DEF-05 | Logs con payload completo de eventos (`LoggingEventPublisher`) | Mayor | Abierto |
-| DEF-06 | DNI (`nationalId`) dentro del JWT | Mayor | Corregido (PR `fix/s11-jwt-sin-dni`) |
+| DEF-01 | Credenciales de desarrollo fijas en el código, activas en producción (stub de login) | Crítica | **Cerrado** 15/11 (PR #36, en #39) |
+| DEF-02 | `/actuator/health` colgado con el broker caído | Mayor | Cerrado (PR #24, en #25) |
+| DEF-03 | Adaptador REST de M1 no arrancaba (Jackson) | Mayor | Cerrado (PR #23, en #25) |
+| DEF-04 | Sin registro de eventos publicados (regla 9.3 del TP) | Mayor | Abierto, en desarrollo (outbox) |
+| DEF-05 | Logs con payload completo de eventos | Mayor | **Cerrado** 15/11 (PR #34, en #39) |
+| DEF-06 | DNI (`nationalId`) dentro del JWT | Mayor | Corregido en PR #42 (`fix/s11-jwt-sin-dni`), pendiente de merge a `main` y deploy |
 | DEF-07 | Un corte se activa antes de `startDate` | Menor | Abierto |
-| DEF-08 | `causationId` null en `streetClosureEnded` | Menor (a confirmar con Core) | Abierto |
-| DEF-09 | Swagger público en producción | Menor | Abierto |
+| DEF-08 | `causationId` nulo en `streetClosureEnded` (hallado también por Core) | Mayor (reclasificado desde Menor al confirmarlo Core) | **Cerrado** 15/11 (PR #33, en #31) |
+| DEF-09 | Swagger y `/v3/api-docs` públicos en producción | Menor | Aceptado |
 | DEF-10 | 200 con `auth=false` de M1 devuelve 502 | Menor | Abierto (comportamiento testeado) |
-| DEF-11 | Estacionamiento impago devolvía 500 | Mayor | Corregido (verificado el 15/11) |
+| DEF-11 | Estacionamiento impago devolvía 500 | Mayor | Cerrado (verificado el 15/11) |
 | DEF-12 | Contraseña de cuentas de prueba de otro módulo (M1) en el historial de Git | Menor | Aceptado |
-| DEF-13 | State no implementado como patrón en el corte de calle | Mayor (criterio académico) | Abierto |
-| DEF-14 | Outbox transaccional no implementado | Mayor | Abierto |
-| DEF-15 | BOLA: un ciudadano lee y cierra la sesión de estacionamiento de otro | Mayor | Abierto |
-| DEF-16 | Infracción sin evidencia se acepta (201) | Mayor | Abierto |
-| DEF-17 | `PATCH /infractions` parcial devuelve 400 en la reproducción BUG-BE-09a | Menor (probable test desactualizado) | A confirmar |
-| DEF-18 | Pruebas de reproducción BUG-BE-02 y 14 desactualizadas ("affectedSections es obligatorio") | Menor (deuda de tests) | Abierto |
+| DEF-13 | State no implementado como patrón en el corte de calle | Mayor (criterio académico) | **Cerrado** 15/11 (PR #35, en #39) |
+| DEF-14 | Outbox transaccional no implementado | Mayor | Abierto, en desarrollo |
+| DEF-15 | BOLA: un ciudadano lee y cierra la sesión de estacionamiento de otro (KI-1) | Mayor | **Cerrado** 15/11 (PR #32, en #31) |
+| DEF-16 | Infracción sin evidencia se acepta (201) | Mayor | Abierto, espera decisión de la PO |
+| DEF-17 | `PATCH /infractions` parcial devuelve 400 en la reproducción BUG-BE-09a | Menor (probable test desactualizado) | Abierto (a confirmar) |
+| DEF-18 | Pruebas de reproducción BUG-BE-02 y 14 desactualizadas | Menor (deuda de tests) | Abierto |
 | DEF-19 | Importe base, reincidencia y costo de acarreo/estadía no se calculan en el servidor | Mayor | Abierto |
-| DEF-20 | HU sin implementar: COR-05, OPE-03 (controles), EST-03/04 (detección, descarte), INF-04 (adjuntos, `appealId`), IND (filtros e indicadores del backend) | Mayor | Abierto |
+| DEF-20 | HU sin implementar (COR-05, OPE-03, EST-03/04, INF-04, IND) | Mayor | Abierto |
 | DEF-21 | `streetClosureActivated` no se publica (RF-COR-11) | Menor | Abierto (a confirmar con el PO) |
+| DEF-22 | Límite de intentos de login evadible rotando `X-Forwarded-For` (KI-2) | Mayor | **Cerrado** 15/11 (PR #29, en #31) |
+| DEF-23 | 25 CVE High/Critical en dependencias del backend (8 Critical, 17 High) | Crítica | **Cerrado** 15/11 (PR #30, en #31) |
+| DEF-24 | Restricción de BD `street_closures_status_check` sin `EXPIRED` (latente) | Crítica | **Cerrado** 15/11 (corrección en la BD de producción) |
+| DEF-25 | `infractionDateTime` de `infractionConfirmed` sin offset horario (hallado por M5) | Mayor | **Cerrado** 15/11 (PR #40, en #39) |
+| DEF-26 | 500 con textos de más de 255 caracteres o byte NUL (hallado por ZAP) | Mayor | **Cerrado** 15/11 (PR #37, en #39) |
+| DEF-27 | Validación del body antes que la autorización: rol sin permiso recibe 400 y no 403 (KI-3) | Menor | Abierto |
+| DEF-28 | Parámetro obligatorio faltante devuelve el JSON por defecto de Spring, no Problem Details (KI-4) | Menor | Abierto |
+| DEF-29 | `unpaid-flag` acepta `baseAmount` 0 o ausente: falta `@Valid` (KI-5/5b) | Mayor | Abierto |
+| DEF-30 | Falta la cabecera `Cross-Origin-Resource-Policy` (ZAP, Low) | Menor | Abierto |
 
-## Detalle
-### DEF-01 Credenciales fijas activas en producción
-- **Pasos**: en producción, `POST /api/v1/auth/login` con una cuenta del stub de desarrollo.
-- **Esperado**: producción valida contra M1 y no acepta cuentas fijas.
-- **Obtenido (código)**: `StubIdentityValidator` está activo con `matchIfMissing = true` cuando `users.rest.enabled` no es `true`. El tablero del 15/11 informa que `USERS_REST_ENABLED` no está definido en Railway, por lo que el stub sigue activo (inferencia a partir del tablero; **no volví a probarlo en producción**, está prohibido sin permiso).
-- **Evidencia**: `src/main/.../auth/StubIdentityValidator.java`; `TABLERO.md`; checklist de preentrega.
-- **Workaround**: definir en Railway `USERS_REST_ENABLED=true` y la URL de M1 (el fix de Jackson ya está en `main`, DEF-03). Es solo configuración, pero afecta a los otros módulos: requiere decisión humana y la prueba contra M1 real, hoy NO VERIFICABLE. Las cuentas de M1 de prueba están en el historial (DEF-12).
-- **Estado**: Abierto. **Es el único Crítico**: supera el máximo admitido (0).
+## Detalle de los cerrados el 15/11
+### DEF-01 Credenciales de desarrollo fijas en el código, activas en producción (Cerrado)
+- **Defecto**: `StubIdentityValidator` tenía las contraseñas de los usuarios de prueba escritas en el código y ese validador es el que atiende el login en producción (el adaptador M1 no está activado).
+- **Corrección** (PR #36, mergeado con squash en #39, deploy `c196d7a`): cada contraseña sale de `stub.password.<usuario>` = variable de entorno `STUB_PASSWORD_<USUARIO>`, sin valor por defecto; si falta, ese usuario queda deshabilitado (401) y se registra un WARN con el **nombre** de la variable, nunca el valor. Comparación con `MessageDigest.isEqual`. En producción las 3 variables se configuran en Railway.
+- **Verificación**: `git grep` en `main`: `StubIdentityValidator.java` ya no contiene contraseñas (comentario de las líneas 20-21 y métodos que arman `stub.password.<usuario>` / `STUB_PASSWORD_<USUARIO>`); el `grep -rn` de los valores anteriores da 0 resultados (s5). Test `TC-BE-AUTH-04b` (sin variable → 401 + WARN sin el valor). Compose local: los 3 usuarios 200 con la contraseña local. Producción tras el deploy: sin WARN de `STUB_PASSWORD_*` faltante y valores verificados por hash (`TABLERO.md`).
+- **Pendiente**: prueba de login real de admin1/inspector1/ciudadano1 en producción por una persona del equipo. Fuera de este defecto: el adaptador de M1 sigue sin activar (`USERS_REST_ENABLED` sin definir), decisión de integración.
 
-### DEF-02 Health colgado con el broker caído (Corregido)
-- **Pasos**: pausar el broker y pedir `/actuator/health`. **Esperado**: 200 UP rápido. **Obtenido**: sin respuesta en 40 s (con el broker detenido, 503 DOWN).
-- **Evidencia**: `reports/b4.md`; prueba `integration/HealthWithBrokerDownTest.healthIsUpFastWithBrokerDown`; producción tras el deploy: UP en 0,7 s.
-- **Causa raíz**: el indicador de salud de RabbitMQ de Actuator esperaba al broker sin cota de tiempo. Se puso `management.health.rabbit.enabled=false`. Efecto lateral aceptado: el health ya no refleja el broker.
+### DEF-05 Logs con payload completo (Cerrado)
+- **Corrección** (PR #34, en #39): `LoggingEventPublisher` registra solo `[event-published] type eventId correlationId` (línea 19 en `main`); el listener de Rabbit registra `[event-rejected] type eventId correlationId error=<Clase>` y relanza una excepción sin causa (el mensaje original podía traer PII); `CoreTokenClient` y `CorePublicationRegistrar` ya no incluyen el cuerpo de la respuesta de Core.
+- **Verificación**: `EventLoggingSinPiiTest` e `IncomingEventLoggingSinPiiTest` (capturan la salida con DNI y patente de prueba; fallaban antes del fix y pasan después). CI del PR #34 verde.
 
-### DEF-03 Adaptador M1 no arrancaba (Corregido)
-- **Pasos**: arrancar con `USERS_REST_ENABLED=true`. **Esperado**: arranca y usa el validador REST. **Obtenido**: falla al inyectar `ObjectMapper`.
-- **Evidencia**: `reports/a1.md` (hallazgo), `reports/b4.md`; prueba `integration/RestIdentityContextTest` (8 casos).
-- **Causa raíz**: Spring Boot 4 provee `tools.jackson.databind.ObjectMapper` y la clase inyectaba el de Jackson 2. Ningún test levantaba el contexto con la propiedad en `true`.
+### DEF-08 `causationId` nulo en `streetClosureEnded` (Cerrado)
+- **Hallado** en el código (registro anterior) y **confirmado por Core** en la prueba real con M3 del 15/11 (Approved llevaba causationId; Ended salía con NULL). Se reclasificó a Mayor: incumple la trazabilidad del envelope de Core.
+- **Corrección** (PR #33, en #31): los dos `streetClosureEnded` (finalización manual y vencimiento automático) usan `saved.getSourceEventId()` (`StreetClosureService.java`, líneas 122 y 138 en `main`). Además, log `[event-published]` en `RabbitMqEventPublisher`.
+- **Verificación**: `TC-BE-SC-09` en `StreetClosureIntegrationTest` y `TC-BE-SC-U02` (fallaban antes del fix). Los eventos Ended de las pruebas del 15/11 con M3 y M6 son **anteriores** al deploy del fix: falta un Ended posterior con causationId confirmado por Core.
 
-### DEF-04 Sin registro de eventos publicados
-- **Esperado**: regla 9.3 del TP, trazabilidad de lo publicado. **Obtenido**: no existe entidad o tabla de eventos publicados (solo `ProcessedEvent` para los recibidos); `git grep` no encuentra repositorio de publicados.
-- **Evidencia**: listado de `model/` y `repository/`. **Workaround**: logs de Railway y la consulta de auditoría de Core (sección 21 de la especificación Core). **Estado**: Abierto.
+### DEF-13 State no implementado como patrón (Cerrado)
+- **Corrección** (PR #35, en #39): `model/state/` (15 clases en `main`): `StreetClosureState` con una clase por estado y `InfractionState`; los servicios delegan en el estado. Las transiciones inválidas siguen respondiendo 409 con el mismo mensaje.
+- **Verificación**: `StreetClosureStateTest` parametrizado (6 estados × 5 operaciones = 30 casos, 24 inválidos) e `InfractionStateTest`. Documento `docs/arquitectura/patron-state.md`.
 
-### DEF-05 Logs con payload completo
-- **Obtenido**: `LoggingEventPublisher` registra `data={}` completo con `log.info` (línea 17 de `event/LoggingEventPublisher.java`).
-- **Matiz verificado**: ese bean solo se activa con `core.rabbitmq.enabled=false`; `RabbitMqEventPublisher` no registra el payload (solo `debug` de eventos internos). Si Railway tiene `CORE_RABBITMQ_ENABLED=true` (el tablero dice que conectó con Core, pero no revisé las variables), el defecto aplica a local y desarrollo y no a producción: en ese caso bajaría a Menor. **Estado**: Abierto. **Workaround**: no usar el publicador de logs en entornos con datos reales. Falta una prueba de logs (SEC-D01).
+### DEF-15 BOLA en sesiones de estacionamiento (Cerrado)
+- **Corrección** (PR #32, en #31): `ParkingSession.ownerUsername` (columna nullable `owner_username`, no expuesta en el DTO). Un CIUDADANO que no es dueño recibe 404 (mismo mensaje que un id inexistente) en lectura y cierre; la pertenencia se valida antes que el estado. INSPECTOR/ADMIN/AUDITOR sin cambios.
+- **Verificación**: 6 tests en `ParkingIntegrationTest.Ownership` (dueño 200; otro ciudadano 404 sin cambiar estado ni publicar eventos; sesión ajena cerrada 404; sesión sin dueño 404 para ciudadano y 200 para inspector; dueño no seteable desde el body); `SecurityEvidenceTests` SEC-BOLA-04 dejó de ser `@Tag("bug")`. Migración probada en compose local y aplicada por Hibernate en producción (`alter table parking_sessions add column owner_username`), con 0 filas antes y después.
+- **Efecto visible**: sesiones creadas antes del deploy o por un inspector no las puede cerrar un ciudadano (lo hace un inspector).
 
-### DEF-06 DNI en el JWT
-- **Pasos**: login y decodificar el payload. **Obtenido**: el payload incluye el claim `nationalId` (corrida del 15/11 de `SecurityEvidenceTests.jwtHasNoPii`: FALLA). **Esperado**: sin datos personales (SEC-09). **Workaround**: ninguno técnico simple; el frontend y los filtros por titular usan el claim. **Estado**: Corregido: el token ya no incluye el DNI; el backend lo resuelve por subject (`NationalIdRegistry` al emitir el token, `IdentityValidator.findNationalId` en el stub, claim viejo aceptado por compatibilidad hasta que venzan los tokens previos) y el frontend lo pide a `GET /api/v1/auth/me`.
+### DEF-22 Límite de login evadible con `X-Forwarded-For` (KI-2, Cerrado)
+- **Defecto** (hallado por Newman, T1): el filtro tomaba la IP del cliente de `X-Forwarded-For` tal cual llegaba; rotando el header se esquivaba el 429.
+- **Corrección** (PR #29, en #31): la IP se toma contando `login.rate-limit.trusted-proxies` (por defecto 1) entradas desde la derecha; se agregó un contador por usuario (`max-attempts-per-username`, 10 en 60 s). También se corrigió una excepción con `X-Forwarded-For: ,`.
+- **Verificación**: `LoginRateLimitIntegrationTest` (5) y `LoginRateLimitFilterTest` (4). Sonda en producción tras el deploy `70e9afe1`: 10 logins fallidos con `X-Forwarded-For` distinto → 401 ×10 y luego 429.
+- **Riesgo residual**: bloqueo temporal (60 s) de una cuenta ajena fallando 10 veces; contador en memoria (una instancia).
 
-### DEF-07 Activación antes de `startDate`
-- **Obtenido**: `StreetClosureService.activate` solo valida el estado `APPROVED`; la prueba real mostró activación 7 s antes (plan de entrega). **Workaround**: operativo (activar dentro de la ventana). **Estado**: Abierto.
+### DEF-23 CVE High/Critical en dependencias (Cerrado)
+- **Defecto** (T2): Trivy sobre el jar: 25 CVE High/Critical (8 Critical, 17 High) en spring-webmvc, tomcat-embed-core, jackson 2 y 3, amqp-client, postgresql y netty.
+- **Corrección** (PR #30, en #31): parent Spring Boot 4.1.0 → 4.1.2 y `amqp-client` 5.34.0 por property. Job de CI `dependencias` (Trivy fijado por SHA, HIGH/CRITICAL, falla el build).
+- **Verificación**: Trivy 0 High/Critical sobre el jar construido; job de CI en verde. Compose local con AMQP OK y deploy en producción conectado a Core. Frontend: `npm audit --omit=dev` 0 y Trivy 0.
 
-### DEF-08 `causationId` null en `streetClosureEnded`
-- **Obtenido**: `finish(...)` publica con `null` como causationId (línea de `StreetClosureService.finish`). **Esperado**: lo que defina el contrato Core (secciones 9 y 26). Severidad a confirmar con Core; M3 recibió el evento el 15/11. **Estado**: Abierto.
+### DEF-24 Restricción de BD sin `EXPIRED` (latente, Cerrado)
+- **Defecto**: `street_closures_status_check` en la base de producción no incluía `EXPIRED` (el enum sí). Causa raíz: `spring.jpa.hibernate.ddl-auto=update` no recrea los check constraints de tablas existentes cuando se agrega un valor al enum. Un corte APPROVED vencido sin activar hacía fallar `expireDueClosures` (una sola transacción) → rollback de los ACTIVE→FINISHED cuyos eventos ya se habían publicado → `streetClosureEnded` repetido en cada corrida del scheduler. **Nunca se disparó** (no había cortes APPROVED). Severidad Crítica por el riesgo de integridad (eventos duplicados hacia otros módulos, sin workaround).
+- **Corrección** (15/11, ejecutada por Alejo en Supabase, probada antes en Postgres local): constraint recreado con `EXPIRED`. No hubo cambio de código.
+- **Verificación**: constraint nuevo presente; filas intactas (2 REQUESTED, 2 FINISHED).
+- **Mejora pendiente (no es defecto abierto)**: procesar cada corte vencido en su propia transacción u outbox para que un error no revierta los demás.
 
-### DEF-09 Swagger público
-- **Obtenido**: `SecurityConfig` permite sin autenticación `/swagger-ui/**`, `/v3/api-docs/**` y `/openapi.yaml`. No hay perfil que lo desactive. **Estado**: Abierto; decisión de diseño pendiente (la cátedra pide documentar la API).
+### DEF-25 `infractionDateTime` sin offset (hallado por M5, Cerrado)
+- **Defecto**: `infractionConfirmed` publicaba `infractionDateTime` como `LocalDateTime` (sin zona); M5 lo pidió con offset (contrato v4).
+- **Corrección** (PR #40, en #39): `InfractionConfirmedPayload.infractionDateTime` es `OffsetDateTime` (mismo nombre de campo), convertido con America/Argentina/Buenos_Aires.
+- **Verificación**: `InfractionConfirmedOffsetTest` serializa con el conversor de producción y espera `...-03:00`. Falta que M5 lo confirme con un evento real (ver 04, sección 7).
 
-### DEF-10 `auth=false` de M1 devuelve 502
-- **Obtenido**: respuesta 200 con `auth=false` se traduce a 502 (probado en `RestIdentityContextTest.loginAuthFalse`). M1 real y el mock devuelven 401 para clave mala, por lo que hoy no se dispara. **Estado**: Abierto, a decidir con M1.
+### DEF-26 500 con textos de más de 255 caracteres o byte NUL (hallado por ZAP, Cerrado)
+- **Defecto**: ZAP activo autenticado (Medium "Buffer Overflow" y Low "Server Error"): con textos >255 la columna `varchar(255)` fallaba y la API respondía 500; con `\u0000`, error de codificación de PostgreSQL → 500.
+- **Corrección** (PR #37, en #39): `@Size(max = 255)` en los String de los DTOs de request y embebidos; `RejectNulCharactersWebConfig` rechaza NUL → 400 Problem Details.
+- **Verificación**: `InputLimitsValidationTests` (256 → 400, 255 → 201, NUL → 400) y re-escaneo ZAP: 0 High, 0 Medium ([evidencias/zap](evidencias/zap/README.md)).
 
-### DEF-11 Estacionamiento impago 500 (Corregido)
-- **Evidencia**: `BugReproductionTest.bug01_flagUnpaidAlways500` **pasa** en la corrida del 15/11 (antes: 500 por `location` nulo). `ParkingIntegrationTest.flagUnpaidRules` cubre los rechazos. El commit exacto del arreglo no lo identifiqué. El test sigue excluido del build normal: conviene quitarle la etiqueta `bug`.
+## Detalle de los abiertos
+### DEF-04 Sin registro de eventos publicados — Abierto, en desarrollo
+- No existe tabla de eventos publicados (`git grep -i outbox` en `src/main`: sin resultados). Mitigación parcial desde el PR #33: cada publicación deja un log `[event-published] type eventId correlationId`. **Workaround**: logs de Railway y auditoría de Core. Se resuelve junto con DEF-14 (outbox, en desarrollo).
 
-### DEF-12 Contraseña de M1 en el historial
-- **Evidencia**: gitleaks `--all` da 4 hallazgos en el backend (1 contraseña de cuentas de prueba de M1 en `docs/Respuestas de Ro.md`, 3 ejemplos); `.gitleaksignore` los documenta. En HEAD ya están redactados (B2b). **Decisión del humano (15/11)**: no avisar a M1 ni rotar (ambiente académico). **No es un falso positivo puro** (B2 lo evaluó como credencial real de otro equipo): es riesgo aceptado, severidad Menor por el ambiente.
+### DEF-06 DNI en el JWT — Corregido en PR #42, pendiente de merge y deploy
+- **Fix (PR #42)**: el JWT ya no lleva `nationalId`; el DNI se resuelve en el servidor y se expone solo en `GET /api/v1/auth/me`. `SecurityEvidenceTests.jwtHasNoPii` PASA en la rama.
+- Situación previa: - `JwtService.java` línea 34 en `main`: `.claim("nationalId", user.nationalId())`. `SecurityEvidenceTests.jwtHasNoPii` falla. El frontend y los filtros por titular usan el claim, por eso el cambio se coordina. **Workaround**: ninguno técnico simple.
 
-### DEF-13 State no implementado como patrón
-- **Obtenido**: `StreetClosureStatus` es un enum y `StreetClosureService.requireStatus` valida transiciones. El checklist exige State con transiciones inválidas probadas. **Estado**: Abierto (asignado a Lautaro). Hay pruebas del 409, pero no del patrón.
+### DEF-07 Activación antes de `startDate` — Abierto
+- La activación (`ApprovedState.activate`) solo valida el estado; no compara con `startDate`. **Workaround**: operativo.
 
-### DEF-14 Outbox no implementado
-- **Obtenido**: `git grep -i outbox` en `src` no encuentra nada. Con el broker caído un evento publicado se pierde. **Workaround**: reenvío manual desde Core o los otros módulos; no hay prueba de no pérdida. **Estado**: Abierto.
+### DEF-09 Swagger público — Aceptado
+- `SecurityConfig` (línea 57) permite `/swagger-ui/**`, `/v3/api-docs/**` y `/openapi.yaml`. **Decisión**: documentación de API pública intencionalmente para la integración entre módulos. `application-prod.properties` apaga springdoc con el perfil `prod`, pero producción usa `SPRING_PROFILES_ACTIVE=dev`, así que hoy no tiene efecto (a propósito).
 
-### DEF-15 BOLA en sesiones de estacionamiento
-- **Pasos**: ciudadano A crea sesión; ciudadano B hace `GET /parking-sessions/{id}` y `POST /parking-sessions/{id}/closure`. **Esperado**: 403/404. **Obtenido**: 200 y 200 (`SecurityEvidenceTests.bolaParkingSession`, corrida del 15/11).
-- **Workaround**: los identificadores son UUID no enumerables, lo que reduce la explotación pero no la elimina. **Estado**: Abierto.
+### DEF-10 `auth=false` de M1 devuelve 502 — Abierto
+- Probado en `RestIdentityContextTest.loginAuthFalse`. Con el adaptador M1 sin activar no se dispara en producción.
 
-### DEF-16 Evidencia no exigida
-- **Obtenido**: alta de infracción con `evidenceUrl=[]` devuelve 201 (`BugReproductionTest.bug04`: FALLA el 15/11). HU-INF-01 y RF-INF-05 exigen evidencia o validación. **Workaround**: el frontend podría exigirla (NO VERIFICADO). **Estado**: Abierto.
+### DEF-12 Contraseña de M1 en el historial — Aceptado
+- gitleaks `--all`: 4 hallazgos documentados en `.gitleaksignore`; en HEAD están redactados. Decisión del humano del 15/11: ambiente académico, no se avisa ni se rota.
 
-### DEF-17 y DEF-18 Pruebas desactualizadas
-- `bug09a` envía `finalAmount=1` y espera 200; recibe 400, coherente con `ServiceBusinessRulesTests.infractionPatchRejectsAnInvalidFinalAmountAfterMerge`. Probable test desactualizado: no lo di por defecto del producto. `bug02` y `bug14` fallan al preparar el corte por un cambio de contrato en el handler. Acción: actualizarlos o retirarlos.
+### DEF-14 Outbox no implementado — Abierto, en desarrollo
+- `git grep -i outbox` en `src/main`: sin resultados en `main`. Con el broker caído, un evento publicado se pierde. **Workaround**: reenvío manual desde Core u otros módulos.
 
-### DEF-19 Importes no calculados
-- **Obtenido**: `CreateInfractionRequest` recibe `baseAmount` y `finalAmount`; `towingAndStorageFee` llega en la liberación. No hay tabla de importes por tipo, ni reincidencia, ni cálculo por días de estadía. Incumple RF-INF-02/03 y RF-VEH-03 / HU-VEH-02. **Workaround**: carga manual por el personal.
+### DEF-16 Evidencia no exigida — Abierto, espera decisión de la PO
+- `CreateInfractionRequest.evidenceUrl` valida cada elemento (`@NotBlank`, `@Size(max = 255)`) pero acepta la lista vacía: `BugReproductionTest.bug04` sigue dando 201. HU-INF-01 y RF-INF-05 piden evidencia **o** validación del inspector: la PO tiene que decidir si la validación del inspector alcanza o si la lista vacía debe rechazarse.
 
-### DEF-20 HU sin implementar
-- Ver la matriz 02: HU-COR-05, controles de operativo, detección y descarte de incumplimientos de estacionamiento, adjuntos de apelación, filtros e indicadores del backend. **Estado**: Abierto; se podría reclasificar como "fuera de alcance acordado" solo con decisión del PO.
+### DEF-17 y DEF-18 Pruebas desactualizadas — Abierto
+- `bug09a` envía `finalAmount=1` y espera 200 (recibe 400, coherente con la regla de importes); `bug02` y `bug14` fallan al preparar el corte por el contrato del handler. Acción: actualizarlas o retirarlas.
 
-### DEF-21 `streetClosureActivated`
-- **Obtenido**: `StreetClosureActivatedPayload` existe sin uso; el test `fullLifecycle` afirma que no se publica. El catálogo de Core registrado tiene 6 tipos y no incluye la activación. La Parte A del Google Doc dice que `streetClosureActivated` "se utiliza internamente", pero `git grep` no muestra ninguna emisión interna: inconsistencia entre documento y código. RF-COR-11 pide publicarlo. Confirmar con el PO.
+### DEF-19 Importes no calculados — Abierto
+- `CreateInfractionRequest` recibe `baseAmount` y `finalAmount`; no hay tabla de importes por tipo, reincidencia ni cálculo de estadía. **Workaround**: carga manual.
 
-## Riesgo de salida
-Máximo admitido: 0 Bloqueantes, 0 Críticos, 3 Mayores abiertos con workaround.
-| Severidad | Abiertos hoy | Límite |
-|---|---|---|
-| Bloqueante | 0 (ninguno identificado) | 0 |
-| Crítica | **1** (DEF-01) | 0 |
-| Mayor | **9** (DEF-04, 05, 06, 13, 14, 15, 16, 19, 20) | 3 |
+### DEF-20 HU sin implementar — Abierto
+- Ver la matriz 02. Se podría reclasificar como "fuera de alcance acordado" solo con decisión documentada de la PO.
 
-**La clasificación honesta EXCEDE el límite.** No lo oculté. Lo que se puede hacer para bajar el recuento con criterios defendibles, sin cambiar la severidad por conveniencia:
-1. DEF-01: configurar M1 real en Railway y verificarlo cierra el Crítico (requiere decisión humana y prueba).
-2. DEF-05 baja a Menor solo si se confirma `CORE_RABBITMQ_ENABLED=true` en producción.
-3. DEF-15 y DEF-16 son arreglos de código chicos (ownership en `ParkingSessionService`; validar lista no vacía).
-4. DEF-19 y DEF-20 son brechas de requisito: el PO puede decidir formalmente acotar el alcance, pero eso debe documentarse y avisarse al profesor.
-5. DEF-13 y DEF-14 están asignados a Lautaro.
-Aun con todo eso, hoy no se cumple la condición de salida y no debe entregarse un informe que diga lo contrario.
+### DEF-21 `streetClosureActivated` — Abierto
+- El payload existe pero no se publica a Core (el catálogo registrado tiene 6 tipos). Confirmar con el PO.
+
+### DEF-27 Validación antes que autorización (KI-3) — Abierto
+- Newman (T1): un rol sin permiso que manda un body inválido recibe 400 (revela reglas de validación) en vez de 403. La autorización se sigue aplicando (no cambia estado). En `main` no hay cambio al respecto; el caso sigue marcado `[KI-3]` en la colección.
+
+### DEF-28 Parámetro faltante sin Problem Details (KI-4) — Abierto
+- `GlobalExceptionHandler` en `main` no maneja `MissingServletRequestParameterException`: la respuesta sale con el formato por defecto de Spring (`application/json`), no RFC 9457. Caso `[KI-4]` en la colección.
+
+### DEF-29 `unpaid-flag` sin `@Valid` (KI-5/5b) — Abierto
+- `ParkingSessionController.flagUnpaid` recibe `@RequestBody FlagUnpaidRequest request` sin `@Valid` (verificado en `main`), por lo que `@NotNull` y `@DecimalMin("0.01")` no se aplican: se puede crear una infracción por 0 o sin importe. En la corrida de Newman de s5 se observó además un 500 en `unpaid-flag` en un caso; probablemente el de importe ausente (no confirmado). **Workaround**: el inspector carga el importe. Arreglo de una línea, pendiente.
+
+### DEF-30 Falta `Cross-Origin-Resource-Policy` (ZAP Low) — Abierto
+- Única alerta Low que quedó en el re-escaneo ZAP. Riesgo bajo (API JSON con JWT y CORS restringido).
+
+## Conteo por severidad y riesgo de salida
+Criterio del profesor: 0 Bloqueantes, 0 Críticos, como máximo 3 Mayores abiertos (con workaround). "Abiertos" incluye los "en desarrollo"; los Aceptados se cuentan aparte.
+| Severidad | Abiertos | Cerrados | Aceptados | Límite (abiertos) | ¿Cumple? |
+|---|---|---|---|---|---|
+| Bloqueante | 0 | 0 | 0 | 0 | Sí |
+| Crítica | **0** | 3 (DEF-01, 23, 24) | 0 | 0 | Sí |
+| Mayor | **7** (DEF-04, 06, 14, 16, 19, 20, 29) | 10 (DEF-02, 03, 05, 08, 11, 13, 15, 22, 25, 26) | 0 | 3 | **No** |
+| Menor | **8** (DEF-07, 10, 17, 18, 21, 27, 28, 30) | 0 | 2 (DEF-09, 12) | sin límite | — |
+| **Total** | **15** | **13** | **2** | | |
+
+**Al 15/11 18:00 no se cumple la condición de salida por los Mayores (7 > 3).** No se bajó ninguna severidad para mejorar el número. Caminos defendibles para cumplirla:
+1. DEF-04 y DEF-14 se cierran juntos con el outbox (en desarrollo).
+2. DEF-06 (DNI fuera del JWT, corregido en PR #42; falta merge y deploy).
+3. DEF-29: agregar `@Valid` y un test (cambio chico de código).
+4. DEF-16: decisión de la PO; si la regla es "evidencia obligatoria", es un cambio de validación chico.
+5. DEF-19 y DEF-20 son brechas de requisito: solo bajan con una decisión formal de alcance de la PO, documentada y comunicada al profesor.
