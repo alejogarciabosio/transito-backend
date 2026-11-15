@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,12 +48,12 @@ public class TrafficOperationService {
 
     @Transactional(readOnly = true)
     public List<TrafficOperation> findAll() {
-        return trafficOperationRepository.findAll();
+        return withCollections(trafficOperationRepository.findAll());
     }
 
     @Transactional(readOnly = true)
     public TrafficOperation findById(UUID operationId) {
-        return trafficOperationRepository.findById(operationId)
+        return trafficOperationRepository.findById(operationId).map(TrafficOperationService::withCollections)
                 .orElseThrow(() -> new ResourceNotFoundException("TrafficOperation no encontrado: " + operationId));
     }
 
@@ -122,5 +123,21 @@ public class TrafficOperationService {
             throw new InvalidStateTransitionException(
                     "El operativo " + operation.getOperationId() + " ya está cerrado");
         }
+    }
+
+    /**
+     * Inicializa las colecciones lazy DENTRO de la transacción (spring.jpa.open-in-view=false): el controller
+     * mapea la entidad después de que el servicio liberó la conexión. Con hibernate.default_batch_fetch_size
+     * cada colección se carga en lotes (una consulta cada 500 entidades), no una por fila (N+1).
+     */
+    private static TrafficOperation withCollections(TrafficOperation e) {
+        Hibernate.initialize(e.getAssignedInspectors());
+        Hibernate.initialize(e.getAssignedUnits());
+        return e;
+    }
+
+    private static List<TrafficOperation> withCollections(List<TrafficOperation> list) {
+        list.forEach(TrafficOperationService::withCollections);
+        return list;
     }
 }
