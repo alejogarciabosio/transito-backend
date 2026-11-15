@@ -63,11 +63,12 @@ public class CoreTokenClient {
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != 200) {
                 throw new IllegalStateException(
-                        "Core respondió " + response.statusCode() + " al pedir el token de módulo: " + response.body());
+                        "Core respondió " + response.statusCode() + " al pedir el token de módulo");
             }
             JsonNode parsed = objectMapper.readTree(response.body());
             if (!parsed.hasNonNull("accessToken")) {
-                throw new IllegalStateException("Core no devolvió accessToken: " + response.body());
+                // No se incluye el cuerpo: podría contener credenciales y el mensaje termina en logs.
+                throw new IllegalStateException("Core no devolvió accessToken");
             }
             long expiresInSeconds = parsed.path("expiresIn").asLong(900);
             // Margen de 30s para no quedarnos con un token a punto de vencer.

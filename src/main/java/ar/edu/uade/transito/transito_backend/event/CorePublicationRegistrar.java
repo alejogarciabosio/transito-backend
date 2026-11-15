@@ -73,7 +73,8 @@ public class CorePublicationRegistrar {
                     .build();
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != 201) {
-                throw new IllegalStateException("Core respondió " + response.statusCode() + ": " + response.body());
+                // Solo el código HTTP: el mensaje se loguea y el cuerpo de Core no aporta al diagnóstico.
+                throw new IllegalStateException("Core respondió " + response.statusCode());
             }
             log.info("Publicación {} registrada en Core", eventType);
         } catch (IOException ex) {
