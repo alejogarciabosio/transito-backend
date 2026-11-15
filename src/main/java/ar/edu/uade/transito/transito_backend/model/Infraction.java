@@ -92,4 +92,11 @@ public class Infraction {
     private String originTicketId;
 
     private UUID originParkingSessionId;
+
+    /**
+     * Texto del descargo del ciudadano (DEF-38). Nullable y sin default: las filas previas quedan en null.
+     * Largo alineado con {@code AppealRequest.reason} (@Size max = 2000). No se publica a Core ni se loguea.
+     */
+    @Column(name = "appeal_reason", length = 2000)
+    private String appealReason;
 }

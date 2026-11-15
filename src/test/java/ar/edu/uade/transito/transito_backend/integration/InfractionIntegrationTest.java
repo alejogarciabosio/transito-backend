@@ -217,6 +217,57 @@ class InfractionIntegrationTest extends AbstractIntegrationTest {
             post("/infractions/" + id + "/appeal", INSPECTOR, "{\"reason\":\"x\"}").andExpect(status().isForbidden());
             assertThat(events.ofType("infractionAppealed")).isEmpty();
         }
+
+        @Test
+        @DisplayName("TC-BE-INF-15b: el texto del descargo se persiste → appealReason en la respuesta y en el GET (titular y personal)")
+        void appealReasonIsPersisted() throws Exception {
+            String id = registerAsInspector(CIUDADANO.nationalId());
+            post("/infractions/" + id + "/appeal", CIUDADANO, "{\"reason\":\"No era mi auto\"}")
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.appealReason").value("No era mi auto"));
+
+            assertThat(infractionRepository.findById(UUID.fromString(id)).orElseThrow().getAppealReason())
+                    .isEqualTo("No era mi auto");
+            get("/infractions/" + id, CIUDADANO).andExpect(status().isOk())
+                    .andExpect(jsonPath("$.appealReason").value("No era mi auto"));
+            get("/infractions/mine", CIUDADANO).andExpect(jsonPath("$[0].appealReason").value("No era mi auto"));
+            get("/infractions/" + id, INSPECTOR).andExpect(jsonPath("$.appealReason").value("No era mi auto"));
+            get("/infractions/" + id, ADMIN).andExpect(jsonPath("$.appealReason").value("No era mi auto"));
+            get("/infractions/" + id, AUDITOR).andExpect(jsonPath("$.appealReason").value("No era mi auto"));
+            get("/infractions/" + id, OTRO_CIUDADANO).andExpect(status().isForbidden());
+        }
+
+        @Test
+        @DisplayName("TC-BE-INF-15c: infracciones sin apelar (o anteriores al cambio) → appealReason null sin romper")
+        void appealReasonNullForLegacyRows() throws Exception {
+            String id = registerAsInspector(CIUDADANO.nationalId());
+            var legacy = infractionRepository.findById(UUID.fromString(id)).orElseThrow();
+            assertThat(legacy.getAppealReason()).isNull();
+            get("/infractions/" + id, CIUDADANO).andExpect(status().isOk())
+                    .andExpect(jsonPath("$.appealReason").doesNotExist());
+            get("/infractions", INSPECTOR).andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(1)));
+        }
+
+        @Test
+        @DisplayName("TC-BE-INF-15d: appealReason no viaja en infractionConfirmed ni infractionAnulled; editar no lo borra")
+        void appealReasonNotPublished() throws Exception {
+            String confirmed = registerAsInspector(CIUDADANO.nationalId());
+            post("/infractions/" + confirmed + "/appeal", CIUDADANO, "{\"reason\":\"Texto privado\"}");
+            patch("/infractions/" + confirmed, INSPECTOR, "{\"licensePlate\":\"ZZ999ZZ\"}").andExpect(status().isOk())
+                    .andExpect(jsonPath("$.appealReason").value("Texto privado"));
+            post("/infractions/" + confirmed + "/confirmation", ADMIN, null).andExpect(status().isOk());
+
+            String annulled = registerAsInspector(CIUDADANO.nationalId());
+            post("/infractions/" + annulled + "/appeal", CIUDADANO, "{\"reason\":\"Texto privado\"}");
+            post("/infractions/" + annulled + "/annulment", SUPERVISOR, "{\"annulmentReason\":\"ok\",\"authorizedBy\":\"u-1002\"}")
+                    .andExpect(status().isOk());
+
+            for (String type : new String[] { "infractionConfirmed", "infractionAnulled" }) {
+                assertThat(events.ofType(type)).hasSize(1);
+                String json = objectMapper.writeValueAsString(events.ofType(type).get(0));
+                assertThat(json).doesNotContain("appealReason").doesNotContain("Texto privado");
+            }
+        }
     }
 
     @Nested

@@ -1325,6 +1325,10 @@ components:
         originParkingSessionId:
           type: string
           format: uuid
+        appealReason:
+          type: string
+          maxLength: 2000
+          description: Texto del descargo del ciudadano (solo titular y personal; null si no apeló o es anterior al cambio).
     Location:
       type: object
       properties:
