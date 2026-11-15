@@ -42,7 +42,7 @@ class PostgresContainerIntegrationTest {
     void loginWorksWithPostgreSqlContainer() throws Exception {
         mockMvc.perform(post("/api/v1/auth/login")
                         .contentType("application/json")
-                        .content("{\"username\":\"admin1\",\"password\":\"test-admin1-pass\"}"))
+                        .content("{\"username\":\"admin1\",\"password\":\"prueba-admin1\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token").isNotEmpty());
     }

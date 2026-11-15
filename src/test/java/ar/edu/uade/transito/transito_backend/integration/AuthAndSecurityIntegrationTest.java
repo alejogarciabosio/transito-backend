@@ -18,9 +18,9 @@ class AuthAndSecurityIntegrationTest extends AbstractIntegrationTest {
 
     @ParameterizedTest(name = "TC-BE-AUTH-01: login {0} → rol {1}")
     @CsvSource({
-            "inspector1,test-inspector1-pass,INSPECTOR",
-            "admin1,test-admin1-pass,ADMINISTRADOR",
-            "ciudadano1,test-ciudadano1-pass,CIUDADANO"})
+            "inspector1,prueba-inspector1,INSPECTOR",
+            "admin1,prueba-admin1,ADMINISTRADOR",
+            "ciudadano1,prueba-ciudadano1,CIUDADANO"})
     void loginOk(String user, String pass, String role) throws Exception {
         var result = post("/auth/login", null, "{\"username\":\"" + user + "\",\"password\":\"" + pass + "\"}")
                 .andExpect(status().isOk())
@@ -35,7 +35,7 @@ class AuthAndSecurityIntegrationTest extends AbstractIntegrationTest {
     }
 
     @ParameterizedTest(name = "TC-BE-AUTH-02: credenciales inválidas ({0}/{1}) → 401 en Problem Details")
-    @CsvSource({"inspector1,mal", "noexiste,test-inspector1-pass", "INSPECTOR1,test-inspector1-pass"})
+    @CsvSource({"inspector1,mal", "noexiste,prueba-inspector1", "INSPECTOR1,prueba-inspector1"})
     void loginFails(String user, String pass) throws Exception {
         post("/auth/login", null, "{\"username\":\"" + user + "\",\"password\":\"" + pass + "\"}")
                 .andExpect(status().isUnauthorized())

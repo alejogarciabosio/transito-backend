@@ -248,7 +248,7 @@ class SecurityEvidenceTests extends AbstractIntegrationTest {
     @DisplayName("SEC-MA-03: login con 'role' extra no escala privilegios")
     void loginRoleEscalation() throws Exception {
         MvcResult r = mockMvc.perform(MockMvcRequestBuilders.post(API_PREFIX + "/auth/login").contentType(MediaType.APPLICATION_JSON)
-                .content("{\"username\":\"ciudadano1\",\"password\":\"test-ciudadano1-pass\",\"role\":\"ADMINISTRADOR\"}")).andReturn();
+                .content("{\"username\":\"ciudadano1\",\"password\":\"prueba-ciudadano1\",\"role\":\"ADMINISTRADOR\"}")).andReturn();
         assertThat(r.getResponse().getStatus()).isEqualTo(200);
         assertThat(read(r, "$.role")).isEqualTo("CIUDADANO");
     }

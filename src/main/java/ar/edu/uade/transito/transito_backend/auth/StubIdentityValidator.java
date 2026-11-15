@@ -29,15 +29,13 @@ public class StubIdentityValidator implements IdentityValidator {
     private record StubUser(String username, String userId, String nationalId, Role role) {
     }
 
-    private record Account(byte[] password, StubUser user) {
-    }
-
     private static final List<StubUser> USERS = List.of(
             new StubUser("inspector1", "u-1001", "30111222", Role.INSPECTOR),
             new StubUser("admin1", "u-1002", "30222333", Role.ADMINISTRADOR),
             new StubUser("ciudadano1", "u-1007", "30777888", Role.CIUDADANO));
 
-    private final Map<String, Account> accounts = new HashMap<>();
+    private final Map<String, StubUser> enabledUsers = new HashMap<>();
+    private final Map<String, byte[]> passwords = new HashMap<>();
 
     public StubIdentityValidator(PropertyResolver properties) {
         for (StubUser user : USERS) {
@@ -47,7 +45,8 @@ public class StubIdentityValidator implements IdentityValidator {
                         user.username(), envVarName(user.username()));
                 continue;
             }
-            accounts.put(user.username(), new Account(password.getBytes(StandardCharsets.UTF_8), user));
+            enabledUsers.put(user.username(), user);
+            passwords.put(user.username(), password.getBytes(StandardCharsets.UTF_8));
         }
     }
 
@@ -63,12 +62,11 @@ public class StubIdentityValidator implements IdentityValidator {
 
     @Override
     public AuthenticatedUser validate(String username, String password) {
-        Account account = username == null ? null : accounts.get(username);
-        if (account == null || password == null
-                || !MessageDigest.isEqual(account.password(), password.getBytes(StandardCharsets.UTF_8))) {
+        StubUser user = username == null ? null : enabledUsers.get(username);
+        if (user == null || password == null
+                || !MessageDigest.isEqual(passwords.get(username), password.getBytes(StandardCharsets.UTF_8))) {
             throw new InvalidCredentialsException("Usuario o contraseña inválidos");
         }
-        StubUser user = account.user();
         return new AuthenticatedUser(user.userId(), user.nationalId(), user.role());
     }
 }

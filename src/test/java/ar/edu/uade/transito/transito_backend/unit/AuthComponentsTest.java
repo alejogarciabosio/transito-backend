@@ -33,8 +33,8 @@ class AuthComponentsTest {
     @DisplayName("TC-BE-AUTH-04: StubIdentityValidator valida usuario y contraseña")
     void stubValidator() {
         var validator = new StubIdentityValidator(new MockEnvironment()
-                .withProperty("stub.password.admin1", "test-admin1-pass"));
-        AuthenticatedUser user = validator.validate("admin1", "test-admin1-pass");
+                .withProperty("stub.password.admin1", "prueba-admin1"));
+        AuthenticatedUser user = validator.validate("admin1", "prueba-admin1");
         assertThat(user.userId()).isEqualTo("u-1002");
         assertThat(user.role()).isEqualTo(Role.ADMINISTRADOR);
         assertThatThrownBy(() -> validator.validate("deposito1", "x")).isInstanceOf(InvalidCredentialsException.class);
@@ -45,16 +45,16 @@ class AuthComponentsTest {
     @DisplayName("TC-BE-AUTH-04b: usuario sin variable STUB_PASSWORD_* queda deshabilitado (fail-closed) y se avisa sin el valor")
     void stubValidatorWithoutPasswordIsDisabled(CapturedOutput output) {
         var validator = new StubIdentityValidator(new MockEnvironment()
-                .withProperty("stub.password.inspector1", "test-inspector1-pass")
+                .withProperty("stub.password.inspector1", "prueba-inspector1")
                 .withProperty("stub.password.admin1", ""));
-        assertThat(validator.validate("inspector1", "test-inspector1-pass").role()).isEqualTo(Role.INSPECTOR);
+        assertThat(validator.validate("inspector1", "prueba-inspector1").role()).isEqualTo(Role.INSPECTOR);
         assertThatThrownBy(() -> validator.validate("inspector1", "otra")).isInstanceOf(InvalidCredentialsException.class);
         assertThatThrownBy(() -> validator.validate("inspector1", null)).isInstanceOf(InvalidCredentialsException.class);
         assertThatThrownBy(() -> validator.validate(null, "x")).isInstanceOf(InvalidCredentialsException.class);
         assertThatThrownBy(() -> validator.validate("admin1", "")).isInstanceOf(InvalidCredentialsException.class);
         assertThatThrownBy(() -> validator.validate("ciudadano1", "")).isInstanceOf(InvalidCredentialsException.class);
         assertThat(output).contains("STUB_PASSWORD_ADMIN1", "STUB_PASSWORD_CIUDADANO1")
-                .doesNotContain("STUB_PASSWORD_INSPECTOR1").doesNotContain("test-inspector1-pass");
+                .doesNotContain("STUB_PASSWORD_INSPECTOR1").doesNotContain("prueba-inspector1");
     }
 
     @Test
