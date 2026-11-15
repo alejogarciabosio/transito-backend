@@ -24,6 +24,7 @@ import ar.edu.uade.transito.transito_backend.web.dto.InfractionResponse;
 import ar.edu.uade.transito.transito_backend.web.dto.ParkingSessionResponse;
 import ar.edu.uade.transito.transito_backend.web.mapper.InfractionMapper;
 import ar.edu.uade.transito.transito_backend.web.mapper.ParkingSessionMapper;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -65,7 +66,7 @@ public class ParkingSessionController {
     @PreAuthorize("hasRole('INSPECTOR')")
     @PostMapping("/{id}/unpaid-flag")
     //este es un ejemplo del patrón de diseño Facade ya que el controlador actúa como una interfaz simplificada para el servicio de ParkingSession, ocultando la complejidad de la lógica de negocio y proporcionando un punto de entrada único para las operaciones relacionadas con las sesiones de estacionamiento.
-    public InfractionResponse flagUnpaid(@PathVariable UUID id, @RequestBody FlagUnpaidRequest request) {
+    public InfractionResponse flagUnpaid(@PathVariable UUID id, @Valid @RequestBody FlagUnpaidRequest request) {
         String inspectorId = currentUserProvider.get().userId();
         Infraction infraction = parkingSessionService.flagUnpaid(id, inspectorId, request.baseAmount());
         return InfractionMapper.toResponse(infraction);
