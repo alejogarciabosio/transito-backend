@@ -1,6 +1,6 @@
 # 05 - Registro de defectos
 
-Actualizado: 15/11/2026 ~18:45 ART (estado final). Versión de referencia: `main` del backend en `57b2765` (merge del PR #48, desplegado en Railway y verificado: health UP, Core conectado, 6 eventos registrados, tabla `outbox_events` creada y relay activo) y `main` del frontend en `1f0187d` (PR #10).
+Actualizado: 15/11/2026 ~19:30 ART (integración `integration/entrega4-e`: PR #49, #50 y #51; sin desplegar; `./mvnw verify` 512 tests, 0 fallos, 94,26 % de líneas). Estado anterior: Versión de referencia: `main` del backend en `57b2765` (merge del PR #48, desplegado en Railway y verificado: health UP, Core conectado, 6 eventos registrados, tabla `outbox_events` creada y relay activo) y `main` del frontend en `1f0187d` (PR #10).
 Fuentes: código de `main` (`git grep`; cada "cerrado" se revisó en el código), `./mvnw verify` sobre `57b2765` (497 tests, 0 fallos, 93,74 % de líneas), CI de `main` (Newman, ZAP baseline, Trivy, Sonar, gitleaks en verde), reportes de los agentes (s1-s15, i3-i5, d2, t1, t2), `TABLERO.md` y `pruebas-modulos-15-11.md`. No se hicieron pruebas nuevas contra producción para este registro.
 
 ## Severidades usadas
@@ -21,7 +21,7 @@ Estados: **Abierto**, **Cerrado** (corregido en `main`, desplegado y verificado 
 | DEF-02 | `/actuator/health` colgado con el broker caído | Mayor | Cerrado (PR #24, en #25) |
 | DEF-03 | Adaptador REST de M1 no arrancaba (Jackson) | Mayor | Cerrado (PR #23, en #25) |
 | DEF-04 | Sin registro de eventos publicados (regla 9.3 del TP) | Mayor | **Cerrado 15/11** (PR #46, en #48) |
-| DEF-05 | Logs con payload completo de eventos | Mayor | Cerrado 15/11 (PR #34, en #39) |
+| DEF-05 | Logs con payload completo de eventos (ampliado: cuerpo de mensajes AMQP inválidos en el log) | Mayor | Cerrado 15/11 (PR #34, en #39); ampliación cerrada en PR #50 (rama de integración `integration/entrega4-e`) |
 | DEF-06 | DNI (`nationalId`) dentro del JWT | Mayor | **Cerrado 15/11** (PR #42 + frontend #10, en #48) |
 | DEF-07 | Un corte se activa antes de `startDate` | Menor | Abierto |
 | DEF-08 | `causationId` nulo en `streetClosureEnded` (hallado también por Core) | Mayor (reclasificado desde Menor al confirmarlo Core) | Cerrado 15/11 (PR #33, en #31) |
@@ -36,7 +36,7 @@ Estados: **Abierto**, **Cerrado** (corregido en `main`, desplegado y verificado 
 | DEF-17 | `PATCH /infractions` parcial devuelve 400 en la reproducción BUG-BE-09a | Menor (probable test desactualizado) | Abierto (a confirmar) |
 | DEF-18 | Pruebas de reproducción BUG-BE-02 y 14 desactualizadas | Menor (deuda de tests) | Abierto |
 | DEF-19 | Importe base, reincidencia y costo de acarreo/estadía no se calculan en el servidor | Mayor | Abierto |
-| DEF-20 | HU sin implementar (COR-05, OPE-03, EST-03/04, parte de INF-04, IND) | Mayor | Abierto |
+| DEF-20 | HU sin implementar (COR-05, OPE-03, EST-03/04, parte de INF-04, IND) | Mayor | Abierto (con workaround operativo documentado, PR #51) |
 | DEF-21 | `streetClosureActivated` no se publica (RF-COR-11) | Menor | Abierto (a confirmar con la PO) |
 | DEF-22 | Límite de intentos de login evadible rotando `X-Forwarded-For` (KI-2) | Mayor | Cerrado 15/11 (PR #29, en #31) |
 | DEF-23 | 25 CVE High/Critical en dependencias del backend (8 Critical, 17 High) | Crítica | Cerrado 15/11 (PR #30, en #31) |
@@ -48,8 +48,12 @@ Estados: **Abierto**, **Cerrado** (corregido en `main`, desplegado y verificado 
 | DEF-29 | `unpaid-flag` acepta `baseAmount` 0 o ausente: falta `@Valid` (KI-5/5b) | Mayor | **Cerrado 15/11** (PR #45, en #48) |
 | DEF-30 | Falta la cabecera `Cross-Origin-Resource-Policy` (ZAP, Low) | Menor | **Cerrado 15/11** (PR #45, en #48) |
 | DEF-31 | `updateTicketStatus` no cumplía el esquema de Core (M2 v1.78) al cerrar el operativo | Mayor | **Cerrado 15/11** (PR #44, en #48) |
-| DEF-32 | `spring.jpa.show-sql=true` en producción: el relay del outbox imprime un SELECT cada 2 s | Menor | **Abierto** (nuevo) |
+| DEF-32 | `spring.jpa.show-sql=true` en producción: el relay del outbox imprime un SELECT cada 2 s | Menor | **Cerrado** (PR #50, en `integration/entrega4-e`; pendiente de deploy) |
 | DEF-33 | Incompatibilidad temporal con el consumidor de M3: rechaza `streetClosureEnded` con `causationId` no nulo | Mayor | **Abierto** (nuevo, mitigado) |
+| DEF-34 | Frontend: los adjuntos del descargo no se envían (el input acepta archivos que se descartan sin aviso) | Mayor | **En corrección**: corregido en PR frontend #12 (`fix/s19-fallas-ui`), pendiente de merge |
+| DEF-35 | Frontend: el panel no muestra el texto del descargo | Menor | **En corrección** (PR frontend #12, `fix/s19-fallas-ui`; parcial, ver detalle) |
+| DEF-36 | Frontend: el botón "Marcar impago" sigue visible tras marcar la sesión (un segundo clic da 409) | Menor | **En corrección** (PR frontend #12, `fix/s19-fallas-ui`) |
+| DEF-37 | Frontend: borrar una tarifa con sesiones activas muestra un error genérico (409 sin traducir) | Menor | **En corrección** (PR frontend #12, `fix/s19-fallas-ui`) |
 
 ## Detalle de los cerrados en el deploy final (PR #48, `57b2765`)
 ### DEF-04 y DEF-14 Registro de eventos publicados y Transactional Outbox (Cerrados)
@@ -87,6 +91,7 @@ Estados: **Abierto**, **Cerrado** (corregido en `main`, desplegado y verificado 
 ### DEF-05 Logs con payload completo (Cerrado)
 - **Corrección** (PR #34, en #39): `LoggingEventPublisher` registra solo `[event-published] type eventId correlationId` (línea 19 en `main`); el listener de Rabbit registra `[event-rejected] type eventId correlationId error=<Clase>` y relanza una excepción sin causa (el mensaje original podía traer PII); `CoreTokenClient` y `CorePublicationRegistrar` ya no incluyen el cuerpo de la respuesta de Core.
 - **Verificación**: `EventLoggingSinPiiTest` e `IncomingEventLoggingSinPiiTest` (capturan la salida con DNI y patente de prueba; fallaban antes del fix y pasan después). CI del PR #34 verde.
+- **Ampliación (cerrada, PR #50)**: el log de Spring AMQP al rechazar un mensaje inválido (JSON roto o payload inválido) incluía el cuerpo del mensaje, que puede traer DNI o patente. `SafeRejectingErrorHandler` rechaza sin requeue (va a la DLQ) y registra solo el tipo de error, sin el cuerpo. Verificado con `TC-BE-TC-05` (`ConsumerRabbitContainerIntegrationTest`, RabbitMQ real por Testcontainers: el mensaje termina en la DLQ y el log capturado no contiene el DNI ni la patente).
 
 ### DEF-08 `causationId` nulo en `streetClosureEnded` (Cerrado)
 - **Hallado** en el código (registro anterior) y **confirmado por Core** en la prueba real con M3 del 15/11 (Approved llevaba causationId; Ended salía con NULL). Se reclasificó a Mayor: incumple la trazabilidad del envelope de Core.
@@ -137,10 +142,20 @@ Estados: **Abierto**, **Cerrado** (corregido en `main`, desplegado y verificado 
 - **Workaround (vigente)**: no se aprueban cortes de M3 hasta que confirmen su deploy (producción sin cortes APPROVED/ACTIVE de M3); las solicitudes quedan en REQUESTED. Después: repetir un corte completo con Core monitoreando y cerrar el defecto.
 - **Causa raíz**: del lado del consumidor de M3; se registra porque afecta el comportamiento visible de M7 y fue un cambio nuestro el que lo destapó.
 
-### DEF-32 `show-sql` activo en producción — Abierto (Menor)
-- **Situación**: `src/main/resources/application.properties` línea 7: `spring.jpa.show-sql=true`, y `application-prod.properties` no lo apaga (además producción no usa el perfil `prod`). Desde el outbox, el relay consulta los pendientes cada 2 s y cada consulta se imprime en los logs de Railway.
-- **Impacto**: ruido en los logs (dificulta ver errores reales y suma volumen). No expone datos personales: Hibernate imprime el SQL con `?` en lugar de los valores (no está activo el log de parámetros).
-- **Workaround / arreglo**: filtrar los logs; arreglo de configuración de una línea (`show-sql=false`, o la variable `SPRING_JPA_SHOW_SQL=false` en Railway, que no renombra ninguna variable existente). Pendiente de decisión del equipo (toca producción).
+### DEF-32 `show-sql` activo en producción — Cerrado (Menor)
+- **Situación anterior**: `spring.jpa.show-sql=true` en `application.properties`; el relay del outbox imprimía un SELECT cada 2 s en los logs de Railway (sin valores: Hibernate usa `?`).
+- **Corrección** (PR #50): `spring.jpa.show-sql=false` en `application.properties` (línea 7). No renombra variables ni toca el esquema. Cierre efectivo en producción cuando se mergee a `main` y se despliegue.
+
+### DEF-34 Adjuntos del descargo no se envían — En corrección (Mayor)
+- **Hallado** al escribir el manual de usuario (S18): la pantalla de descargo del ciudadano tiene un selector de archivos, pero `AppealRequest` del backend solo recibe `reason`; los archivos elegidos se descartan sin aviso.
+- **Por qué Mayor**: el ciudadano cree que presentó documentación que el sistema nunca recibió (pérdida silenciosa de datos aportados por el ciudadano en un trámite con plazos). Hay workaround (presentar la documentación por mesa de entradas), así que no es Crítico.
+- **Corrección**: PR frontend #12 (`fix/s19-fallas-ui`): se quita el input y se muestra "Adjuntos: próximamente; enviá la documentación por mesa de entradas". **Corregido en PR, pendiente de merge.** La función completa de adjuntos sigue dentro de DEF-20 (HU-INF-04).
+
+### DEF-35, DEF-36 y DEF-37 Fallas de UI del frontend — En corrección (Menores)
+- **Hallados** al escribir el manual de usuario (S18). Corrección en PR frontend #12 (`fix/s19-fallas-ui`), pendiente de merge.
+- **DEF-35** Texto del descargo: `InfractionResponse` no devuelve el motivo (el backend no lo guarda; solo viaja en `infractionAppealed`). El front ya muestra `appealReason` si llega y explica el pendiente; exponerlo exige una columna nueva (esquema congelado): decisión del equipo. Menor: no se pierde el dato para Core ni para el flujo.
+- **DEF-36** "Marcar impago": el botón seguía visible y el segundo intento daba 409. El PR oculta el botón con `originParkingSessionId` y muestra el `detail` del Problem Details si igual llega 409. Menor: el backend ya protege la regla.
+- **DEF-37** Borrar tarifa con sesiones activas: el 409 se mostraba como error genérico. El PR lo traduce a un mensaje claro. Menor: solo mensaje.
 
 ### DEF-07 Activación antes de `startDate` — Abierto
 - La activación (`ApprovedState.activate`) solo valida el estado; no compara con `startDate`. **Workaround**: operativo.
@@ -161,22 +176,25 @@ Estados: **Abierto**, **Cerrado** (corregido en `main`, desplegado y verificado 
 - `CreateInfractionRequest` recibe `baseAmount` y `finalAmount`; no hay tabla de importes por tipo, reincidencia ni cálculo de estadía. **Workaround**: carga manual del importe por el inspector o el administrador (validada: importes positivos, final ≥ base).
 
 ### DEF-20 HU sin implementar — Abierto (Mayor)
-- HU-COR-05, HU-OPE-03 (controles), HU-EST-03/04 (detección y descarte de incumplimientos), adjuntos y `appealId` de HU-INF-04, filtros e indicadores del backend (HU-IND-01/02). Ver la matriz 02. **Workaround técnico: no hay** (la función no existe). Solo se reclasifica como "fuera de alcance acordado" con una decisión documentada de la PO.
+- HU-COR-05, HU-OPE-03 (controles), HU-EST-03/04 (detección y descarte de incumplimientos), adjuntos y `appealId` de HU-INF-04, filtros e indicadores del backend (HU-IND-01/02). Ver la matriz 02.
+- **Workaround operativo documentado** (PR #51): `docs/entrega-academica/hu-pendientes.md` detalla, para cada uno de los siete criterios de las seis HU, qué falta (verificado en el código) y cómo lo resuelve hoy el usuario usando solo endpoints existentes (por ejemplo, adjuntos por mesa de entradas). No es un workaround técnico: la función no existe; sigue Abierto como Mayor y conviene que la PO confirme el alcance.
 
 ### DEF-21 `streetClosureActivated` — Abierto
 - El payload existe pero no se publica a Core (el catálogo registrado tiene 6 tipos). Confirmar con la PO.
 
 ## Conteo por severidad y riesgo de salida
-Criterio del profesor: 0 Bloqueantes, 0 Críticos, como máximo 3 Mayores abiertos (con workaround). Los Aceptados se cuentan aparte. Total registrado: 33 defectos.
-| Severidad | Abiertos | Cerrados | Aceptados | Límite (abiertos) | ¿Cumple? |
+Criterio del profesor: 0 Bloqueantes, 0 Críticos, como máximo 3 Mayores abiertos (con workaround). Los Aceptados se cuentan aparte. "En corrección" cuenta como abierto hasta el merge. Total registrado: 37 defectos.
+| Severidad | Abiertos (incluye en corrección) | Cerrados | Aceptados | Límite (abiertos) | ¿Cumple? |
 |---|---|---|---|---|---|
 | Bloqueante | 0 | 0 | 0 | 0 | Sí |
 | Crítica | **0** | 3 (DEF-01, 23, 24) | 0 | 0 | Sí |
-| Mayor | **3** (DEF-19, 20, 33) | 16 (DEF-02, 03, 04, 05, 06, 08, 11, 13, 14, 15, 16, 22, 25, 26, 29, 31) | 0 | 3 | Sí en número (ver nota) |
-| Menor | **6** (DEF-07, 10, 17, 18, 21, 32) | 3 (DEF-27, 28, 30) | 2 (DEF-09, 12) | sin límite | — |
-| **Total** | **9** | **22** | **2** | | |
+| Mayor | **4** (DEF-19, 20, 33; DEF-34 en corrección) | 16 (DEF-02, 03, 04, 05, 06, 08, 11, 13, 14, 15, 16, 22, 25, 26, 29, 31) | 0 | 3 | **No hasta el merge del PR frontend #12**; con #12 mergeado: 3, sí |
+| Menor | **8** (DEF-07, 10, 17, 18, 21; DEF-35, 36, 37 en corrección) | 4 (DEF-27, 28, 30, 32) | 2 (DEF-09, 12) | sin límite | — |
+| **Total** | **12** | **23** | **2** | | |
 
-**Riesgo de salida (sin maquillar)**: al 15/11 ~18:45 hay 0 Bloqueantes, 0 Críticos y 3 Mayores abiertos, justo en el límite. No se bajó ninguna severidad para llegar al número (DEF-33, nuevo, se registró como Mayor aunque su causa está en M3). Salvedades:
-1. **DEF-20 no tiene workaround técnico**: el criterio pide "≤ 3 Mayores con workaround", así que el cumplimiento queda condicionado a que la PO documente la decisión de alcance de esas HU y se comunique al profesor.
-2. DEF-33 depende de un deploy de M3; si M3 no lo adapta antes de la entrega, el flujo de cortes con M3 queda sin re-probar.
-3. Cualquier Mayor nuevo (por ejemplo, en la re-prueba con M3, M5 o M2) deja el criterio sin cumplir.
+**Riesgo de salida (sin maquillar)**: hay 0 Bloqueantes, 0 Críticos y 4 Mayores abiertos; DEF-34 ya está corregido en el PR frontend #12 y, al mergearlo y desplegarlo, quedan 3 (en el límite). No se bajó ninguna severidad para llegar al número. Salvedades:
+1. **Mergear el PR frontend #12 antes de la entrega** es condición para cumplir el límite de Mayores.
+2. DEF-20 tiene workaround operativo documentado (`hu-pendientes.md`), no técnico; conviene que la PO confirme la decisión de alcance.
+3. DEF-33 depende de un deploy de M3; si M3 no lo adapta antes de la entrega, el flujo de cortes con M3 queda sin re-probar.
+4. DEF-32 y la ampliación de DEF-05 quedan cerrados en código (PR #50); en producción se cierran con el deploy de `main`.
+5. Cualquier Mayor nuevo deja el criterio sin cumplir.
