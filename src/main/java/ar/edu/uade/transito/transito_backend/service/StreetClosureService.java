@@ -3,6 +3,7 @@ package ar.edu.uade.transito.transito_backend.service;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -127,21 +128,55 @@ public class StreetClosureService {
     /**
      * Applies the operational window agreed with Obras. ACTIVE closures are ended and
      * APPROVED closures which never activated become EXPIRED, so they cannot activate later.
+     * (Procesa todo en una sola transacción; el scheduler usa {@link #expireClosure} por corte.)
      */
     public void expireDueClosures(OffsetDateTime now) {
         for (StreetClosure closure : streetClosureRepository
                 .findByStatusAndEndDateLessThanEqual(StreetClosureStatus.ACTIVE, now)) {
-            transition(closure, stateOf(closure).expire(closure));
-            StreetClosure saved = streetClosureRepository.save(closure);
-            eventPublisher.publish(EventEnvelope.of("streetClosureEnded", new StreetClosureEndedPayload(
-                    saved.getStreetClosureId(), saved.getClosureRequestId(), OffsetDateTime.now(MUNICIPAL_TIME_ZONE),
-                    "Cierre automático al vencer el horario autorizado."), saved.getSourceCorrelationId(), saved.getSourceEventId()));
+            expire(closure);
         }
 
         for (StreetClosure closure : streetClosureRepository
                 .findByStatusAndEndDateLessThanEqual(StreetClosureStatus.APPROVED, now)) {
-            transition(closure, stateOf(closure).expire(closure));
-            streetClosureRepository.save(closure);
+            expire(closure);
+        }
+    }
+
+    /** Ids de los cortes ACTIVE/APPROVED cuyo horario autorizado ya venció. */
+    @Transactional(readOnly = true)
+    public List<UUID> findClosuresDueForExpiration(OffsetDateTime now) {
+        List<UUID> ids = new ArrayList<>();
+        for (StreetClosureStatus status : List.of(StreetClosureStatus.ACTIVE, StreetClosureStatus.APPROVED)) {
+            streetClosureRepository.findByStatusAndEndDateLessThanEqual(status, now)
+                    .forEach(closure -> ids.add(closure.getStreetClosureId()));
+        }
+        return ids;
+    }
+
+    /**
+     * Vence UN corte en su propia transacción (la del proxy de este servicio): si falla, solo se revierte
+     * ese corte, y su evento streetClosureEnded (que va al outbox en la misma transacción) tampoco sale.
+     * Vuelve a validar el estado y el horario por si el corte cambió desde que se listó.
+     */
+    public boolean expireClosure(UUID streetClosureId, OffsetDateTime now) {
+        StreetClosure closure = findById(streetClosureId);
+        boolean due = (closure.getStatus() == StreetClosureStatus.ACTIVE
+                || closure.getStatus() == StreetClosureStatus.APPROVED)
+                && closure.getEndDate() != null && !closure.getEndDate().isAfter(now);
+        if (due) {
+            expire(closure);
+        }
+        return due;
+    }
+
+    private void expire(StreetClosure closure) {
+        boolean wasActive = closure.getStatus() == StreetClosureStatus.ACTIVE;
+        transition(closure, stateOf(closure).expire(closure));
+        StreetClosure saved = streetClosureRepository.save(closure);
+        if (wasActive) {
+            eventPublisher.publish(EventEnvelope.of("streetClosureEnded", new StreetClosureEndedPayload(
+                    saved.getStreetClosureId(), saved.getClosureRequestId(), OffsetDateTime.now(MUNICIPAL_TIME_ZONE),
+                    "Cierre automático al vencer el horario autorizado."), saved.getSourceCorrelationId(), saved.getSourceEventId()));
         }
     }
 

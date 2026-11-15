@@ -23,6 +23,7 @@ tags:
   - name: Infracciones
   - name: Retenciones
   - name: Estacionamiento
+  - name: Auditoría
 security:
   - bearerAuth: []
 
@@ -372,6 +373,40 @@ paths:
           content:
             application/json:
               schema: { type: array, items: { $ref: '#/components/schemas/ParkingZone' } }
+
+  /v1/admin/outbox:
+    get:
+      tags: [Auditoría]
+      summary: Registro de eventos publicados / pendientes (ADMINISTRADOR, AUDITOR)
+      description: |
+        Transactional Outbox (DEF-14 / DEF-04). Cada evento hacia Core se guarda en la misma transacción
+        que el cambio de negocio y un relay lo publica segundos después. Solo lectura, más recientes primero;
+        nunca devuelve el payload (puede tener datos personales).
+      parameters:
+        - { name: status, in: query, required: false, schema: { type: string, enum: [PENDING, PUBLISHED, FAILED] } }
+        - { name: limit, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 200, default: 50 } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    eventId: { type: string, format: uuid }
+                    eventType: { type: string, example: infractionConfirmed }
+                    correlationId: { type: string, format: uuid, nullable: true }
+                    causationId: { type: string, format: uuid, nullable: true }
+                    status: { type: string, enum: [PENDING, PUBLISHED, FAILED] }
+                    attempts: { type: integer, example: 1 }
+                    lastError: { type: string, nullable: true, example: "AmqpConnectException <- ConnectException: Connection refused" }
+                    createdAt: { type: string, format: date-time }
+                    publishedAt: { type: string, format: date-time, nullable: true }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
 
 components:
   securitySchemes:

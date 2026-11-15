@@ -12,7 +12,6 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.amqp.core.MessagePostProcessor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
@@ -50,7 +49,7 @@ class EventLoggingSinPiiTest {
 
         new RabbitMqEventPublisher(template, "muni.inbox", "module_transito").publish(event);
 
-        verify(template).convertAndSend(eq("muni.inbox"), anyString(), eq(event), any(MessagePostProcessor.class));
+        verify(template).send(eq("muni.inbox"), anyString(), any(org.springframework.amqp.core.Message.class));
         assertThat(output.getAll())
                 .contains("[event-published] type=infractionConfirmed eventId=" + event.getEventId()
                         + " correlationId=" + event.getCorrelationId())
