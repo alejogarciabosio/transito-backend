@@ -1,17 +1,62 @@
-# Un solo comando levanta todo, sin credenciales externas ni archivo .env:
+# Un solo comando levanta todo (app + base + RabbitMQ local + mocks de M1 y Core):
+#     cp .env.example .env   # completar cada variable (ver README)
 #     docker compose up --build
-# Servicios: base PostgreSQL local + backend (http://localhost:8080, Swagger en /swagger-ui/index.html).
-# Los valores por defecto sirven para desarrollo; se pueden pisar con un .env o con variables de entorno
-# (por ejemplo para apuntar a Supabase). El broker (RabbitMQ de Core) está desactivado por defecto.
+# Servicios: db (PostgreSQL), rabbitmq (exchange muni.inbox + cola q.transito), mocks (WireMock: login de M1 y
+# llamadas HTTP a Core) y backend (http://localhost:8080, Swagger en /swagger-ui/index.html).
+# Aislamiento: el backend apunta SIEMPRE a rabbitmq y mocks (fijado acá, no desde .env), nunca al Core real.
+# Si falta una variable del .env, compose corta con un mensaje claro.
 services:
   db:
     image: postgres:16-alpine
     environment:
       POSTGRES_DB: transito
-      POSTGRES_USER: transito
-      POSTGRES_PASSWORD: transito
+      POSTGRES_USER: ${DB_USER:?Falta DB_USER en .env}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Falta DB_PASSWORD en .env}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U transito -d transito"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d transito"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    hostname: rabbitmq
+    environment:
+      # M7 publica con user_id = su usuario, por eso el usuario debe llamarse module_transito.
+      RABBITMQ_DEFAULT_USER: module_transito
+      RABBITMQ_DEFAULT_PASS: ${CORE_RABBITMQ_PASSWORD:?Falta CORE_RABBITMQ_PASSWORD en .env}
+    ports:
+      - "5672:5672"
+      - "15672:15672" # consola de administración: http://localhost:15672
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_running"]
+      interval: 5s
+      timeout: 10s
+      retries: 30
+
+  # Tarea de un solo uso: carga exchange muni.inbox + colas (la app NO crea colas, solo las verifica).
+  rabbitmq-init:
+    image: rabbitmq:3-management
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    volumes:
+      - ./docker/rabbitmq/definitions.json:/definitions.json:ro
+    environment:
+      RABBITMQ_PASS: ${CORE_RABBITMQ_PASSWORD:?Falta CORE_RABBITMQ_PASSWORD en .env}
+    entrypoint: ["sh", "-c", "rabbitmqadmin -H rabbitmq -u module_transito -p \"$$RABBITMQ_PASS\" import /definitions.json"]
+    restart: "no"
+
+  # Mock (WireMock) de M1 (POST /auth/usuario/login) y de Core (module-token y publications).
+  mocks:
+    image: wiremock/wiremock:3.9.1
+    command: ["--disable-banner"]
+    ports:
+      - "8081:8080" # http://localhost:8081/__admin/requests muestra lo que recibió
+    volumes:
+      - ./docker/wiremock/mappings:/home/wiremock/mappings:ro
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/__admin/mappings >/dev/null || exit 1"]
       interval: 3s
       timeout: 3s
       retries: 20
@@ -23,13 +68,30 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      rabbitmq-init:
+        condition: service_completed_successfully
+      mocks:
+        condition: service_healthy
     environment:
-      DB_URL: ${DB_URL:-jdbc:postgresql://db:5432/transito}
-      DB_USER: ${DB_USER:-transito}
-      DB_PASSWORD: ${DB_PASSWORD:-transito}
-      JWT_SECRET: ${JWT_SECRET:-secreto-solo-para-desarrollo-local-de-32-bytes-minimo}
-      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:5173}
-      CORE_RABBITMQ_ENABLED: ${CORE_RABBITMQ_ENABLED:-false}
+      DB_URL: ${DB_URL:?Falta DB_URL en .env}
+      DB_USER: ${DB_USER:?Falta DB_USER en .env}
+      DB_PASSWORD: ${DB_PASSWORD:?Falta DB_PASSWORD en .env}
+      JWT_SECRET: ${JWT_SECRET:?Falta JWT_SECRET en .env}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:?Falta CORS_ALLOWED_ORIGINS en .env}
+      USERS_REST_ENABLED: ${USERS_REST_ENABLED:?Falta USERS_REST_ENABLED en .env (true o false)}
+      CORE_MODULE_SECRET: ${CORE_MODULE_SECRET:?Falta CORE_MODULE_SECRET en .env}
+      CORE_RABBITMQ_PASSWORD: ${CORE_RABBITMQ_PASSWORD:?Falta CORE_RABBITMQ_PASSWORD en .env}
+      # Fijado para local (no se toma del .env): broker y HTTP de Core apuntan a los contenedores.
+      CORE_RABBITMQ_ENABLED: "true"
+      CORE_RABBITMQ_HOST: rabbitmq
+      CORE_RABBITMQ_PORT: "5672"
+      CORE_RABBITMQ_VHOST: /
+      CORE_RABBITMQ_USERNAME: module_transito
+      CORE_RABBITMQ_TLS_ENABLED: "false"
+      CORE_BASE_URL: http://mocks:8080
+      USERS_REST_URL: http://mocks:8080/auth/usuario/login
 
   # Frontend (repo hermano): descomentar si está clonado al lado de este repo.
   # frontend:
