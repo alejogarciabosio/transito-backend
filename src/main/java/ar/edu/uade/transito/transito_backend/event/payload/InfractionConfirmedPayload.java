@@ -1,7 +1,7 @@
 package ar.edu.uade.transito.transito_backend.event.payload;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -15,7 +15,7 @@ public record InfractionConfirmedPayload(
         DebtorIdType debtorIdType,
         String licensePlate,
         InfractionType infractionType,
-        LocalDateTime infractionDateTime,
+        OffsetDateTime infractionDateTime,
         BigDecimal baseAmount,
         List<String> aggravatingFactors,
         BigDecimal finalAmount,

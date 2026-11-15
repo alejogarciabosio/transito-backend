@@ -1,5 +1,6 @@
 package ar.edu.uade.transito.transito_backend.service;
 
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.List;
@@ -140,7 +141,7 @@ public class InfractionService {
                 saved.getDebtorIdType(),
                 saved.getLicensePlate(),
                 saved.getInfractionType(),
-                saved.getInfractionDateTime(),
+                toMunicipalOffset(saved.getInfractionDateTime()),
                 saved.getBaseAmount(),
                 saved.getAggravatingFactors(),
                 saved.getFinalAmount(),
@@ -171,5 +172,10 @@ public class InfractionService {
             throw new InvalidStateTransitionException(
                     "La infracción " + infraction.getInfractionId() + " ya está firme (" + infraction.getStatus() + ")");
         }
+    }
+
+    /** La hora guardada es local argentina; el contrato v4 exige ISO 8601 con offset (-03:00). */
+    static OffsetDateTime toMunicipalOffset(LocalDateTime localDateTime) {
+        return localDateTime == null ? null : localDateTime.atZone(MUNICIPAL_TIME_ZONE).toOffsetDateTime();
     }
 }

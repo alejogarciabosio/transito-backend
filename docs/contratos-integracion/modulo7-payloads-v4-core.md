@@ -41,6 +41,26 @@ Todo evento externo de M7 usa exactamente este sobre:
 | Recibe | `paymentReversed` | M5 Rentas | `paymentId`, `debtId`, `originType: "TRAFFIC_FINE"`, `originId`, `infractionId`, `reversedAmount`, `reversedAt`, `remainingBalance`, `reason` |
 | Recibe | `ticketUpdated` | M2 Atención Ciudadana | Payload versionado por M2; M7 procesa únicamente los dirigidos al área de Tránsito |
 
+### Ejemplo de `data` en `infractionConfirmed`
+
+La hora de la infracción se guarda como hora local argentina y se publica con el offset de `America/Argentina/Buenos_Aires` (la API REST no cambia):
+
+```json
+{
+  "infractionId": "8b3f2c1e-4d5a-4b6c-9e7f-0a1b2c3d4e5f",
+  "debtorId": "40123456",
+  "debtorIdType": "DNI",
+  "licensePlate": "AB123CD",
+  "infractionType": "ILLEGAL_PARKING",
+  "infractionDateTime": "2026-11-15T14:14:29-03:00",
+  "baseAmount": 50000,
+  "aggravatingFactors": ["REINCIDENCE"],
+  "finalAmount": 75000,
+  "inspectorId": "u-1001",
+  "location": {"street": "Av. Cabildo", "crossStreet": "Juramento", "latitude": -34.5621, "longitude": -58.4563}
+}
+```
+
 ## Cortes de calle: schema acordado M3/M7
 
 ### Convención de origen M3/M6
