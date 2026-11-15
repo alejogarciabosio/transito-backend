@@ -14,7 +14,7 @@ Fuente de las HU y criterios: Google Doc del TPO, secciones F1-F7: **31 historia
 
 | Evidencia | Qué es |
 |---|---|
-| EV-1 | `./mvnw -q -B verify` sobre `main` `57b2765` (15/11 ~18:43, agente D3): exit 0, **497 tests**, 0 fallos, 0 errores, 0 omitidos; líneas **93,74 %** (2007/2141), ramas 81,97 %. Coincide con el job `test` del CI de `main` (497 tests) |
+| EV-1 | `./mvnw -q -B verify` sobre `integration/entrega4-f` (15/11 ~20:33, agente I7): exit 0, **518 tests**, 0 fallos, 0 errores, 0 omitidos; líneas **94,34 %** (2068/2192), ramas 82,09 % (614/748). Antes, sobre `main` `57b2765` (D3): 497 tests, 93,74 % |
 | EV-2 | Frontend `main` `1f0187d`: `vitest run --coverage` 60 tests, 93,48 % de líneas (corrida D3 del 15/11 y CI de `main`) |
 | EV-3 | E2E Playwright 7/7 en el CI de `main` del frontend; 3 corridas sin inestables (`reports/i2.md`) |
 | EV-4 | Grupo `bug` sobre `57b2765` (D3, 15/11): `./mvnw -q -B test -Dbugs.excluded=none -Dgroups=bug -Djacoco.skip=true` -> 19 tests, 16 pasan, 1 falla (`bug09a`) y 2 dan error de preparación (`bug02`, `bug14`); las 3 son pruebas desactualizadas (DEF-17, DEF-18) |

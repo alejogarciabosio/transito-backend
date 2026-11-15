@@ -32,7 +32,7 @@ Total de historias trazadas: **31** (INF 6, COR 5, OPE 4, ACC 4, VEH 4, EST 5, I
 
 | Nivel | Herramienta | Dónde está | Estado de ejecución (15/11, `main` `57b2765`) |
 |---|---|---|---|
-| Unitario | JUnit 5 + Mockito/AssertJ | `src/test/java/.../unit/`, `ai/`, `listener/`, `event/`, `model/` | Ejecutado: parte de los 497 tests de `./mvnw verify`, 0 fallos |
+| Unitario | JUnit 5 + Mockito/AssertJ | `src/test/java/.../unit/`, `ai/`, `listener/`, `event/`, `model/` | Ejecutado: parte de los 518 tests de `./mvnw verify` (`integration/entrega4-f`), 0 fallos |
 | Integración (API + base) | `@SpringBootTest` + MockMvc, base en memoria; PostgreSQL real con Testcontainers | `integration/`, `PostgresContainerIntegrationTest` | Ejecutado, 0 fallos |
 | Integración con servidor HTTP real | `EtagServerTest`, `RestIdentityContextTest` (M1 simulado) | `integration/` | Ejecutado, 0 fallos |
 | Contrato | `ApiContractSmokeTests`, `EventInfrastructureTest`, `OutboxContractTest` (bytes idénticos al formato anterior), `CoreSchemaContractTest` (esquemas JSON de Core para `ticketUpdated`/`updateTicketStatus`), `InfractionConfirmedOffsetTest`; Newman/Postman | `src/test`, `tests/postman/` | Ejecutado. Newman en el CI de `main`: 273 requests, 695 aserciones, 0 fallas. Contrato SOAP: hay WSDL (`GET /soap/authentication?wsdl`) pero ninguna prueba valida contra él: NO VERIFICABLE |
@@ -70,7 +70,7 @@ Nota: las reproducciones `@Tag("bug")` (19 métodos en `BugReproductionTest`) se
 **Salida** (para dar la entrega por probada) y estado al 15/11 ~18:45:
 | # | Criterio | Umbral | Estado |
 |---|---|---|---|
-| 1 | Backend `./mvnw verify` | verde, ≥ 85 % de líneas | Cumple: 497 tests, 0 fallos, 93,74 % |
+| 1 | Backend `./mvnw verify` | verde, ≥ 85 % de líneas | Cumple: 518 tests, 0 fallos, 94,34 % (`integration/entrega4-f`) |
 | 2 | Frontend | lint, `test:coverage` ≥ 85 %, build, E2E | Cumple: 60 tests, 93,48 %; E2E 7/7 en CI |
 | 3 | CI verde sobre el tag `v2.0-entrega4` | verde | **PENDIENTE**: el tag se crea al final (lo hace una persona). CI de `main` `57b2765`: todos los jobs en verde |
 | 4 | Defectos abiertos | 0 Bloqueantes, 0 Críticos, ≤ 3 Mayores con workaround | 0 / 0 / 3 (DEF-19, DEF-20, DEF-33). Cumple en número; DEF-20 no tiene workaround técnico (ver 05, "Riesgo de salida") |

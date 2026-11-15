@@ -1,6 +1,6 @@
 # 05 - Registro de defectos
 
-Actualizado: 15/11/2026 ~19:30 ART (integración `integration/entrega4-e`: PR #49, #50 y #51; sin desplegar; `./mvnw verify` 512 tests, 0 fallos, 94,26 % de líneas). Estado anterior: Versión de referencia: `main` del backend en `57b2765` (merge del PR #48, desplegado en Railway y verificado: health UP, Core conectado, 6 eventos registrados, tabla `outbox_events` creada y relay activo) y `main` del frontend en `1f0187d` (PR #10).
+Actualizado: 15/11/2026 ~20:40 ART (integración `integration/entrega4-f`: PR #55, #54 y #53 sobre `main` `b3b990f`; se despliega inmediatamente después del CI; `./mvnw -q -B verify` **518 tests, 0 fallos, 94,34 % de líneas**). Frontend en producción: `main` `6040e60` (PR #12). Estado anterior: Versión de referencia: `main` del backend en `57b2765` (merge del PR #48, desplegado en Railway y verificado: health UP, Core conectado, 6 eventos registrados, tabla `outbox_events` creada y relay activo) y `main` del frontend en `1f0187d` (PR #10).
 Fuentes: código de `main` (`git grep`; cada "cerrado" se revisó en el código), `./mvnw verify` sobre `57b2765` (497 tests, 0 fallos, 93,74 % de líneas), CI de `main` (Newman, ZAP baseline, Trivy, Sonar, gitleaks en verde), reportes de los agentes (s1-s15, i3-i5, d2, t1, t2), `TABLERO.md` y `pruebas-modulos-15-11.md`. No se hicieron pruebas nuevas contra producción para este registro.
 
 ## Severidades usadas
@@ -21,7 +21,7 @@ Estados: **Abierto**, **Cerrado** (corregido en `main`, desplegado y verificado 
 | DEF-02 | `/actuator/health` colgado con el broker caído | Mayor | Cerrado (PR #24, en #25) |
 | DEF-03 | Adaptador REST de M1 no arrancaba (Jackson) | Mayor | Cerrado (PR #23, en #25) |
 | DEF-04 | Sin registro de eventos publicados (regla 9.3 del TP) | Mayor | **Cerrado 15/11** (PR #46, en #48) |
-| DEF-05 | Logs con payload completo de eventos (ampliado: cuerpo de mensajes AMQP inválidos en el log) | Mayor | Cerrado 15/11 (PR #34, en #39); ampliación cerrada en PR #50 (rama de integración `integration/entrega4-e`) |
+| DEF-05 | Logs con payload completo de eventos (ampliado: cuerpo de mensajes AMQP inválidos en el log) | Mayor | Cerrado 15/11 (PR #34, en #39); ampliación cerrada en PR #50 (en `main` por #52) |
 | DEF-06 | DNI (`nationalId`) dentro del JWT | Mayor | **Cerrado 15/11** (PR #42 + frontend #10, en #48) |
 | DEF-07 | Un corte se activa antes de `startDate` | Menor | Abierto |
 | DEF-08 | `causationId` nulo en `streetClosureEnded` (hallado también por Core) | Mayor (reclasificado desde Menor al confirmarlo Core) | Cerrado 15/11 (PR #33, en #31) |
@@ -48,15 +48,17 @@ Estados: **Abierto**, **Cerrado** (corregido en `main`, desplegado y verificado 
 | DEF-29 | `unpaid-flag` acepta `baseAmount` 0 o ausente: falta `@Valid` (KI-5/5b) | Mayor | **Cerrado 15/11** (PR #45, en #48) |
 | DEF-30 | Falta la cabecera `Cross-Origin-Resource-Policy` (ZAP, Low) | Menor | **Cerrado 15/11** (PR #45, en #48) |
 | DEF-31 | `updateTicketStatus` no cumplía el esquema de Core (M2 v1.78) al cerrar el operativo | Mayor | **Cerrado 15/11** (PR #44, en #48) |
-| DEF-32 | `spring.jpa.show-sql=true` en producción: el relay del outbox imprime un SELECT cada 2 s | Menor | **Cerrado** (PR #50, en `integration/entrega4-e`; pendiente de deploy) |
-| DEF-33 | Incompatibilidad temporal con el consumidor de M3: rechaza `streetClosureEnded` con `causationId` no nulo | Mayor | **Abierto** (nuevo, mitigado) |
-| DEF-34 | Frontend: los adjuntos del descargo no se envían (el input acepta archivos que se descartan sin aviso) | Mayor | **En corrección**: corregido en PR frontend #12 (`fix/s19-fallas-ui`), pendiente de merge |
-| DEF-35 | Frontend: el panel no muestra el texto del descargo | Menor | **En corrección** (PR frontend #12, `fix/s19-fallas-ui`; se completa con DEF-38) |
-| DEF-36 | Frontend: el botón "Marcar impago" sigue visible tras marcar la sesión (un segundo clic da 409) | Menor | **En corrección** (PR frontend #12, `fix/s19-fallas-ui`) |
-| DEF-37 | Frontend: borrar una tarifa con sesiones activas muestra un error genérico (409 sin traducir) | Menor | **En corrección** (PR frontend #12, `fix/s19-fallas-ui`) |
-| DEF-38 | Listado de infracciones degradado con muchos datos: N+1 de colecciones y open-in-view agotan el pool (p95 10 s, 25 % de HTTP 500 a 50 VU con 5 950 infracciones) | Mayor | **En corrección**: corregido en PR backend `perf/s21-listado-infracciones`, pendiente de merge |
-| DEF-39 | Spring Boot genera e imprime al arrancar "Using generated security password" (usuario en memoria que no se usa) | Menor | **En corrección**: corregido en el mismo PR, pendiente de merge |
-| DEF-38 | Backend: el texto del descargo no se persistía (se recibía en `AppealRequest.reason` y se perdía) | Mayor | **Corregido en PR** (backend `fix/s20-persistir-descargo`), pendiente de merge; vinculado a DEF-35 |
+| DEF-32 | `spring.jpa.show-sql=true` en producción: el relay del outbox imprime un SELECT cada 2 s | Menor | **Cerrado** (PR #50, en `main` por #52; se despliega con `integration/entrega4-f`) |
+| DEF-33 | Incompatibilidad temporal con el consumidor de M3: rechaza `streetClosureEnded` con `causationId` no nulo | Mayor | **Abierto** (mitigado; circuito v1.1 repetido el 15/11, falta la confirmación de M3/Core) |
+| DEF-34 | Frontend: los adjuntos del descargo no se envían (el input acepta archivos que se descartan sin aviso) | Mayor | **Cerrado 15/11** (PR frontend #12, desplegado `6040e60`: adjuntos ocultos con aviso "próximamente"; la carga de adjuntos sigue en DEF-20 / HU-INF-04) |
+| DEF-35 | Frontend: el panel no muestra el texto del descargo | Menor | **Cerrado — desplegado 15/11** (PR frontend #12 `6040e60` + DEF-38 en `integration/entrega4-f`) |
+| DEF-36 | Frontend: el botón "Marcar impago" sigue visible tras marcar la sesión (un segundo clic da 409) | Menor | **Cerrado 15/11** (PR frontend #12, desplegado `6040e60`) |
+| DEF-37 | Frontend: borrar una tarifa con sesiones activas muestra un error genérico (409 sin traducir) | Menor | **Cerrado 15/11** (PR frontend #12, desplegado `6040e60`) |
+| DEF-38 | Backend: el texto del descargo no se persistía (se recibía en `AppealRequest.reason` y se perdía) | Mayor | **Cerrado — desplegado 15/11** (PR #54, en `integration/entrega4-f`); vinculado a DEF-35 |
+| DEF-40 | Listado de infracciones degradado con muchos datos: N+1 de colecciones y open-in-view agotan el pool (p95 10 s, 25 % de HTTP 500 a 50 VU con 5 950 infracciones) | Mayor | **Cerrado — desplegado 15/11** (PR #55, en `integration/entrega4-f`) |
+| DEF-41 | Spring Boot genera e imprime al arrancar "Using generated security password" (usuario en memoria que no se usa) | Menor | **Cerrado — desplegado 15/11** (PR #55, en `integration/entrega4-f`) |
+
+Nota de numeración: los PR #54 y #55 usaron ambos "DEF-38"; se dejó DEF-38 para el descargo y se renumeraron los de #55 a DEF-40 y DEF-41. **DEF-39 no se usa** (quedó libre al renumerar; no hay ningún defecto con ese número).
 
 ## Detalle de los cerrados en el deploy final (PR #48, `57b2765`)
 ### DEF-04 y DEF-14 Registro de eventos publicados y Transactional Outbox (Cerrados)
@@ -143,36 +145,38 @@ Estados: **Abierto**, **Cerrado** (corregido en `main`, desplegado y verificado 
 - **Impacto**: el circuito de cortes con M3 (F2, flujo principal) no puede completarse hasta que M3 despliegue; con M6 funciona.
 - **Por qué Mayor y no Menor**: bloquea un flujo principal con uno de los dos módulos de origen. **No es Crítico** porque hay workaround y no hay pérdida de datos.
 - **Workaround (vigente)**: no se aprueban cortes de M3 hasta que confirmen su deploy (producción sin cortes APPROVED/ACTIVE de M3); las solicitudes quedan en REQUESTED. Después: repetir un corte completo con Core monitoreando y cerrar el defecto.
+- **Re-prueba del 15/11 19:45–19:48**: se repitió el circuito v1.1 completo; `streetClosureApproved` `614222ce-715d-44e7-8e63-89250488ea7b` y `streetClosureEnded` `7f098173-82c6-4831-849f-47a3b5ec0cb4` (`causationId` `7f371af0-…`), ambos publicados al primer intento. **Sigue Abierto**: falta la confirmación de M3/Core de que su consumidor los aceptó.
 - **Causa raíz**: del lado del consumidor de M3; se registra porque afecta el comportamiento visible de M7 y fue un cambio nuestro el que lo destapó.
 
 ### DEF-32 `show-sql` activo en producción — Cerrado (Menor)
 - **Situación anterior**: `spring.jpa.show-sql=true` en `application.properties`; el relay del outbox imprimía un SELECT cada 2 s en los logs de Railway (sin valores: Hibernate usa `?`).
-- **Corrección** (PR #50): `spring.jpa.show-sql=false` en `application.properties` (línea 7). No renombra variables ni toca el esquema. Cierre efectivo en producción cuando se mergee a `main` y se despliegue.
+- **Corrección** (PR #50): `spring.jpa.show-sql=false` en `application.properties` (línea 7). No renombra variables ni toca el esquema. En `main` desde #52; en producción se cierra con el deploy de `integration/entrega4-f`.
 
-### DEF-34 Adjuntos del descargo no se envían — En corrección (Mayor)
+### DEF-34 Adjuntos del descargo no se envían — Cerrado (Mayor)
 - **Hallado** al escribir el manual de usuario (S18): la pantalla de descargo del ciudadano tiene un selector de archivos, pero `AppealRequest` del backend solo recibe `reason`; los archivos elegidos se descartan sin aviso.
 - **Por qué Mayor**: el ciudadano cree que presentó documentación que el sistema nunca recibió (pérdida silenciosa de datos aportados por el ciudadano en un trámite con plazos). Hay workaround (presentar la documentación por mesa de entradas), así que no es Crítico.
-- **Corrección**: PR frontend #12 (`fix/s19-fallas-ui`): se quita el input y se muestra "Adjuntos: próximamente; enviá la documentación por mesa de entradas". **Corregido en PR, pendiente de merge.** La función completa de adjuntos sigue dentro de DEF-20 (HU-INF-04).
+- **Corrección**: PR frontend #12 (`fix/s19-fallas-ui`): se quita el input y se muestra "Adjuntos: próximamente; enviá la documentación por mesa de entradas". **Cerrado 15/11**: PR #12 mergeado y desplegado en producción (`6040e60`); el input ya no aparece y se ve el aviso "próximamente". La **carga** de adjuntos sigue siendo parte de la HU pendiente HU-INF-04 (DEF-20, abierto), con workaround en `docs/entrega-academica/hu-pendientes.md`.
 
-### DEF-35, DEF-36 y DEF-37 Fallas de UI del frontend — En corrección (Menores)
-- **Hallados** al escribir el manual de usuario (S18). Corrección en PR frontend #12 (`fix/s19-fallas-ui`), pendiente de merge.
-- **DEF-35** Texto del descargo: `InfractionResponse` no devuelve el motivo (el backend no lo guarda; solo viaja en `infractionAppealed`). El front ya muestra `appealReason` si llega y explica el pendiente. La causa raíz es DEF-38 (el equipo aprobó la columna nueva); con ese PR mergeado DEF-35 queda resuelto sin más cambios en el front.
+### DEF-35, DEF-36 y DEF-37 Fallas de UI del frontend — Cerrados (Menores)
+- **Hallados** al escribir el manual de usuario (S18). Corrección en PR frontend #12 (`fix/s19-fallas-ui`), mergeado y desplegado en producción (`6040e60`).
+- **DEF-35** Texto del descargo: `InfractionResponse` no devuelve el motivo (el backend no lo guarda; solo viaja en `infractionAppealed`). El front ya muestra `appealReason` si llega y explica el pendiente. La causa raíz es DEF-38 (el equipo aprobó la columna nueva); DEF-38 entra en `integration/entrega4-f` y el front ya lo muestra: **cerrado — desplegado 15/11** (el texto del descargo se persiste y se muestra).
 - **DEF-36** "Marcar impago": el botón seguía visible y el segundo intento daba 409. El PR oculta el botón con `originParkingSessionId` y muestra el `detail` del Problem Details si igual llega 409. Menor: el backend ya protege la regla.
 - **DEF-37** Borrar tarifa con sesiones activas: el 409 se mostraba como error genérico. El PR lo traduce a un mensaje claro. Menor: solo mensaje.
 
-### DEF-38 Listado de infracciones degradado con muchos datos — En corrección (Mayor)
+### DEF-40 Listado de infracciones degradado con muchos datos — Cerrado (Mayor)
 - **Hallado** con k6 (PR #53, `load.js` 50 VU con la base poblada) y reproducido localmente: con 5 950 infracciones, p95 10,1 s y 24,6-25,6 % de HTTP 500 (`Connection is not available` del pool Hikari de 3 conexiones).
 - **Causa raíz** (log de sentencias de PostgreSQL): cada `GET /infractions` ejecutaba 11 901 consultas (1 + una por fila para `evidenceUrl` y otra para `aggravatingFactors`), en la vista gracias a `spring.jpa.open-in-view=true`, que además retenía la conexión hasta terminar de serializar 3,6 MB.
 - **Por qué Mayor**: degrada el servicio y arrastra a otros endpoints (cortes vigentes p95 7,8 s); workaround: volumen real bajo. No es Crítico: no hay pérdida de datos.
 - **Corrección** (PR backend `perf/s21-listado-infracciones`): `open-in-view=false`; colecciones inicializadas dentro de la transacción de solo lectura del servicio; listado completo con 2 JOIN FETCH; `hibernate.default_batch_fetch_size=500` para el resto (cortes, operativos, accidentes, acarreos). Contrato REST, entidades y esquema sin cambios; pool sigue en 3.
-- **Verificación**: `ListadoConDatosRegressionTest` (40 filas en ≤ 3 consultas) y toda la suite con open-in-view apagado. k6 50 VU x 5 min: p95 global 309 ms, listado 424 ms, 0 HTTP 500 (`evidencias/k6/con-datos.md`). Se cierra con el merge y el deploy.
+- **Verificación**: `ListadoConDatosRegressionTest` (40 filas en ≤ 3 consultas) y toda la suite con open-in-view apagado. k6 50 VU x 5 min: p95 global 309 ms, listado 424 ms, 0 HTTP 500 (`evidencias/k6/con-datos.md`). En la integración se agregó `listadoConDescargoSinNMasUno`: 40 infracciones apeladas, el listado trae `appealReason` (columna simple de la entidad) en ≤ 3 consultas. **Cerrado — desplegado 15/11** (PR #55 en `integration/entrega4-f`).
 
-### DEF-39 Password generado en el log de arranque — En corrección (Menor)
-- `UserDetailsServiceAutoConfiguration` creaba un usuario en memoria (que no se usa: la autenticación es JWT) e imprimía su contraseña al arrancar, también en Railway. Corrección (mismo PR): se excluye esa autoconfiguración en `TransitoBackendApplication`; verificado: el log de arranque ya no la muestra, el login JWT sigue igual (suite completa y k6) y un test comprueba que no hay `UserDetailsService`.
-### DEF-38 El texto del descargo no se persistía — Corregido en PR (Mayor)
+### DEF-41 Password generado en el log de arranque — Cerrado (Menor)
+- `UserDetailsServiceAutoConfiguration` creaba un usuario en memoria (que no se usa: la autenticación es JWT) e imprimía su contraseña al arrancar, también en Railway. Corrección (mismo PR): se excluye esa autoconfiguración en `TransitoBackendApplication`; verificado: el log de arranque ya no la muestra, el login JWT sigue igual (suite completa y k6) y un test comprueba que no hay `UserDetailsService`. **Cerrado — desplegado 15/11** (PR #55 en `integration/entrega4-f`).
+
+### DEF-38 El texto del descargo no se persistía — Cerrado (Mayor)
 - **Hallado** al analizar DEF-35: `POST /api/v1/infractions/{id}/appeal` valida `reason` (`@NotBlank`, `@Size(max = 2000)`) y lo publica en `infractionAppealed`, pero `Infraction` no tenía dónde guardarlo: el descargo no quedaba en la base y nadie de Tránsito (inspector, administrador, auditor) podía leerlo después para resolver la apelación.
 - **Por qué Mayor**: pérdida silenciosa del dato central de un trámite del ciudadano. No es Crítico porque el texto sí llegaba a Core en el evento.
-- **Corrección** (PR backend `fix/s20-persistir-descargo`, pendiente de merge): columna nueva `infractions.appeal_reason` (`varchar(2000)`, nullable, sin default; la crea `ddl-auto=update`, igual que `owner_username`), se guarda en la transición PENDING_APPEAL → APPEALED y se expone como campo **opcional** `appealReason` en `InfractionResponse` (aditivo; mismas reglas de acceso que el GET: titular y personal). No se agrega a ningún evento nuevo (`infractionConfirmed`/`infractionAnulled` no lo llevan) ni se loguea. `infractionAppealed` mantiene su campo `reason` como antes (contrato congelado).
+- **Corrección** (PR #54, `fix/s20-persistir-descargo`, en `integration/entrega4-f`; **cerrado — desplegado 15/11**): columna nueva `infractions.appeal_reason` (`varchar(2000)`, nullable, sin default; la crea `ddl-auto=update`, igual que `owner_username`), se guarda en la transición PENDING_APPEAL → APPEALED y se expone como campo **opcional** `appealReason` en `InfractionResponse` (aditivo; mismas reglas de acceso que el GET: titular y personal). No se agrega a ningún evento nuevo (`infractionConfirmed`/`infractionAnulled` no lo llevan) ni se loguea. `infractionAppealed` mantiene su campo `reason` como antes (contrato congelado).
 - **Verificación**: tests TC-BE-INF-15b/15c/15d en `InfractionIntegrationTest`; migración probada en el compose local (fila apelada en `main` queda con `appeal_reason` null, la app arranca UP sobre la misma base y una apelación nueva guarda el texto).
 
 ### DEF-07 Activación antes de `startDate` — Abierto
@@ -201,18 +205,17 @@ Estados: **Abierto**, **Cerrado** (corregido en `main`, desplegado y verificado 
 - El payload existe pero no se publica a Core (el catálogo registrado tiene 6 tipos). Confirmar con la PO.
 
 ## Conteo por severidad y riesgo de salida
-Criterio del profesor: 0 Bloqueantes, 0 Críticos, como máximo 3 Mayores abiertos (con workaround). Los Aceptados se cuentan aparte. "En corrección" cuenta como abierto hasta el merge. Total registrado: 39 defectos.
-| Severidad | Abiertos (incluye en corrección) | Cerrados | Aceptados | Límite (abiertos) | ¿Cumple? |
+Criterio del profesor: 0 Bloqueantes, 0 Críticos, como máximo 3 Mayores abiertos (con workaround). Los Aceptados se cuentan aparte. Total registrado: **40 defectos** (DEF-01 a DEF-41; DEF-39 sin uso). Sin números duplicados (verificado con `grep`).
+| Severidad | Abiertos | Cerrados | Aceptados | Límite (abiertos) | ¿Cumple? |
 |---|---|---|---|---|---|
 | Bloqueante | 0 | 0 | 0 | 0 | Sí |
 | Crítica | **0** | 3 (DEF-01, 23, 24) | 0 | 0 | Sí |
-| Mayor | **5** (DEF-19, 20, 33; DEF-34 y DEF-38 en corrección) | 16 (DEF-02, 03, 04, 05, 06, 08, 11, 13, 14, 15, 16, 22, 25, 26, 29, 31) | 0 | 3 | **No hasta el merge del PR frontend #12 y del PR backend de DEF-38**; con ambos mergeados: 3, sí |
-| Menor | **9** (DEF-07, 10, 17, 18, 21; DEF-35, 36, 37, 39 en corrección) | 4 (DEF-27, 28, 30, 32) | 2 (DEF-09, 12) | sin límite | — |
-| **Total** | **14** | **23** | **2** | | |
+| Mayor | **3** (DEF-19, 20, 33) | 19 (DEF-02, 03, 04, 05, 06, 08, 11, 13, 14, 15, 16, 22, 25, 26, 29, 31, 34, 38, 40) | 0 | 3 | Sí, en el límite |
+| Menor | **5** (DEF-07, 10, 17, 18, 21) | 8 (DEF-27, 28, 30, 32, 35, 36, 37, 41) | 2 (DEF-09, 12) | sin límite | — |
+| **Total** | **8** | **30** | **2** | | |
 
-**Riesgo de salida (sin maquillar)**: hay 0 Bloqueantes, 0 Críticos y 5 Mayores abiertos; DEF-34 (PR frontend #12) y DEF-38 (PR backend `perf/s21-listado-infracciones`) ya están corregidos en PR y, al mergearlos y desplegarlos, quedan 3 (en el límite). No se bajó ninguna severidad para llegar al número. Salvedades:
-1. **Mergear el PR frontend #12 antes de la entrega** es condición para cumplir el límite de Mayores.
+**Riesgo de salida (sin maquillar)**: 0 Bloqueantes, 0 Críticos y 3 Mayores abiertos (en el límite). No se bajó ninguna severidad para llegar al número. Salvedades:
+1. DEF-38, DEF-40, DEF-41 (y DEF-32 y la ampliación de DEF-05, ya en `main`) figuran "cerrado — desplegado 15/11" porque `integration/entrega4-f` se mergea y despliega inmediatamente después del CI; **si ese deploy no ocurre, vuelven a "abierto" y hay 5 Mayores abiertos** (no cumple).
 2. DEF-20 tiene workaround operativo documentado (`hu-pendientes.md`), no técnico; conviene que la PO confirme la decisión de alcance.
-3. DEF-33 depende de un deploy de M3; si M3 no lo adapta antes de la entrega, el flujo de cortes con M3 queda sin re-probar.
-4. DEF-32 y la ampliación de DEF-05 quedan cerrados en código (PR #50); en producción se cierran con el deploy de `main`.
-5. Cualquier Mayor nuevo deja el criterio sin cumplir. DEF-38 (nuevo, 15/11) ya está corregido en el PR backend `perf/s21-listado-infracciones`: **mergearlo antes de la entrega** es condición para cumplir el límite.
+3. DEF-33 sigue abierto hasta la confirmación de M3/Core (circuito v1.1 repetido el 15/11 19:45–19:48 con publicación al primer intento).
+4. Cualquier Mayor nuevo deja el criterio sin cumplir.

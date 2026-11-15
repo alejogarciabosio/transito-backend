@@ -1,4 +1,4 @@
-# Evidencia k6 con datos: listado de infracciones antes y después de la corrección (DEF-38)
+# Evidencia k6 con datos: listado de infracciones antes y después de la corrección (DEF-40)
 
 - **Fecha:** 15/11/2026, 23:00-23:20 UTC. **Base:** `main` `b3b990f` ("antes") y rama `perf/s21-listado-infracciones` ("después").
 - **Entorno:** compose local `docker compose -p s21 up --build -d`, `.env` generado con `openssl rand` (solo local), pool Hikari = 3

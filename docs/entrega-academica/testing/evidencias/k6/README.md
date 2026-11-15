@@ -60,6 +60,6 @@ Es el riesgo ya señalado en T1; con base vacía no aparece. JSON: `k6-summary-b
 ## Conclusión
 - Criterio (p95 < 500 ms, errores < 1 % con 50 VU x 5 min, script del repo): **CUMPLE** (p95 13,3 ms; peor endpoint listado 16,4 ms; 0 fallas).
 - El outbox no degrada la latencia de escritura (p95 28,5 ms) ni genera errores; su throughput de relay (~25 ev/s) es el límite de entrega.
-- Riesgo abierto: el listado de infracciones sin paginar no escala (con ~6 000 filas: p95 10 s y 25 % de HTTP 500). Mitigación sugerida
-  (no hecha, cambia comportamiento visible): paginación aditiva opcional (`?page=&size=`) y/o handler 503 para timeout del pool.
+- Riesgo hallado: el listado de infracciones no escalaba (con ~6 000 filas: p95 10 s y 25 % de HTTP 500). Registrado como DEF-40 y
+  corregido en el PR #55 (N+1 y open-in-view): con los mismos datos, p95 309 ms y 0 HTTP 500 en 50 VU x 5 min ([con-datos.md](con-datos.md)).
 - Al terminar: `docker compose -p k6 down -v` y `.env` borrado.
