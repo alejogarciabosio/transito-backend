@@ -55,7 +55,7 @@ tests/run-zap.sh baseline   # solo baseline
 tests/run-zap.sh api        # solo escaneo activo (zap-api-scan.py) con el JWT de inspector1
 ```
 
-- Imagen oficial `ghcr.io/zaproxy/zaproxy:stable`. El OpenAPI se toma de `http://localhost:8080/v3/api-docs` (completo) y se le
+- Imagen oficial `ghcr.io/zaproxy/zaproxy:2.17.0` (fija; se puede cambiar con `ZAP_IMAGE`). El OpenAPI se toma de `http://localhost:8080/v3/api-docs` (completo) y se le
   reescribe `servers` al host local antes de escanear (el `openapi.yaml` versionado lista Railway como primer servidor).
 - El token JWT viaja por la variable `ZAP_AUTH_HEADER_VALUE` (no se imprime ni se guarda).
 - Reportes HTML/JSON/MD en `tests/reports/zap/` (ignorados). Resumen versionado y tratamiento propuesto: `tests/reports/zap-resumen.md`.

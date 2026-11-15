@@ -5,7 +5,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 MODE="${1:-todo}"
-IMG="ghcr.io/zaproxy/zaproxy:stable"
+IMG="${ZAP_IMAGE:-ghcr.io/zaproxy/zaproxy:2.17.0}"   # versión fija (no :stable) para que el resultado sea reproducible
 TARGET="http://host.docker.internal:8080"
 OUT="$PWD/tests/reports/zap"
 mkdir -p "$OUT"; chmod 777 "$OUT"
