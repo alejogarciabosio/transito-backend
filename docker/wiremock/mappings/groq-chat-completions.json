@@ -1,0 +1,32 @@
+{
+  "mappings": [
+    {
+      "name": "Mock del proveedor de IA (Groq chat/completions, compatible con OpenAI) - solo demo local",
+      "request": {
+        "method": "POST",
+        "url": "/openai/v1/chat/completions",
+        "headers": { "Authorization": { "matches": "Bearer .+" } }
+      },
+      "response": {
+        "status": 200,
+        "headers": { "Content-Type": "application/json" },
+        "jsonBody": {
+          "id": "chatcmpl-mock-local",
+          "object": "chat.completion",
+          "model": "openai/gpt-oss-20b",
+          "choices": [
+            {
+              "index": 0,
+              "message": {
+                "role": "assistant",
+                "content": "{\"infractionType\":\"ILLEGAL_PARKING\",\"aggravatingFactors\":[\"ZONA_ESCOLAR\"]}"
+              },
+              "finish_reason": "stop"
+            }
+          ],
+          "usage": { "prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0 }
+        }
+      }
+    }
+  ]
+}

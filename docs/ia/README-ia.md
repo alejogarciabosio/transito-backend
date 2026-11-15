@@ -6,7 +6,7 @@
 | Propósito | El inspector escribe un texto libre y el sistema sugiere `infractionType` y agravantes. Ahorra tiempo de carga; no decide. |
 | Endpoint | `POST /api/v1/infractions/suggestions` (solo rol INSPECTOR). Body `{"description": "1..500 caracteres"}` |
 | Respuesta | `{"infractionType": <enum|null>, "aggravatingFactors": [...], "source": "AI"|"MANUAL", "promptVersion": "v1"|null}` |
-| Proveedor / modelo | Groq (API compatible con OpenAI). Modelo por `AI_MODEL` (por defecto `llama-3.1-8b-instant`, ver ADR). |
+| Proveedor / modelo | Groq (API compatible con OpenAI). Modelo por `AI_MODEL` (por defecto `openai/gpt-oss-20b`, el mismo que usa producción; `llama-3.1-8b-instant` fue retirado por Groq; ver ADR). |
 | Prompt | `src/main/resources/prompts/infraction-suggestion.v1.md` (versionado en el repo, temperatura 0, 3 ejemplos + 1 de rechazo). |
 | Catálogo de agravantes | `REINCIDENCIA`, `ZONA_ESCOLAR`, `ALTA_VELOCIDAD`, `RESISTENCIA` (mismo que `AGGRAVATING_FACTORS` del frontend). Cualquier otro valor se descarta. |
 | Datos que se envían | Solo la descripción (≤500 caracteres) con datos personales enmascarados (`[DOC]`, `[PATENTE]`, `[EMAIL]`, `[TEL]`) y las instrucciones del prompt. No se envían usuario, token, ids ni datos de la base. |
@@ -48,3 +48,36 @@ Se corre a mano con `scripts/ai-eval.sh` (requiere backend con `AI_ENABLED=true`
 | Aceptación por inspectores (sugerencia aceptada sin cambios) | informativa; seguir en la demo |
 
 Los tests JUnit cubren sin red (gateway simulado) contrato, validación, inyección, PII, timeout y circuito. La corrida del eval set contra Groq real queda pendiente de la clave (no se ejecutó).
+
+## 7. Tests JUnit por riesgo
+| Riesgo | Tests |
+|---|---|
+| Inyección de prompt (salida fuera del enum se descarta; instrucciones del dato se ignoran) | `InfractionSuggestionServiceTest.promptInjectionCannotChangeContract`, `InfractionSuggestionIntegrationTest.promptInjection`, `AiGatewaySafetyTest.promptInjectionOutputOutsideEnumIsDiscarded` |
+| Pedido fuera de dominio (no es de tránsito → sin sugerencia) | `AiGatewaySafetyTest.outOfDomainGivesNoSuggestion` |
+| Fuga de datos (el prompt no lleva DNI/patente/datos del token; la respuesta no se loguea) | `InfractionSuggestionServiceTest.outgoingDataIsSanitized`, `InfractionSuggestionIntegrationTest.piiMasked`, `PiiMaskerTest`, `AiGatewaySafetyTest.promptCarriesNoPiiNorTokenData`, `AiGatewaySafetyTest.providerResponseIsNeverLogged` |
+| Caída del proveedor (timeout / 5xx → 200 `source: MANUAL`) | `GroqAiGatewayTest.timeout`, `GroqAiGatewayTest.failsAfterOneRetry`, `InfractionSuggestionServiceTest.providerFailure`, `InfractionSuggestionIntegrationTest.degradesToManual`, `AiGatewaySafetyTest.providerDownDegradesToManual` |
+
+`AiGatewaySafetyTest` usa el `GroqAiGateway` real contra un servidor HTTP local que imita `chat/completions` (sin red externa).
+
+## 8. Demo local con el mock del proveedor (sin clave real)
+El contenedor `mocks` (WireMock 3.9.1, versión fija) incluye `docker/wiremock/mappings/groq-chat-completions.json`, que
+responde como Groq: `POST /openai/v1/chat/completions` → `{"choices":[{"message":{"content":"{\"infractionType\":\"ILLEGAL_PARKING\",\"aggravatingFactors\":[\"ZONA_ESCOLAR\"]}"},"finish_reason":"stop"}]}`.
+El compose local deja `AI_GROQ_URL=http://mocks:8080/openai/v1/chat/completions` (propiedad `ai.groq.url`); la IA sigue
+apagada salvo que se pida. Para encenderla contra el mock, agregar al `.env`:
+
+```bash
+AI_ENABLED=true
+GROQ_API_KEY=clave-ficticia-mock   # cualquier texto; el mock no la valida
+```
+
+y `docker compose up -d backend`. Luego, con un token de `inspector1`:
+
+```bash
+curl -s -H "Authorization: Bearer $TOKEN" -H 'content-type: application/json' \
+  -d '{"description":"Auto en doble fila frente a la escuela"}' http://localhost:8080/api/v1/infractions/suggestions
+# {"infractionType":"ILLEGAL_PARKING","aggravatingFactors":["ZONA_ESCOLAR"],"source":"AI","promptVersion":"v1"}
+```
+
+El default de producción no cambia (`ai.groq.url` apunta a `https://api.groq.com/openai/v1/chat/completions` y
+`AI_ENABLED` es `false` si no se define). Para probar la caída del proveedor: `docker compose stop mocks` → la misma
+llamada responde 200 con `source: MANUAL`.

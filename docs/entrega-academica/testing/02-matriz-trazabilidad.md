@@ -1,24 +1,25 @@
 # 02 - Matriz de trazabilidad HU -> criterio -> caso -> test -> resultado -> evidencia -> defecto
 
-Fuente de las HU y criterios: Google Doc del TPO, secciones F1-F7 (33 historias de usuario). Los tests se verificaron con `git grep` sobre `main` (commit `65e330b`) el 15/11/2026.
+Fuente de las HU y criterios: Google Doc del TPO, secciones F1-F7: **31 historias de usuario** (INF 6, COR 5, OPE 4, ACC 4, VEH 4, EST 5, IND 3), contadas por id en las tablas de abajo; HU-COR-05 está en alcance aunque no está implementada. El borrador anterior decía "33 HU": era un error de conteo. Los tests se verificaron con `git grep` sobre `main` (commit `57b2765`, estado final desplegado) el 15/11/2026.
 
 ## Leyenda de resultado y evidencia
 | Código | Significado |
 |---|---|
 | PASA | el test existe, está en el build normal y pasó en `./mvnw verify` (EV-1) |
 | FALLA | el test existe, se ejecutó y falló: defecto abierto |
-| SIN EJECUTAR | el test existe pero está excluido del build (`@Tag("bug")`) y no se corrió |
+| SIN EJECUTAR | el test existe pero está excluido del build (`@Tag("bug")`); se indica el resultado de la corrida aparte (EV-4) |
 | NO IMPLEMENTADO | el criterio no tiene función en el backend (verificado con `git grep`) |
 | SIN COBERTURA | no hay test automatizado; se indica el caso manual propuesto (en 03) |
 | NO VERIFICABLE | no pude comprobarlo con lo que hay en el repo |
 
 | Evidencia | Qué es |
 |---|---|
-| EV-1 | `./mvnw -q -B verify` sobre `integration/entrega4`: 285 tests ejecutados, 0 fallos, líneas 88,5 % (`reports/i1.md`). La rama es la que hoy está en `main` |
-| EV-2 | `npm run test:coverage` del frontend: 59 tests, 93,43 % de líneas (`reports/i2.md`) |
-| EV-3 | E2E Playwright 7/7 en 3 corridas (`reports/i2.md`, `reports/a2.md`) |
-| EV-4 | Corrida del grupo `bug` hecha por el agente D1 el 15/11/2026: `./mvnw -q -B test -Dbugs.excluded=none -Dgroups=bug -Djacoco.skip=true` -> 22 tests, 16 pasan, 4 fallan y 2 dan error de preparación del test |
-| EV-5 | Prueba manual contra producción el 15/11 con M3 (accidente, infracción confirmada, corte aprobado/activado/finalizado), declarada por el equipo. Los `eventId` y capturas no están en el repo: PENDIENTE de adjuntar |
+| EV-1 | `./mvnw -q -B verify` sobre `main` `57b2765` (15/11 ~18:43, agente D3): exit 0, **497 tests**, 0 fallos, 0 errores, 0 omitidos; líneas **93,74 %** (2007/2141), ramas 81,97 %. Coincide con el job `test` del CI de `main` (497 tests) |
+| EV-2 | Frontend `main` `1f0187d`: `vitest run --coverage` 60 tests, 93,48 % de líneas (corrida D3 del 15/11 y CI de `main`) |
+| EV-3 | E2E Playwright 7/7 en el CI de `main` del frontend; 3 corridas sin inestables (`reports/i2.md`) |
+| EV-4 | Grupo `bug` sobre `57b2765` (D3, 15/11): `./mvnw -q -B test -Dbugs.excluded=none -Dgroups=bug -Djacoco.skip=true` -> 19 tests, 16 pasan, 1 falla (`bug09a`) y 2 dan error de preparación (`bug02`, `bug14`); las 3 son pruebas desactualizadas (DEF-17, DEF-18) |
+| EV-5 | Pruebas con otros módulos en producción del 15/11, con `eventId` confirmados por Core y por cada módulo (`04-informe-ejecucion.md` sección 7, `pruebas-modulos-15-11.md`) |
+| EV-6 | Newman en el job `api-tests` del CI de `main`: 273 requests, 695 aserciones, 0 fallas; los 6 casos `[KI-n]` informan "corregido" |
 
 Los nombres `TC-BE-*` son los ids que ya figuran en los `@DisplayName` de los tests. Los `TC-PEND-*` son casos definidos en `03-especificacion-casos.md` que todavía no tienen test.
 
@@ -27,7 +28,7 @@ Los nombres `TC-BE-*` son los ids que ya figuran en los `@DisplayName` de los te
 |---|---|---|---|---|---|---|
 | HU-INF-01 | Identificar al inspector | TC-BE-INF-01 | `integration/InfractionIntegrationTest.inspectorRegisters`; `ApiContractSmokeTests.creatingInfractionUsesJwtInspectorAndReturnsLocation` | PASA | EV-1 | |
 | HU-INF-01 | Patente, tipo, fecha, ubicación | TC-BE-INF-01 | `RequestValidationTests.rejectsInvalidInfractionAmountsAndIncompleteDebtorIdentification`; `SecurityEvidenceTests.massAssignmentInfraction` | PASA | EV-1 | |
-| HU-INF-01 | Requerir evidencia o validación | BUG-BE-04 | `bugs/BugReproductionTest.bug04_infractionWithoutEvidence` | FALLA (alta sin evidencia da 201, se esperaba 400) | EV-4 | DEF-16 |
+| HU-INF-01 | Requerir evidencia o validación del inspector | TC-BE-INF-EV | `InfractionEvidenceRuleTests.withEvidenceIsCreated`, `inspectorWithoutEvidenceIsCreated`, `foreignInspectorIdInBodyIsIgnored`, `adminCannotCreate`; `unit/InfractionValidationRuleTest` (8 casos: sin evidencia ni inspector -> 400) | PASA | EV-1 | DEF-16 (cerrado) |
 | HU-INF-01 | Calcular importe base automáticamente | TC-PEND-01 | ninguno: `CreateInfractionRequest` recibe `baseAmount` del cliente | NO IMPLEMENTADO | git grep | DEF-19 |
 | HU-INF-01 | Agravantes o reincidencia | TC-PEND-02 | ninguno para el cálculo (el campo `aggravatingFactors` se persiste, sin cálculo) | NO IMPLEMENTADO | git grep | DEF-19 |
 | HU-INF-01 | `infractionId` único | TC-BE-INF-01 | `InfractionIntegrationTest.inspectorRegisters` (Location) | PASA | EV-1 | |
@@ -52,7 +53,7 @@ Los nombres `TC-BE-*` son los ids que ya figuran en los `@DisplayName` de los te
 | HU-INF-06 | Sin apelación pendiente y firme | TC-BE-INF-16/18 | `InfractionIntegrationTest.confirmPending`, `confirmInvalid`; `InfractionServiceTest.confirmMatrix` | PASA | EV-1 | |
 | HU-INF-06 | `debtorId` y `debtorIdType` | TC-BE-INF-01 | `RequestValidationTests.rejectsInvalidInfractionAmountsAndIncompleteDebtorIdentification` | PASA | EV-1 | |
 | HU-INF-06 | Datos de infracción, vehículo, importe, inspector, ubicación | TC-BE-INF-16 | `InfractionIntegrationTest.confirmPending` (sobre `infractionConfirmed` completo) | PASA | EV-1 | |
-| HU-INF-06 | Publica `infractionConfirmed`; no envía `infractionAnulled` | TC-BE-INF-16, TC-BE-INF-18 | `confirmPending`, `confirmInvalid` (no republica); integración real con M3/Rentas | PASA (automático); real con M3 el 15/11 | EV-1, EV-5 | |
+| HU-INF-06 | Publica `infractionConfirmed`; no envía `infractionAnulled` | TC-BE-INF-16, TC-BE-INF-18 | `confirmPending`, `confirmInvalid` (no republica); integración real con Core/M5 (Rentas) | PASA (automático; fecha con offset: `InfractionConfirmedOffsetTest`). Real: Core entregó a `q.rentas`; procesamiento por M5 PENDIENTE | EV-1, EV-5 | DEF-25 (cerrado) |
 
 ## F2 - Cortes de calle
 | HU | Criterio | Caso | Test automatizado | Resultado | Evid. | Defecto |
@@ -62,7 +63,7 @@ Los nombres `TC-BE-*` son los ids que ya figuran en los `@DisplayName` de los te
 | HU-COR-01 | Datos necesarios para evaluar | TC-BE-SC-01 | `StreetClosureRequestedHandlerTest.rejectsRequestsWithoutTheRequiredWorksPayloadFields`, `keepsTimeAndZoneOfRequestedWindow` | PASA | EV-1 | |
 | HU-COR-01 | Evento duplicado no se procesa dos veces | TC-BE-EVT-D | `listener/IncomingEventDispatcherTest.discardsEventAlreadyProcessed` | PASA | EV-1 | |
 | HU-COR-02 | Consultar la solicitud | TC-BE-SC-08 | `StreetClosureIntegrationTest.permissions` | PASA | EV-1 | |
-| HU-COR-02 | Aprobar publica `streetClosureApproved`; condiciones | TC-BE-SC-03 | `StreetClosureIntegrationTest.approve`; E2E-7; real con M3 | PASA | EV-1, EV-3, EV-5 | |
+| HU-COR-02 | Aprobar publica `streetClosureApproved`; condiciones | TC-BE-SC-03 | `StreetClosureIntegrationTest.approve`; E2E-7; real con M3 y M6 | PASA | EV-1, EV-3, EV-5 | |
 | HU-COR-02 | Rechazar con motivo publica `streetClosureRejected` | TC-BE-SC-05 | `StreetClosureIntegrationTest.reject`; `AdditionalServiceCoverageTests.streetClosureCanBeRejectedOnlyWhileRequested`; front `staff.test.jsx` | PASA | EV-1, EV-2 | |
 | HU-COR-02 | Conserva referencia a la solicitud y al módulo | TC-BE-SC-03/05 | `approve`, `reject` | PASA | EV-1 | |
 | HU-COR-02 | Transición no permitida -> 409 | TC-BE-SC-07 | `StreetClosureIntegrationTest.invalidTransitions`; `OtherServicesTest.closureApproveOnlyFromRequested`; `StateTransitionTests.streetClosureCannotActivateBeforeApproval` | PASA | EV-1 | |
@@ -72,11 +73,11 @@ Los nombres `TC-BE-*` son los ids que ya figuran en los `@DisplayName` de los te
 | HU-COR-04 | Solo activar un corte aprobado | TC-BE-SC-07 | `invalidTransitions`; `StateTransitionTests.streetClosureCannotActivateBeforeApproval` | PASA | EV-1 | |
 | HU-COR-04 | Activar antes de `startDate` | TC-PEND-14 | ninguno: `StreetClosureService.activate` solo valida el estado | NO IMPLEMENTADO (la regla no existe) | git grep; observado en prueba real | DEF-07 |
 | HU-COR-04 | Extender el período | TC-BE-SC-EXT | `StreetClosureRequestedHandlerTest.keepsTheReferenceToThePreviousRequestForAnExtension` (la prórroga llega como nuevo evento) | PASA | EV-1 | |
-| HU-COR-04 | Finalizar un corte activo, fecha y hora, observaciones | TC-BE-SC-06 | `fullLifecycle`; `AdditionalServiceCoverageTests.streetClosureCompletesTheApprovedLifecycle`; E2E real con M3 | PASA | EV-1, EV-5 | |
-| HU-COR-04 | Publica `streetClosureEnded` | TC-BE-SC-06 | `fullLifecycle`, `OtherServicesTest.expireDueClosures` | PASA (`causationId` es null: ver defecto) | EV-1 | DEF-08 |
+| HU-COR-04 | Finalizar un corte activo, fecha y hora, observaciones | TC-BE-SC-06 | `fullLifecycle`; `AdditionalServiceCoverageTests.streetClosureCompletesTheApprovedLifecycle`; real con M3 y M6 | PASA | EV-1, EV-5 | |
+| HU-COR-04 | Publica `streetClosureEnded` con `causationId` | TC-BE-SC-06, TC-BE-SC-09 | `fullLifecycle`, `StreetClosureIntegrationTest.responsesKeepCorrelationAndCausation`, `OtherServicesTest.expireDueClosures` | PASA. Real: re-prueba con M3 PENDIENTE (su consumidor v1.0 rechaza `causationId` no nulo) | EV-1 | DEF-08 (cerrado), DEF-33 |
 | HU-COR-04 | Vencimiento automático de ventana | TC-BE-SC-U02 | `OtherServicesTest.expireDueClosures` | PASA | EV-1 | |
 | HU-COR-04 | RF-COR-11: publicar `streetClosureActivated` | TC-PEND-14b | `fullLifecycle` afirma que NO se publica la activación | NO IMPLEMENTADO por diseño; a confirmar con el PO | git grep | DEF-21 |
-| HU-COR-05 | Recibir servicios urbanos, podas, riesgo de árboles, obras | TC-PEND-04 | ninguno: no hay handlers para esos eventos en `listener/handler/` | NO IMPLEMENTADO | git grep | DEF-20 |
+| HU-COR-05 | Recibir servicios urbanos, podas, riesgo de árboles, obras | TC-PEND-04 | ninguno: no hay handlers para esos eventos en `listener/handler/` (5 handlers: pagos, deuda, ticket, solicitud de corte, reverso) | NO IMPLEMENTADO | git grep | DEF-20 |
 | HU-COR-05 | Identificar zona; disponible para evaluar | TC-PEND-04 | ninguno | NO IMPLEMENTADO | git grep | DEF-20 |
 
 ## F3 - Operativos
@@ -89,7 +90,7 @@ Los nombres `TC-BE-*` son los ids que ya figuran en los `@DisplayName` de los te
 | HU-OPE-03 | Cierre con resultado; cerrado no se edita | TC-BE-OP-04/06 | `closeSetsEnd`, `closedIsFinal`; `StateTransitionTests.closedOperationCannotBeClosedAgain` | PASA | EV-1 | |
 | HU-OPE-04 | Retención asociada al operativo con `originType=OPERATION` y `originId` | TC-BE-IMP-01 | `integration/VehicleImpoundmentIntegrationTest.register_publishesEvent` (usa `Payloads` con origen OPERATION); front `staff.test.jsx` "ingreso desde un operativo" | PASA | EV-1, EV-2 | |
 | HU-OPE-04 | Publica `vehicleImpounded` | TC-BE-IMP-01 | `register_publishesEvent` | PASA | EV-1 | |
-| (soporte) | Ticket de M2 derivado a M7 crea operativo | TC-BE-EVT-01..03 | `TicketEventListenerIntegrationTest.*`; `unit/TicketUpdatedHandlerTest.*` | PASA | EV-1 | |
+| (soporte) | Ticket de M2 derivado a M7 crea operativo; `updateTicketStatus` cumple el esquema de Core | TC-BE-EVT-01..03, TC-BE-EVT-SCH | `TicketEventListenerIntegrationTest.*`; `unit/TicketUpdatedHandlerTest.*`; `CoreSchemaContractTest` (5) | PASA. Real con M2: PENDIENTE (falta su `ticketUpdated`) | EV-1 | DEF-31 (cerrado) |
 
 ## F4 - Accidentes
 | HU | Criterio | Caso | Test automatizado | Resultado | Evid. | Defecto |
@@ -97,11 +98,11 @@ Los nombres `TC-BE-*` son los ids que ya figuran en los `@DisplayName` de los te
 | HU-ACC-01 | Fecha, hora, ubicación, inspector, `accidentId` | TC-BE-ACC-01 | `integration/RoadAccidentIntegrationTest.register_publishesEvent`; `SecurityIdentityTests.accidentRegistrationUsesAuthenticatedInspectorInsteadOfEntityValue`; `ApiContractSmokeTests.creatingAccidentIgnoresSpoofedInspectorAndUsesJwtIdentity` | PASA | EV-1 | |
 | HU-ACC-01 | Disponible para continuar su gestión | TC-BE-ACC-03 | `RoadAccidentIntegrationTest.updatePreliminary` | PASA | EV-1 | |
 | HU-ACC-02 | Personas, lesión, vehículos, daños, infraestructura | TC-BE-ACC-01/01c | `register_publishesEvent`; `register_withInfrastructureDamageWithoutDescription_isRejected`; `RequestValidationTests.requiresDamageDescriptionWhenAccidentDamagesInfrastructure` | PASA | EV-1 | |
-| HU-ACC-02 | `roadAccidentRegistered` solo con daño de infraestructura | TC-BE-ACC-01/01b | `register_publishesEvent`, `register_withoutInfrastructureDamage_doesNotPublishEvent`; real con M3 | PASA | EV-1, EV-5 | |
+| HU-ACC-02 | `roadAccidentRegistered` solo con daño de infraestructura | TC-BE-ACC-01/01b | `register_publishesEvent`, `register_withoutInfrastructureDamage_doesNotPublishEvent`; real con M3 (PROCESSED, 1 proyección) | PASA | EV-1, EV-5 | |
 | HU-ACC-03 | Acciones asociadas; cierre solo al finalizar atención | TC-BE-ACC-03/04/05 | `updatePreliminary`, `verifiedIsFinal`, `preliminaryStatusIgnored`; `StateTransitionTests.verifiedAccidentCannotBeModified` | PASA | EV-1 | |
 | HU-ACC-03 | Conservar historial de la actuación | TC-PEND-03c | sin test: no hay entidad de historial | NO VERIFICABLE | | |
 | HU-ACC-04 | Ticket que originó la actuación; asociación; actualizaciones de M2 | TC-BE-EVT-01..03 | `TicketEventListenerIntegrationTest.routedToTransito`, `otherArea`, `otherUpdateTypes`; `TicketUpdatedHandlerTest.*` | PASA | EV-1 | |
-| HU-ACC-04 | Informar evolución a M2 (`updateTicketStatus`) | TC-BE-EVT-01 | `TicketUpdatedHandlerTest.routedTicketForM7CreatesOperationAndPublishesStartedUsingCoreEnvelope`; `TrafficOperationIntegrationTest.closeSetsEnd` | PASA | EV-1 | |
+| HU-ACC-04 | Informar evolución a M2 (`updateTicketStatus`) | TC-BE-EVT-01, TC-BE-EVT-SCH | `TicketUpdatedHandlerTest.routedTicketForM7CreatesOperationAndPublishesStartedUsingCoreEnvelope`; `TrafficOperationIntegrationTest.closeSetsEnd`; `CoreSchemaContractTest.resolvedPayloadsMatchSchema` | PASA (contra el esquema de Core); real con M2 PENDIENTE | EV-1 | DEF-31 (cerrado) |
 | (soporte) | Accidente propio del ciudadano (`/mine`) | TC-BE-ACC-CIU-01/02 | `RoadAccidentIntegrationTest.mine`, `mine_asVehicleOwnerOnly`; `SecurityEvidenceTests.bolaAccidents` | PASA | EV-1 | |
 
 ## F5 - Vehículos retenidos
@@ -127,9 +128,9 @@ Los nombres `TC-BE-*` son los ids que ya figuran en los `@DisplayName` de los te
 | HU-EST-03 | Detectar falta de pago o vencimiento | TC-PEND-08 | ninguno: no hay detección automática; solo el inspector marca impago | NO IMPLEMENTADO | git grep | DEF-20 |
 | HU-EST-03 | Incumplimiento no genera infracción sola | TC-BE-PS-05 | `ParkingIntegrationTest.flagUnpaidRules` | PASA | EV-1 | |
 | HU-EST-04 | Validar o descartar el incumplimiento | TC-PEND-09 | ninguno: `ParkingSessionController` solo tiene `unpaid-flag` | NO IMPLEMENTADO (no existe "descartar") | git grep | DEF-20 |
-| HU-EST-05 | Infracción asociada, inspector identificado | TC-BE-PS-05, BUG-BE-01 | `BugReproductionTest.bug01_flagUnpaidAlways500` | SIN EJECUTAR en el build; PASA en EV-4 (el 500 ya no se reproduce) | EV-4 | DEF-11 (cerrado) |
+| HU-EST-05 | Infracción asociada, inspector identificado, importe válido | TC-BE-PS-05, TC-BE-PS-05c, BUG-BE-01 | `ValidationAndHeadersDefectsTest.unpaidFlagValidAmountStillWorks`, `unpaidFlagRejectsInvalidAmount`; `InfractionEvidenceRuleTests.flagUnpaidStillWorks`; `bug01_flagUnpaidAlways500` | PASA (`bug01` pasa también en EV-4) | EV-1, EV-4 | DEF-11, DEF-29 (cerrados) |
 | HU-EST-05 | No generar dos infracciones por la misma sesión | TC-BE-PS-05 | `ServiceBusinessRulesTests.parkingSessionCannotGenerateMoreThanOneUnpaidInfraction`; `bug15_flagUnpaidTwice` | PASA | EV-1, EV-4 | |
-| HU-EST-05 | Sesión ajena no accesible por otro ciudadano (BOLA) | SEC-BOLA-04 | `SecurityEvidenceTests.bolaParkingSession` | FALLA: otro ciudadano lee (200) y cierra (200) la sesión | EV-4 | DEF-15 |
+| HU-EST-05 | Sesión ajena no accesible por otro ciudadano (BOLA) | SEC-BOLA-04 | `SecurityEvidenceTests.bolaParkingSession`; `ParkingIntegrationTest.Ownership` (`otherCitizenGets404`, `closedForeignSessionGets404`, `ownerNotSettableFromBody` y 3 más) | PASA (404 a ciudadano ajeno, sin cambiar estado) | EV-1, EV-6 | DEF-15 (cerrado) |
 
 ## F7 - Consultas e indicadores
 | HU | Criterio | Caso | Test automatizado | Resultado | Evid. | Defecto |
@@ -143,17 +144,20 @@ Los nombres `TC-BE-*` son los ids que ya figuran en los `@DisplayName` de los te
 ## Transversales (seguridad, integración, IA)
 | Requisito | Caso | Test automatizado | Resultado | Evid. | Defecto |
 |---|---|---|---|---|---|
-| Login válido / inválido (HU-03 de la Parte B, BR-03) | TC-BE-AUTH, SEC-01..03 | `AuthAndSecurityIntegrationTest.loginOk`, `loginFails`; `ApiContractSmokeTests.invalidCredentialsReturnProblemDetails`; E2E-5 | PASA | EV-1, EV-3 | DEF-01 (stub activo en producción) |
+| Login válido / inválido (HU-03 de la Parte B, BR-03) | TC-BE-AUTH, SEC-01..03 | `AuthAndSecurityIntegrationTest.loginOk`, `loginFails`; `ApiContractSmokeTests.invalidCredentialsReturnProblemDetails`; E2E-5 | PASA. Producción: login real de las 3 cuentas verificado por el equipo tras el deploy de #39 | EV-1, EV-3 | DEF-01 (cerrado) |
 | BR-03: M1 no responde en 5 s -> 503 sin token (el Google Doc dice "sin prueba": hoy SÍ existe) | TC-BE-AUTH-M1 | `unit/RestIdentityValidatorTest.timeout`, `connectionRefused`, `errorStatuses`, `invalidResponses`; `integration/RestIdentityContextTest.loginTimeout`, `loginUpstreamError`, `loginConnectionRefused`, `loginAuthFalse` | PASA (con M1 simulado). Contra M1 real: NO VERIFICABLE (adaptador sin activar en Railway) | EV-1 | DEF-10 |
-| Roles y permisos por endpoint (BFLA) | SEC-BFLA | `SecurityEvidenceTests.forbiddenRolesAndAnonymous`; `ApiWorkflowIntegrationTests.citizenCannotCreateInfraction` | PASA | EV-1 | |
+| Roles y permisos por endpoint (BFLA), 403 antes que 400 | SEC-BFLA | `SecurityEvidenceTests.forbiddenRolesAndAnonymous` (403 exacto); `ValidationAndHeadersDefectsTest.authorizationBeforeValidation`; `ApiWorkflowIntegrationTests.citizenCannotCreateInfraction` | PASA | EV-1, EV-6 | DEF-27 (cerrado) |
 | Evento duplicado / inválido en consumo | TC-BE-EVT-D | `IncomingEventDispatcherTest` (4 tests: nuevo, ya procesado, sin handler, fallo del handler no se registra) | PASA | EV-1 | |
-| Idempotency-Key, ETag/If-Match/412, Problem Details | REST-IDEM-01, REST-ETAG-01/02, REST-ERR-01 | `SecurityEvidenceTests.idempotency`, `etag`, `notModified`, `problemDetails`; `EtagServerTest.optimisticConcurrency` | PASA | EV-1 | |
-| Registro de eventos publicados (regla 9.3 del TP) | TC-PEND-13 | ninguno | NO IMPLEMENTADO | git grep | DEF-04 |
+| Idempotency-Key, ETag/If-Match/412, Problem Details | REST-IDEM-01, REST-ETAG-01/02, REST-ERR-01 | `SecurityEvidenceTests.idempotency`, `etag`, `notModified`, `problemDetails`; `EtagServerTest.optimisticConcurrency`; `ValidationAndHeadersDefectsTest.missingRequestParamIsProblemDetails`, `typeMismatchIsProblemDetails` | PASA | EV-1, EV-6 | DEF-28 (cerrado) |
+| Registro de eventos publicados (regla 9.3 del TP) | TC-BE-OUTBOX-REG | `OutboxContractTest.filaConMetadatosDelSobre`; `OutboxIntegrationTest.endpointRegistro` (`GET /api/v1/admin/outbox`) | PASA | EV-1 | DEF-04 (cerrado) |
+| Sin pérdida de eventos con el broker caído (Transactional Outbox) | TC-BE-OUTBOX | `OutboxIntegrationTest.confirmarYPublicar`, `brokerCaidoYVuelve`, `rollbackNoDejaEvento`, `failedTrasNIntentosSinBloquear`, `sinDuplicadosEnParalelo`; `OutboxContractTest.contratoIdentico`; manual en compose (s12, i5) | PASA | EV-1 | DEF-14 (cerrado) |
+| Sin DNI en el JWT; DNI solo por `GET /auth/me` | SEC-DATA-01 | `SecurityEvidenceTests.jwtHasNoPii`; `JwtSinDniIntegrationTest` (5) | PASA | EV-1 | DEF-06 (cerrado) |
 | Health con broker caído | TC-BE-HEALTH | `integration/HealthWithBrokerDownTest.healthIsUpFastWithBrokerDown` | PASA | EV-1 | DEF-02 (cerrado) |
 | IA: sugerencia, apagada por defecto, modo manual, inyección, PII | TC-IA-01..08 (en 03) | `integration/InfractionSuggestionIntegrationTest.*`; `InfractionSuggestionDisabledIntegrationTest.*`; `ai/*Test` | PASA con proveedor simulado; con Groq real: PENDIENTE | EV-1 | |
 | Frontend IA (carga, error, manual) | TC-IA-09 | `suggestions.test.jsx` (8 tests) | PASA | EV-2 | |
 
-## Resumen de cobertura (contado a mano sobre las tablas de arriba)
-- 33 HU de F1-F7: todas tienen al menos una fila. Ninguna HU queda sin caso: las que no tienen test tienen un caso `TC-PEND-*` en 03.
-- HU con algún criterio sin implementar o sin test (marcadas arriba): HU-INF-01, HU-INF-03 (un criterio), HU-INF-04, HU-COR-04 (activación temprana, evento de activación), HU-COR-05, HU-OPE-03, HU-ACC-03 (historial), HU-VEH-02, HU-VEH-03 (parcial), HU-EST-03, HU-EST-04, HU-IND-01, HU-IND-02, HU-IND-03 (parcial).
-- Criterios con test que FALLA hoy: SEC-BOLA-04 (sesión de estacionamiento), SEC-DATA-01 (DNI en el JWT), BUG-BE-04 (evidencia), BUG-BE-09a (ver DEF-17).
+## Resumen de cobertura (contado sobre las tablas de arriba)
+- 31 HU de F1-F7: todas tienen al menos una fila. Ninguna HU queda sin caso: las que no tienen test tienen un caso `TC-PEND-*` en 03.
+- HU con algún criterio sin implementar o sin test (marcadas arriba): HU-INF-01 (importe y reincidencia), HU-INF-03 (un criterio), HU-INF-04 (adjuntos, `appealId`), HU-COR-04 (activación temprana, evento de activación), HU-COR-05, HU-OPE-03, HU-ACC-03 (historial), HU-VEH-02, HU-VEH-03 (parcial), HU-EST-03, HU-EST-04, HU-IND-01, HU-IND-02, HU-IND-03 (parcial).
+- Criterios con test que FALLA hoy en el build normal: **ninguno** (EV-1: 0 fallos). En el grupo `bug` (EV-4) solo fallan 3 reproducciones desactualizadas (`bug09a`, `bug02`, `bug14`; DEF-17 y DEF-18), que no son veredicto sobre el producto.
+- Pendiente de prueba real con otros módulos (EV-5): re-prueba de cortes con M3 (DEF-33), procesamiento de `infractionConfirmed` por M5, `ticketUpdated` de M2, adaptador de M1.
