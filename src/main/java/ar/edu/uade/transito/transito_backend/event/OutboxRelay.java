@@ -8,6 +8,7 @@ import org.springframework.amqp.AmqpConnectException;
 import org.springframework.amqp.AmqpIOException;
 import org.springframework.amqp.AmqpTimeoutException;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
@@ -52,14 +53,16 @@ public class OutboxRelay {
     private final Duration lease;
 
     @Autowired
-    public OutboxRelay(OutboxEventRepository repository, EventTransport transport,
+    public OutboxRelay(OutboxEventRepository repository,
+                       // Hay un único EventTransport activo: Rabbit o log, según core.rabbitmq.enabled (mutuamente excluyentes).
+                       ObjectProvider<EventTransport> transportProvider,
                        PlatformTransactionManager transactionManager,
                        @Value("${outbox.relay.batch-size:50}") int batchSize,
                        @Value("${outbox.relay.max-attempts:15}") int maxAttempts,
                        @Value("${outbox.relay.backoff-base-ms:2000}") long backoffBaseMs,
                        @Value("${outbox.relay.backoff-max-ms:60000}") long backoffMaxMs,
                        @Value("${outbox.relay.lease-ms:30000}") long leaseMs) {
-        this(repository, transport, transactionManager, Clock.systemUTC(), batchSize, maxAttempts,
+        this(repository, transportProvider.getObject(), transactionManager, Clock.systemUTC(), batchSize, maxAttempts,
                 Duration.ofMillis(backoffBaseMs), Duration.ofMillis(backoffMaxMs), Duration.ofMillis(leaseMs));
     }
 
