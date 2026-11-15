@@ -37,7 +37,8 @@ public class ParkingSessionController {
     @PreAuthorize("hasAnyRole('CIUDADANO', 'INSPECTOR')")
     @PostMapping
     public ResponseEntity<ParkingSessionResponse> start(@RequestBody CreateParkingSessionRequest request) {
-        ParkingSession created = parkingSessionService.start(ParkingSessionMapper.toEntity(request));
+        ParkingSession created = parkingSessionService.start(ParkingSessionMapper.toEntity(request),
+                currentUserProvider.get());
         return ResponseEntity.created(URI.create("/api/v1/parking-sessions/" + created.getSessionId()))
                 .body(ParkingSessionMapper.toResponse(created));
     }
@@ -48,19 +49,17 @@ public class ParkingSessionController {
         return parkingSessionService.findAll().stream().map(ParkingSessionMapper::toResponse).toList();
     }
 
-    // NOTA: ParkingSession no guarda ningún dato del titular (solo licensePlate), así que no hay
-    // forma de validar "dueño" sin un registro de propiedad de vehículos, que está fuera del
-    // alcance de Tránsito. Por ahora cualquier Ciudadano autenticado puede consultar cualquier sesión.
+    // DEF-15 / KI-1: un CIUDADANO solo accede a sus propias sesiones (ownerUsername); si no, 404.
     @PreAuthorize("hasAnyRole('INSPECTOR', 'CIUDADANO')")
     @GetMapping("/{id}")
     public ParkingSessionResponse findById(@PathVariable UUID id) {
-        return ParkingSessionMapper.toResponse(parkingSessionService.findById(id));
+        return ParkingSessionMapper.toResponse(parkingSessionService.findById(id, currentUserProvider.get()));
     }
 
     @PreAuthorize("hasAnyRole('CIUDADANO', 'INSPECTOR')")
     @PostMapping("/{id}/closure")
     public ParkingSessionResponse close(@PathVariable UUID id) {
-        return ParkingSessionMapper.toResponse(parkingSessionService.close(id));
+        return ParkingSessionMapper.toResponse(parkingSessionService.close(id, currentUserProvider.get()));
     }
 
     @PreAuthorize("hasRole('INSPECTOR')")

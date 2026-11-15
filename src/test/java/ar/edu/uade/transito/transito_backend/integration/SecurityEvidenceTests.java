@@ -153,7 +153,6 @@ class SecurityEvidenceTests extends AbstractIntegrationTest {
         assertThat(get("/accidents/mine", OTRO_CIUDADANO).andReturn().getResponse().getContentAsString()).isEqualTo("[]");
     }
 
-    @Tag("bug")
     @Test
     @DisplayName("SEC-BOLA-04: sesión de estacionamiento — un ciudadano distinto no debería leer ni cerrar la sesión de otro")
     void bolaParkingSession() throws Exception {
