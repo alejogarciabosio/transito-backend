@@ -71,13 +71,6 @@ class BugReproductionTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("BUG-BE-04: RN 'toda infracción necesita evidencia' — alta sin evidencia debería rechazarse (hoy 201)")
-    void bug04_infractionWithoutEvidence() throws Exception {
-        String body = Payloads.infraction("1").replace("[\"https://evidencias/foto1.jpg\"]", "[]");
-        post("/infractions", INSPECTOR, body).andExpect(status().isBadRequest());
-    }
-
-    @Test
     @DisplayName("BUG-BE-05: inspectorId debería salir del token, no del body (hoy se puede firmar a nombre de otro)")
     void bug05_inspectorIdSpoofing() throws Exception {
         String body = Payloads.infraction("1").replace("\"inspectorId\": \"u-1001\"", "\"inspectorId\": \"u-OTRO\"");

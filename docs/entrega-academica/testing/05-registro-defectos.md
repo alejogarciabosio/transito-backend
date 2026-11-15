@@ -32,7 +32,7 @@ Estados: **Abierto**, **En desarrollo** (abierto, con trabajo en curso; sigue co
 | DEF-13 | State no implementado como patrón en el corte de calle | Mayor (criterio académico) | **Cerrado** 15/11 (PR #35, en #39) |
 | DEF-14 | Outbox transaccional no implementado | Mayor | Abierto, en desarrollo |
 | DEF-15 | BOLA: un ciudadano lee y cierra la sesión de estacionamiento de otro (KI-1) | Mayor | **Cerrado** 15/11 (PR #32, en #31) |
-| DEF-16 | Infracción sin evidencia se acepta (201) | Mayor | Abierto, espera decisión de la PO |
+| DEF-16 | Infracción sin evidencia se acepta (201) | Mayor | Corregido en PR #47 (`fix/s15-evidencia-o-inspector`), pendiente de merge a `main` y deploy |
 | DEF-17 | `PATCH /infractions` parcial devuelve 400 en la reproducción BUG-BE-09a | Menor (probable test desactualizado) | Abierto (a confirmar) |
 | DEF-18 | Pruebas de reproducción BUG-BE-02 y 14 desactualizadas | Menor (deuda de tests) | Abierto |
 | DEF-19 | Importe base, reincidencia y costo de acarreo/estadía no se calculan en el servidor | Mayor | Abierto |
@@ -123,8 +123,8 @@ Estados: **Abierto**, **En desarrollo** (abierto, con trabajo en curso; sigue co
 ### DEF-14 Outbox no implementado — Abierto, en desarrollo
 - `git grep -i outbox` en `src/main`: sin resultados en `main`. Con el broker caído, un evento publicado se pierde. **Workaround**: reenvío manual desde Core u otros módulos.
 
-### DEF-16 Evidencia no exigida — Abierto, espera decisión de la PO
-- `CreateInfractionRequest.evidenceUrl` valida cada elemento (`@NotBlank`, `@Size(max = 255)`) pero acepta la lista vacía: `BugReproductionTest.bug04` sigue dando 201. HU-INF-01 y RF-INF-05 piden evidencia **o** validación del inspector: la PO tiene que decidir si la validación del inspector alcanza o si la lista vacía debe rechazarse.
+### DEF-16 Evidencia no exigida — Corregido en PR #47, pendiente de merge y deploy
+- **Obtenido (antes)**: alta de infracción con `evidenceUrl=[]` devolvía 201 (`BugReproductionTest.bug04`). HU-INF-01 y RF-INF-05 exigen evidencia o validación. **Resolución (PO)**: se acepta con evidencia, o sin ella si la registra un INSPECTOR autenticado cuyo id es el `inspectorId` (regla en `InfractionValidationRule`; si no, 400 Problem Details). `bug04` se reemplazó por `InfractionEvidenceRuleTests` e `InfractionValidationRuleTest`.
 
 ### DEF-17 y DEF-18 Pruebas desactualizadas — Abierto
 - `bug09a` envía `finalAmount=1` y espera 200 (recibe 400, coherente con la regla de importes); `bug02` y `bug14` fallan al preparar el corte por el contrato del handler. Acción: actualizarlas o retirarlas.
@@ -164,5 +164,5 @@ Criterio del profesor: 0 Bloqueantes, 0 Críticos, como máximo 3 Mayores abiert
 1. DEF-04 y DEF-14 se cierran juntos con el outbox (en desarrollo).
 2. DEF-06 (DNI fuera del JWT, corregido en PR #42; falta merge y deploy).
 3. DEF-29: agregar `@Valid` y un test (cambio chico de código).
-4. DEF-16: decisión de la PO; si la regla es "evidencia obligatoria", es un cambio de validación chico.
+4. DEF-16: corregido en PR #47 (evidencia o inspector autenticado); falta merge y deploy.
 5. DEF-19 y DEF-20 son brechas de requisito: solo bajan con una decisión formal de alcance de la PO, documentada y comunicada al profesor.

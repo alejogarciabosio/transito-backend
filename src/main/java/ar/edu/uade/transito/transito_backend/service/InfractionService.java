@@ -34,6 +34,7 @@ public class InfractionService {
     private final EventPublisher eventPublisher;
 
     public Infraction register(Infraction infraction) {
+        InfractionValidationRule.verify(infraction);
         infraction.setStatus(InfractionStatus.PENDING_APPEAL);
         Infraction saved = infractionRepository.save(infraction);
 
