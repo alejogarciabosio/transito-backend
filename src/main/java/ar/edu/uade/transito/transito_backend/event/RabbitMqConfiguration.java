@@ -4,7 +4,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import ar.edu.uade.transito.transito_backend.listener.SafeRejectingErrorHandler;
+import org.springframework.boot.amqp.autoconfigure.SimpleRabbitListenerContainerFactoryConfigurer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -20,6 +24,19 @@ public class RabbitMqConfiguration {
     @Bean
     MessageConverter rabbitMessageConverter() {
         return new JacksonJsonMessageConverter();
+    }
+
+    /**
+     * Misma fábrica que arma Spring Boot (mismas propiedades spring.rabbitmq.listener.*), con un ErrorHandler
+     * que rechaza sin requeue y loguea solo metadatos (DEF-05: sin cuerpo ni fragmentos del mensaje).
+     */
+    @Bean
+    SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory(
+            SimpleRabbitListenerContainerFactoryConfigurer configurer, ConnectionFactory connectionFactory) {
+        SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
+        configurer.configure(factory, connectionFactory);
+        factory.setErrorHandler(new SafeRejectingErrorHandler());
+        return factory;
     }
 
     /**
