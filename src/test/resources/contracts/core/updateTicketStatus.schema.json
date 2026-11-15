@@ -1,0 +1,535 @@
+{
+  "$id": "https://m2.municipalidad.example/schemas/updateTicketStatus.data.core.v1.78.schema.json",
+  "type": "object",
+  "allOf": [
+    {
+      "if": {
+        "required": [
+          "updateType"
+        ],
+        "properties": {
+          "updateType": {
+            "enum": [
+              "STARTED",
+              "PROGRESS"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "details": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "updateType"
+        ],
+        "properties": {
+          "updateType": {
+            "const": "PROGRESS"
+          }
+        }
+      },
+      "then": {
+        "anyOf": [
+          {
+            "required": [
+              "progress"
+            ],
+            "properties": {
+              "progress": {
+                "type": "integer"
+              }
+            }
+          },
+          {
+            "required": [
+              "publicMessage"
+            ],
+            "properties": {
+              "publicMessage": {
+                "type": "string",
+                "pattern": "\\S",
+                "description": "Texto no vacío (al menos un carácter que no sea espacio)."
+              }
+            }
+          },
+          {
+            "required": [
+              "internalMessage"
+            ],
+            "properties": {
+              "internalMessage": {
+                "type": "string",
+                "pattern": "\\S",
+                "description": "Texto no vacío (al menos un carácter que no sea espacio)."
+              }
+            }
+          },
+          {
+            "required": [
+              "attachments"
+            ],
+            "properties": {
+              "attachments": {
+                "minItems": 1
+              }
+            }
+          }
+        ],
+        "description": "PROGRESS debe aportar al menos algún contenido útil: progress, publicMessage, internalMessage o attachments."
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "updateType"
+        ],
+        "properties": {
+          "updateType": {
+            "const": "INFORMATION_REQUIRED"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "details"
+        ],
+        "properties": {
+          "details": {
+            "type": "object",
+            "required": [
+              "informationRequest"
+            ],
+            "properties": {
+              "informationRequest": {
+                "type": "object",
+                "required": [
+                  "messageForCitizen"
+                ],
+                "properties": {
+                  "requiredBy": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$",
+                        "description": "ISO 8601 con UTC (Z) u offset explícito (§4 y §12). No se acepta fecha sin zona horaria."
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "messageForCitizen": {
+                    "type": "string",
+                    "pattern": "\\S",
+                    "description": "Texto no vacío (al menos un carácter que no sea espacio)."
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "updateType"
+        ],
+        "properties": {
+          "updateType": {
+            "const": "RETURNED"
+          }
+        }
+      },
+      "then": {
+        "allOf": [
+          {
+            "anyOf": [
+              {
+                "required": [
+                  "publicMessage"
+                ],
+                "properties": {
+                  "publicMessage": {
+                    "type": "string",
+                    "pattern": "\\S",
+                    "description": "Texto no vacío (al menos un carácter que no sea espacio)."
+                  }
+                }
+              },
+              {
+                "required": [
+                  "internalMessage"
+                ],
+                "properties": {
+                  "internalMessage": {
+                    "type": "string",
+                    "pattern": "\\S",
+                    "description": "Texto no vacío (al menos un carácter que no sea espacio)."
+                  }
+                }
+              }
+            ],
+            "description": "Debe existir publicMessage o internalMessage, ambos con texto."
+          },
+          {
+            "required": [
+              "details"
+            ],
+            "properties": {
+              "details": {
+                "type": "object",
+                "required": [
+                  "returnInfo"
+                ],
+                "properties": {
+                  "returnInfo": {
+                    "type": "object",
+                    "required": [
+                      "reasonCode"
+                    ],
+                    "properties": {
+                      "reasonCode": {
+                        "enum": [
+                          "INVALID_INFORMATION",
+                          "REQUEST_TYPE_MISMATCH",
+                          "INSUFFICIENT_CONTEXT",
+                          "OTHER"
+                        ],
+                        "description": "Motivo estructurado de la devolución (guía v1.78 §8.4). Enum cerrado: INVALID_INFORMATION (datos inválidos o inconsistentes), REQUEST_TYPE_MISMATCH (el RequestType no corresponde a la gestión del área), INSUFFICIENT_CONTEXT (falta contexto para gestionar), OTHER (otro motivo, explicado en publicMessage o internalMessage)."
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "updateType"
+        ],
+        "properties": {
+          "updateType": {
+            "const": "RESOLVED"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "details",
+          "publicMessage"
+        ],
+        "properties": {
+          "details": {
+            "type": "object",
+            "required": [
+              "resolution"
+            ],
+            "properties": {
+              "resolution": {
+                "type": "object",
+                "required": [
+                  "type"
+                ],
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "ACTION_COMPLETED",
+                      "REQUEST_FULFILLED",
+                      "INQUIRY_ANSWERED",
+                      "ACKNOWLEDGED",
+                      "NO_FURTHER_ACTION_REQUIRED"
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          "publicMessage": {
+            "type": "string",
+            "pattern": "\\S",
+            "description": "Texto no vacío (al menos un carácter que no sea espacio)."
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "updateType"
+        ],
+        "properties": {
+          "updateType": {
+            "const": "REJECTED"
+          }
+        }
+      },
+      "then": {
+        "allOf": [
+          {
+            "anyOf": [
+              {
+                "required": [
+                  "publicMessage"
+                ],
+                "properties": {
+                  "publicMessage": {
+                    "type": "string",
+                    "pattern": "\\S",
+                    "description": "Texto no vacío (al menos un carácter que no sea espacio)."
+                  }
+                }
+              },
+              {
+                "required": [
+                  "internalMessage"
+                ],
+                "properties": {
+                  "internalMessage": {
+                    "type": "string",
+                    "pattern": "\\S",
+                    "description": "Texto no vacío (al menos un carácter que no sea espacio)."
+                  }
+                }
+              }
+            ],
+            "description": "Debe existir publicMessage o internalMessage, ambos con texto."
+          },
+          {
+            "required": [
+              "details"
+            ],
+            "properties": {
+              "details": {
+                "type": "object",
+                "required": [
+                  "cancellation"
+                ],
+                "properties": {
+                  "cancellation": {
+                    "type": "object",
+                    "required": [
+                      "reasonCode"
+                    ],
+                    "properties": {
+                      "reasonCode": {
+                        "enum": [
+                          "OUT_OF_SCOPE",
+                          "DOES_NOT_APPLY",
+                          "INVALID_REQUEST_TYPE",
+                          "INVALID_DATA",
+                          "REJECTED_BY_AREA",
+                          "OTHER"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "title": "updateTicketStatus · data",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "required": [
+    "ticketId",
+    "updateType",
+    "updatedBy",
+    "updateOccurredAt"
+  ],
+  "properties": {
+    "details": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "description": "Objeto específico de cada updateType; ver allOf."
+    },
+    "progress": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "maximum": 100,
+      "minimum": 0
+    },
+    "ticketId": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+    },
+    "updatedBy": {
+      "allOf": [
+        {
+          "type": "object",
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "UUID del actor. Para EXTERNAL_USER es el UUID de la persona en el módulo o sistema de origen y se interpreta junto con el sourceModule del evento. Puede ser null para SYSTEM o cuando no hay una persona concreta identificable."
+            },
+            "type": {
+              "enum": [
+                "CITIZEN",
+                "AGENT",
+                "AREA_RESPONSIBLE",
+                "ADMIN",
+                "EXTERNAL_USER",
+                "SYSTEM"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "enum": [
+                "EXTERNAL_USER",
+                "SYSTEM"
+              ]
+            }
+          },
+          "description": "updatedBy de updateTicketStatus: una persona que actúa desde otro módulo es EXTERNAL_USER; un proceso automático es SYSTEM (Eventos §5.2 y §8.1)."
+        }
+      ]
+    },
+    "updateType": {
+      "enum": [
+        "STARTED",
+        "PROGRESS",
+        "INFORMATION_REQUIRED",
+        "RETURNED",
+        "RESOLVED",
+        "REJECTED"
+      ]
+    },
+    "attachments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "fileName",
+          "contentType",
+          "url"
+        ],
+        "properties": {
+          "url": {
+            "allOf": [
+              {
+                "type": "string",
+                "pattern": "\\S",
+                "description": "Texto no vacío (al menos un carácter que no sea espacio)."
+              },
+              {
+                "description": "Referencia segura o URL temporal/autorizada que M2 pueda descargar. Nunca se envía el binario."
+              }
+            ]
+          },
+          "fileName": {
+            "type": "string",
+            "pattern": "\\S",
+            "description": "Texto no vacío (al menos un carácter que no sea espacio)."
+          },
+          "sizeBytes": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "contentType": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9!#$&^_.+-]+/[A-Za-z0-9!#$&^_.+-]+$",
+            "description": "MIME type, por ejemplo image/jpeg o application/pdf."
+          }
+        },
+        "additionalProperties": false
+      },
+      "description": "Sólo archivos nuevos o relevantes para ESTA actualización; no se reenvía el historial."
+    },
+    "publicMessage": {
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "\\S",
+              "description": "Texto no vacío (al menos un carácter que no sea espacio)."
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        {
+          "description": "Apto para el ciudadano."
+        }
+      ]
+    },
+    "internalMessage": {
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "\\S",
+              "description": "Texto no vacío (al menos un carácter que no sea espacio)."
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        {
+          "description": "Nota privada para M2. Nunca se republica ni se muestra al ciudadano."
+        }
+      ]
+    },
+    "updateOccurredAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$",
+      "description": "ISO 8601 con UTC (Z) u offset explícito (§4 y §12). No se acepta fecha sin zona horaria."
+    }
+  },
+  "description": "Sólo el objeto data de updateTicketStatus. Sirve para registrarlo como jsonSchema del tipo de evento en el Core (si el Core valida data) y para validar el payload por separado. Ver updateTicketStatus.schema.json para el evento completo. Schema autocontenido, apto para registrar directamente el objeto data en Core; verificar que Core lo aplique sobre data.",
+  "additionalProperties": false
+}
