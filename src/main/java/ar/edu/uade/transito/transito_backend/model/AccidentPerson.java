@@ -7,6 +7,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -23,6 +24,7 @@ public class AccidentPerson {
 
     @Column(nullable = false)
     @NotBlank(message = "El documento de la persona es obligatorio")
+    @Size(max = 255, message = "No puede superar 255 caracteres")
     private String nationalId;
 
     @Enumerated(EnumType.STRING)

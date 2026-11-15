@@ -309,7 +309,7 @@ Cada evento se capturó con `RecordingEventPublisher`, que reemplaza a `LoggingE
 - **Archivo:** `src/main/java/.../service/ParkingSessionService.java:64-74`
 - **Descripción:** `flagUnpaid` arma la `Infraction` sin `location`. `Infraction.location` es un `@Embedded` cuyo `street` es `nullable=false`, así que Hibernate la rechaza con `DataIntegrityViolationException: not-null property references a null or transient value ... Infraction.location`. Por eso **nunca** se genera la multa por estacionamiento impago (RN-BE-13).
 - **Reproducir (manual):**
-  1. `POST /auth/login` con admin1/admin123 → `POST /parking-zones {"name":"Z","allowedHours":"8-20"}`.
+  1. `POST /auth/login` con admin1 (contraseña `STUB_PASSWORD_ADMIN1` del `.env`) → `POST /parking-zones {"name":"Z","allowedHours":"8-20"}`.
   2. ciudadano1 → `POST /parking-sessions {"licensePlate":"AB123CD","zoneId":"<zona>","startDateTime":"2026-09-20T09:00:00"}`.
   3. inspector1 → `POST /parking-sessions/<id>/flag-unpaid {"baseAmount":12000}`.
 - **Actual:** 500. **Esperado:** 200 con una infracción `UNPAID_PARKING` en `PENDING_APPEAL` y el evento `infractionRegistered`.

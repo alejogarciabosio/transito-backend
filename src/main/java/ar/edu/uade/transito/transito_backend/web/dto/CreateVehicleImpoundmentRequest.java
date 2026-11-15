@@ -12,9 +12,9 @@ import jakarta.validation.constraints.Size;
 public record CreateVehicleImpoundmentRequest(
         @NotBlank(message = "La patente es obligatoria")
         @Size(max = 15, message = "La patente no puede superar 15 caracteres") String licensePlate,
-        @NotBlank(message = "El documento del titular es obligatorio") String ownerNationalId,
-        @NotBlank(message = "El motivo de retención es obligatorio") String reason,
-        @NotBlank(message = "El depósito es obligatorio") String depotLocation,
+        @NotBlank(message = "El documento del titular es obligatorio") @Size(max = 255, message = "No puede superar 255 caracteres") String ownerNationalId,
+        @NotBlank(message = "El motivo de retención es obligatorio") @Size(max = 255, message = "No puede superar 255 caracteres") String reason,
+        @NotBlank(message = "El depósito es obligatorio") @Size(max = 255, message = "No puede superar 255 caracteres") String depotLocation,
         @NotNull(message = "La fecha de ingreso es obligatoria")
         @PastOrPresent(message = "La fecha de ingreso no puede estar en el futuro") LocalDateTime entryDateTime,
         @NotNull(message = "El tipo de origen es obligatorio") ImpoundmentOriginType originType,

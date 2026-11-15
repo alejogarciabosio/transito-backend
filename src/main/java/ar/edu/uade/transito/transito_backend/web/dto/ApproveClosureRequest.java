@@ -7,10 +7,11 @@ import ar.edu.uade.transito.transito_backend.model.Detour;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 public record ApproveClosureRequest(
         @NotNull(message = "La lista de desvíos es obligatoria") List<@Valid Detour> detours,
-        @NotNull(message = "La lista de condiciones es obligatoria") List<@NotBlank(message = "Las condiciones no pueden estar vacías") String> conditions,
+        @NotNull(message = "La lista de condiciones es obligatoria") List<@NotBlank(message = "Las condiciones no pueden estar vacías") @Size(max = 255, message = "No puede superar 255 caracteres") String> conditions,
         OffsetDateTime authorizedFrom,
         OffsetDateTime authorizedTo) {
 }

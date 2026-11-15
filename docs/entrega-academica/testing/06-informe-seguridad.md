@@ -28,7 +28,7 @@ Evidencia "corrida D1" = ejecución del grupo `bug` del 15/11; "verify" = `./mvn
 | BFLA (API5) | CUMPLE | `SecurityEvidenceTests.forbiddenRolesAndAnonymous`: cada endpoint rechaza roles no autorizados y anónimos | |
 | JWT inválidos: `alg=none`, otra clave, vencido, payload alterado, rol desconocido, sin `role` | CUMPLE | `SecurityEvidenceTests.algNone`, `otherKey`, `expired`, `tamperedPayload`, `malformedHeaders`; `AuthAndSecurityIntegrationTest.unknownRoleClaim`; `JwtServiceTest.*` | |
 | Mass assignment | CUMPLE | `SecurityEvidenceTests.massAssignmentInfraction`, `massAssignmentSession`, `loginRoleEscalation` | |
-| Inyecciones SQL/NoSQL/XSS/JNDI en campos de texto | CUMPLE a nivel API (sin 5xx, datos íntegros) | `SecurityEvidenceTests.injection` (parametrizado). Un escaneo dinámico (ZAP) está PENDIENTE | |
+| Inyecciones SQL/NoSQL/XSS/JNDI en campos de texto | CUMPLE a nivel API (sin 5xx, datos íntegros) | `SecurityEvidenceTests.injection` (parametrizado). ZAP activo (15/11): sin inyecciones; los 500 con cadenas >255 o byte NUL se corrigieron (`@Size(max = 255)` + rechazo de NUL → 400, `InputLimitsValidationTests`; ver [evidencias/zap](evidencias/zap/README.md)) | |
 | XXE en la fachada SOAP | CUMPLE | `SecurityEvidenceTests.xxe` (DOCTYPE con entidad externa, no filtra contenido, < 500) | |
 | Fuerza bruta (429) | CUMPLE | `SecurityEvidenceTests.bruteForce` | |
 | Cabeceras de seguridad, CSP, HSTS | CUMPLE a nivel de test; producción: cabeceras CSP/HSTS presentes en el frontend (`TABLERO.md`) | `SecurityEvidenceTests.securityHeaders`, `csp`, `hsts`; `SecurityConfig` configura CSP y HSTS de 1 año. En producción el backend: NO VERIFICADO | |
@@ -41,7 +41,7 @@ Evidencia "corrida D1" = ejecución del grupo `bug` del 15/11; "verify" = `./mvn
 | Prompt injection | CUMPLE con proveedor simulado | `InfractionSuggestionServiceTest.promptInjectionCannotChangeContract`; `InfractionSuggestionIntegrationTest.promptInjection`. Eval real PENDIENTE | |
 | Secretos en el repositorio | CUMPLE con salvedad | gitleaks sobre HEAD y sobre el historial: 0 con `.gitleaksignore` (4 entradas con comentario). Ver DEF-12 | DEF-12 |
 | Secretos en la imagen y el artefacto desplegado | NO VERIFICABLE | no se inspeccionó la imagen | |
-| ZAP baseline y activo autenticado | NO VERIFICABLE (PENDIENTE) | otro agente lo ejecuta contra el compose local | |
+| ZAP baseline y activo autenticado | CUMPLE (0 High, 0 Medium tras corrección; 1 Low, 3 Info) | ZAP 2.17.0 contra compose local, [evidencias/zap](evidencias/zap/README.md); job CI `zap-baseline` | |
 | Dependencias (Trivy, `npm audit`, SCA) | NO VERIFICABLE (PENDIENTE) | otro agente | |
 | Autenticación en producción | NO CUMPLE | stub con credenciales fijas posiblemente activo | DEF-01 |
 | Aislamiento de capas de red / allowlist de Core | NO VERIFICABLE | fuera del alcance de las pruebas | |
@@ -50,4 +50,4 @@ Evidencia "corrida D1" = ejecución del grupo `bug` del 15/11; "verify" = `./mvn
 ## 3. Resumen
 CUMPLE: W01, W02, W04 (parcial), W05 (parcial), W06, I01, I02, SEC-05, BFLA, JWT, mass assignment, inyecciones a nivel API, XXE, 429, cabeceras, actuator, Idempotency/ETag.
 NO CUMPLE: W03 (estacionamiento), D01, D02, SEC-09, autenticación en producción, Swagger público.
-NO VERIFICABLE / PENDIENTE: ZAP, dependencias, secretos en artefacto, proxy y límite de login, cabeceras del backend en producción.
+NO VERIFICABLE / PENDIENTE: dependencias, secretos en artefacto, proxy y límite de login, cabeceras del backend en producción.

@@ -1,5 +1,7 @@
 # Resumen OWASP ZAP
 
-**Pendiente: no se ejecutó.** La imagen `ghcr.io/zaproxy/zaproxy:stable` quedó descargada y el script `tests/run-zap.sh`
-(baseline + `zap-api-scan.py` activo autenticado con el JWT de inspector1, sobre `/v3/api-docs` con `servers` reescrito al host local)
-está escrito pero sin probar. No hay conteo de alertas ni tratamiento propuesto todavía. Correr `tests/run-zap.sh` y completar este archivo.
+Ejecutado el 15/11/2026 con `ghcr.io/zaproxy/zaproxy:2.17.0` contra el compose local (baseline + API scan activo autenticado).
+**0 High** en todos los escaneos. 1.ª corrida del API scan: Medium 1 (500 por textos >255 / byte NUL), Low 2, Info 3.
+Tras agregar `@Size(max = 255)` y rechazar NUL (400): **Medium 0**, Low 1 (cabecera CORP), Info 3.
+Swagger/api-docs públicos en prod: riesgo aceptado (integración entre módulos).
+Detalle, tratamiento y reportes HTML/JSON: [`docs/entrega-academica/testing/evidencias/zap/`](../../docs/entrega-academica/testing/evidencias/zap/README.md).

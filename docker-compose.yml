@@ -83,6 +83,10 @@ services:
       USERS_REST_ENABLED: ${USERS_REST_ENABLED:?Falta USERS_REST_ENABLED en .env (true o false)}
       CORE_MODULE_SECRET: ${CORE_MODULE_SECRET:?Falta CORE_MODULE_SECRET en .env}
       CORE_RABBITMQ_PASSWORD: ${CORE_RABBITMQ_PASSWORD:?Falta CORE_RABBITMQ_PASSWORD en .env}
+      # Contraseñas de los usuarios de prueba (validador local). Opcionales: si falta una, ese usuario queda deshabilitado (401).
+      STUB_PASSWORD_CIUDADANO1: ${STUB_PASSWORD_CIUDADANO1:-}
+      STUB_PASSWORD_INSPECTOR1: ${STUB_PASSWORD_INSPECTOR1:-}
+      STUB_PASSWORD_ADMIN1: ${STUB_PASSWORD_ADMIN1:-}
       # Fijado para local (no se toma del .env): broker y HTTP de Core apuntan a los contenedores.
       CORE_RABBITMQ_ENABLED: "true"
       CORE_RABBITMQ_HOST: rabbitmq

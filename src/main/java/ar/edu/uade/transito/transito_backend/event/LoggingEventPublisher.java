@@ -14,8 +14,10 @@ public class LoggingEventPublisher implements EventPublisher {
 
     @Override
     public <T> void publish(EventEnvelope<T> event) {
-        log.info("[event] type={} eventId={} occurredAt={} data={}",
-                event.getEventType(), event.getEventId(), event.getOccurredAt(), event.getData());
+        // DEF-05: solo metadatos del sobre, igual que RabbitMqEventPublisher; nunca el payload
+        // (data puede traer DNI, patente, inspector, etc.).
+        log.info("[event-published] type={} eventId={} correlationId={}",
+                event.getEventType(), event.getEventId(), event.getCorrelationId());
     }
 
 }

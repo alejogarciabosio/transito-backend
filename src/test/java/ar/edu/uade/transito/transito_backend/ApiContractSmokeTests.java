@@ -33,7 +33,7 @@ class ApiContractSmokeTests {
         mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"username":"inspector1","password":"inspector123"}
+                                {"username":"inspector1","password":"prueba-inspector1"}
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token").isNotEmpty())

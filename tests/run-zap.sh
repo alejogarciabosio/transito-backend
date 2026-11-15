@@ -5,7 +5,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 MODE="${1:-todo}"
-IMG="ghcr.io/zaproxy/zaproxy:stable"
+IMG="${ZAP_IMAGE:-ghcr.io/zaproxy/zaproxy:2.17.0}"   # versión fija (no :stable) para que el resultado sea reproducible
 TARGET="http://host.docker.internal:8080"
 OUT="$PWD/tests/reports/zap"
 mkdir -p "$OUT"; chmod 777 "$OUT"
@@ -20,7 +20,11 @@ fi
 if [ "$MODE" = api ] || [ "$MODE" = todo ]; then
   echo "== ZAP API scan activo autenticado (INSPECTOR) =="
   # Token de inspector1 (credenciales de desarrollo del compose local). No se imprime.
-  ZAP_AUTH_HEADER_VALUE="Bearer $(curl -sf -H 'content-type: application/json' -d '{"username":"inspector1","password":"inspector123"}' http://localhost:8080/api/v1/auth/login | sed 's/.*"token":"\([^"]*\)".*/\1/')"
+  # La contraseña sale de STUB_PASSWORD_INSPECTOR1 (entorno o .env); el body se arma con node y va por stdin.
+  if [ -z "${STUB_PASSWORD_INSPECTOR1:-}" ] && [ -f .env ]; then STUB_PASSWORD_INSPECTOR1="$(grep -E '^STUB_PASSWORD_INSPECTOR1=' .env | head -1 | cut -d= -f2- || true)"; fi
+  [ -n "${STUB_PASSWORD_INSPECTOR1:-}" ] || { echo "Falta STUB_PASSWORD_INSPECTOR1 (en .env o en el entorno)." >&2; exit 2; }
+  export STUB_PASSWORD_INSPECTOR1
+  ZAP_AUTH_HEADER_VALUE="Bearer $(node -e 'process.stdout.write(JSON.stringify({username:"inspector1",password:process.env.STUB_PASSWORD_INSPECTOR1}))' | curl -sf -H 'content-type: application/json' -d @- http://localhost:8080/api/v1/auth/login | sed 's/.*"token":"\([^"]*\)".*/\1/')"
   export ZAP_AUTH_HEADER_VALUE
   # OpenAPI completo generado por springdoc (incluye todos los endpoints); servers forzado al host local.
   curl -sf http://localhost:8080/v3/api-docs | node -e '

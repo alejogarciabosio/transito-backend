@@ -11,7 +11,7 @@ docker compose up --build -d
 curl http://localhost:8080/actuator/health   # {"status":"UP",...}
 ```
 
-Usuarios locales: `ciudadano1/ciudadano123`, `inspector1/inspector123`, `admin1/admin123`.
+Usuarios locales: `ciudadano1`, `inspector1`, `admin1`; sus contraseñas salen del `.env` (`STUB_PASSWORD_CIUDADANO1`, `STUB_PASSWORD_INSPECTOR1`, `STUB_PASSWORD_ADMIN1`, valores de desarrollo en `.env.example`). Los scripts las leen del `.env` sin imprimirlas.
 
 ## 1. Pruebas de API (Postman + Newman)
 
@@ -55,7 +55,7 @@ tests/run-zap.sh baseline   # solo baseline
 tests/run-zap.sh api        # solo escaneo activo (zap-api-scan.py) con el JWT de inspector1
 ```
 
-- Imagen oficial `ghcr.io/zaproxy/zaproxy:stable`. El OpenAPI se toma de `http://localhost:8080/v3/api-docs` (completo) y se le
+- Imagen oficial `ghcr.io/zaproxy/zaproxy:2.17.0` (fija; se puede cambiar con `ZAP_IMAGE`). El OpenAPI se toma de `http://localhost:8080/v3/api-docs` (completo) y se le
   reescribe `servers` al host local antes de escanear (el `openapi.yaml` versionado lista Railway como primer servidor).
 - El token JWT viaja por la variable `ZAP_AUTH_HEADER_VALUE` (no se imprime ni se guarda).
 - Reportes HTML/JSON/MD en `tests/reports/zap/` (ignorados). Resumen versionado y tratamiento propuesto: `tests/reports/zap-resumen.md`.

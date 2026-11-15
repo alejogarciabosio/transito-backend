@@ -56,14 +56,19 @@ Nunca se llama al Core real ni a producción: el compose fija el broker (`rabbit
 Con `USERS_REST_ENABLED=false` (valor recomendado) rige el validador local. Login: `POST /api/v1/auth/login`
 con `{"username":"...","password":"..."}`.
 
-| Usuario | Clave | Rol |
+| Usuario | Variable con la contraseña | Rol |
 |---|---|---|
-| `ciudadano1` | `ciudadano123` | CIUDADANO |
-| `inspector1` | `inspector123` | INSPECTOR |
-| `admin1` | `admin123` | ADMINISTRADOR |
+| `ciudadano1` | `STUB_PASSWORD_CIUDADANO1` | CIUDADANO |
+| `inspector1` | `STUB_PASSWORD_INSPECTOR1` | INSPECTOR |
+| `admin1` | `STUB_PASSWORD_ADMIN1` | ADMINISTRADOR |
+
+Las contraseñas **no están en el código**. En local salen del `.env` (los valores de desarrollo están en
+`.env.example`); en producción se configuran como variables del servicio en Railway (los valores de producción
+no se publican). Si una variable falta o está vacía, ese usuario queda deshabilitado (401) y el backend lo avisa
+en el log al arrancar. Ver [docs/seguridad/credenciales.md](docs/seguridad/credenciales.md).
 
 ```bash
-curl -s -H 'content-type: application/json' -d '{"username":"admin1","password":"admin123"}' http://localhost:8080/api/v1/auth/login
+curl -s -H 'content-type: application/json' -d "{\"username\":\"admin1\",\"password\":\"$(grep '^STUB_PASSWORD_ADMIN1=' .env | cut -d= -f2-)\"}" http://localhost:8080/api/v1/auth/login
 ```
 
 ### Mock de M1 (login REST)
