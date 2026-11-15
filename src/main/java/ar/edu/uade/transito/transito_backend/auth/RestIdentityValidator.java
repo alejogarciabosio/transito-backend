@@ -13,14 +13,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import ar.edu.uade.transito.transito_backend.exception.InvalidCredentialsException;
 import ar.edu.uade.transito.transito_backend.exception.UsersAccountForbiddenException;
 import ar.edu.uade.transito.transito_backend.exception.UsersServiceBadGatewayException;
 import ar.edu.uade.transito.transito_backend.exception.UsersServiceUnavailableException;
 import ar.edu.uade.transito.transito_backend.model.enums.Role;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Adaptador de autenticación hacia M1. M1 expone REST; M7 puede ofrecer SOAP
