@@ -1,6 +1,8 @@
-# Contrato de integración M3 Obras ↔ M7 Tránsito — versión 1.0
+# Contrato de integración M3 Obras ↔ M7 Tránsito — versión 1.1
 
 Estado: acordado por M3 y M7 el 19 de octubre de 2026. Pendiente únicamente la validación de Core para el nombre registrado de `streetClosureEnded`.
+
+**Cambios en v1.1 (15/11/2026):** `streetClosureEnded` informa como `causationId` el `eventId` de la solicitud original (antes `null`), a pedido de Core para mejorar la trazabilidad. El `correlationId` y el payload no cambian. Avisado a M3 y Core en el canal de POs.
 
 ## Convenciones comunes
 
@@ -21,7 +23,7 @@ Todos los mensajes usan el envelope Core:
 
 Las fechas y horas de los eventos usan ISO 8601 con offset. Los enums se serializan en MAYÚSCULA. El módulo de origen usa minúscula: `obras` para M3 y `transito` para M7.
 
-Para `streetClosureApproved` y `streetClosureRejected`, M7 conserva el `correlationId` recibido en `streetClosureRequested` y usa el `eventId` recibido como `causationId`. Para `streetClosureEnded`, conserva el mismo `correlationId` y usa `causationId: null` porque se origina en una acción posterior o en el vencimiento automático.
+Para `streetClosureApproved` y `streetClosureRejected`, M7 conserva el `correlationId` recibido en `streetClosureRequested` y usa el `eventId` recibido como `causationId`. Para `streetClosureEnded` (finalización manual o por vencimiento automático) también conserva el mismo `correlationId` y usa como `causationId` el `eventId` de la solicitud original (desde v1.1; en v1.0 era `null`).
 
 ## Evento recibido por M7
 
@@ -135,7 +137,7 @@ El alcance de M3 en esta versión es: recibe el resultado de cada solicitud de c
   "occurredAt": "2026-10-20T18:02:00-03:00",
   "sourceModule": "transito",
   "correlationId": "7fd98f1c-72a3-42fb-bbe8-047db769210e",
-  "causationId": null,
+  "causationId": "2f4f6f6e-7c10-4e5f-8f89-9c3485d0c214",
   "data": {
     "streetClosureId": "c819cfbc-9848-43cc-9172-e79201009126",
     "closureRequestId": "1f915e75-7aa3-4320-8452-0b1b457285db",
