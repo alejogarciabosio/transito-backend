@@ -159,7 +159,9 @@ public class StreetClosureService {
      * Vuelve a validar el estado y el horario por si el corte cambió desde que se listó.
      */
     public boolean expireClosure(UUID streetClosureId, OffsetDateTime now) {
-        StreetClosure closure = findById(streetClosureId);
+        // Repositorio directo (no this.findById): no mezclar un @Transactional(readOnly) en una llamada interna.
+        StreetClosure closure = streetClosureRepository.findById(streetClosureId)
+                .orElseThrow(() -> new ResourceNotFoundException("StreetClosure no encontrado: " + streetClosureId));
         boolean due = (closure.getStatus() == StreetClosureStatus.ACTIVE
                 || closure.getStatus() == StreetClosureStatus.APPROVED)
                 && closure.getEndDate() != null && !closure.getEndDate().isAfter(now);

@@ -238,20 +238,23 @@ class OutboxIntegrationTest {
 
         int relays = 4;
         ExecutorService pool = Executors.newFixedThreadPool(relays);
-        CountDownLatch largada = new CountDownLatch(1);
-        List<Future<Integer>> resultados = new ArrayList<>();
-        for (int i = 0; i < relays; i++) {
-            resultados.add(pool.submit(() -> {
-                largada.await();
-                return relay.relayPending();
-            }));
-        }
-        largada.countDown();
         int total = 0;
-        for (Future<Integer> r : resultados) {
-            total += r.get(30, TimeUnit.SECONDS);
+        try {
+            CountDownLatch largada = new CountDownLatch(1);
+            List<Future<Integer>> resultados = new ArrayList<>();
+            for (int i = 0; i < relays; i++) {
+                resultados.add(pool.submit(() -> {
+                    largada.await();
+                    return relay.relayPending();
+                }));
+            }
+            largada.countDown();
+            for (Future<Integer> r : resultados) {
+                total += r.get(30, TimeUnit.SECONDS);
+            }
+        } finally {
+            pool.shutdownNow();
         }
-        pool.shutdown();
 
         assertThat(enviados).hasSize(30).doesNotHaveDuplicates();
         assertThat(total).isEqualTo(30);
