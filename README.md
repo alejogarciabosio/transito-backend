@@ -79,9 +79,8 @@ Cuentas ficticias (campos `gmail` y `password`):
 | `empleado.mock@example.com` | `Empleado123!` | 200, `actorType` EMPLEADO, `role` MESA_ENTRADAS (INSPECTOR en M7) |
 | cualquier otra | cualquiera | 401 |
 
-Limitación conocida: con `USERS_REST_ENABLED=true` el backend hoy no arranca (`RestIdentityValidator` pide un
-`ObjectMapper` de Jackson 2 y Spring Boot 4 usa Jackson 3). Hasta corregirlo en código, el login contra el mock de M1 se
-prueba directamente contra el mock, no a través del backend.
+Con `USERS_REST_ENABLED=true` el backend hace el login contra este mock (el `RestIdentityValidator` ya usa Jackson 3,
+corregido en #23).
 
 ### Mock de Core (HTTP)
 
