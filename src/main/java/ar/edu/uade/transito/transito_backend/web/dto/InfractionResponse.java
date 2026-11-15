@@ -28,5 +28,6 @@ public record InfractionResponse(
         InfractionStatus status,
         UUID originOperationId,
         String originTicketId,
-        UUID originParkingSessionId) {
+        UUID originParkingSessionId,
+        String appealReason) {
 }

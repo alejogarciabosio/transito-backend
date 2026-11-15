@@ -112,6 +112,7 @@ public class InfractionService {
     public Infraction appeal(UUID infractionId, String reason) {
         Infraction existing = findById(infractionId);
         existing.setStatus(InfractionStates.of(existing).appeal(existing).status());
+        existing.setAppealReason(reason);
         Infraction saved = infractionRepository.save(existing);
 
         eventPublisher.publish(EventEnvelope.of("infractionAppealed",
