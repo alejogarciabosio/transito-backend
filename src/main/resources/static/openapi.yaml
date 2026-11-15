@@ -43,6 +43,20 @@ paths:
           $ref: '#/components/responses/BadGateway'
         '503':
           $ref: '#/components/responses/ServiceUnavailable'
+  /api/v1/auth/me:
+    get:
+      tags: [Autenticación]
+      summary: Datos del usuario autenticado
+      description: Devuelve solo los datos del propio usuario del token. El DNI se resuelve en el servidor; el JWT no lo incluye (DEF-06).
+      responses:
+        '200':
+          description: Usuario autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentUserResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
   /api/v1/infractions:
     post:
       tags: [Infracciones]
@@ -386,6 +400,23 @@ components:
         expiresInSeconds:
           type: integer
           format: int64
+    CurrentUserResponse:
+      type: object
+      required: [userId, role]
+      properties:
+        userId:
+          type: string
+        role:
+          type: string
+        nationalId:
+          type: string
+          nullable: true
+        actorType:
+          type: string
+          nullable: true
+        citizenId:
+          type: string
+          nullable: true
     Location:
       type: object
       required: [street]

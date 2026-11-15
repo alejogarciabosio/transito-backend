@@ -1,93 +1,111 @@
 # 04 - Informe de ejecución de pruebas
 
-Fecha del informe: 15/11/2026. Versión probada: rama `main` del backend en el commit `65e330b` (merge del PR #25) y `main` del frontend (PR #8). Entorno de las pruebas automáticas: máquina local de los agentes, base en memoria y una prueba con PostgreSQL 16 por Testcontainers.
-Regla: solo figuran datos que ya existen en los reportes de los agentes o que corrió el agente D1. Lo demás dice **PENDIENTE**. No se estimaron ni redondearon números.
+Actualizado: 15/11/2026 ~18:00 ART. Versión probada: `main` del backend en `c196d7a` (merge del PR #39, desplegado en Railway) y `main` del frontend (PR #9 mergeado). Entorno de las pruebas automáticas: máquina local de los agentes y runners de GitHub Actions; base PostgreSQL 16 por Testcontainers y compose local (backend + PostgreSQL + RabbitMQ + mocks). Carga, ZAP y Newman se corrieron **contra el compose local, nunca contra producción**.
+Regla: solo figuran datos que existen en los reportes de los agentes o que se corrieron para este informe. Lo demás dice **PENDIENTE**. No se estimaron ni redondearon números salvo donde se indica.
 
 ## 1. Resumen ejecutivo
 | Indicador | Valor | Fuente |
 |---|---|---|
-| Backend `./mvnw verify` | exit 0; 285 tests ejecutados; 0 fallos; 0 errores | `reports/i1.md` (rama de integración, hoy en `main`) |
-| Backend, grupo `bug` (excluido del build) | 22 ejecutados; 16 pasan; 4 fallan; 2 errores de preparación | corrida del agente D1, 15/11 |
-| Cobertura backend (líneas) | 88,5 % (mínimo exigido 85 %) | `reports/i1.md` |
-| Cobertura backend (instrucciones / ramas) | 87 % / 70 % (medición del 13/11 anterior a los PR de integración) | `docs/entrega-academica/checklist-entrega4.md` |
-| Frontend `npm run test:coverage` | 59 tests, 0 fallos; 93,43 % líneas; 79 % ramas (medición de B3f sobre su rama) | `reports/i2.md`, `reports/b3f.md` |
+| Backend `./mvnw -q -B verify` sobre `c196d7a` | exit 0; **437 tests**; 0 fallos; 0 errores; 0 omitidos | corrida del agente D2, 15/11 (suma de `target/surefire-reports`) |
+| Cobertura backend (líneas, JaCoCo) | **91,92 %** (mínimo 85 %) | misma corrida (`jacoco.csv`) |
+| Frontend `npm run test:coverage` | 59 tests, 0 fallos; 93,43 % líneas | `reports/s9.md` (local y CI) |
 | E2E Playwright | 7/7 en cada una de 3 corridas | `reports/i2.md` |
-| Accesibilidad axe | 0 violaciones en 3 anchos (360/768/1280) | `reports/i2.md`, `reports/a3.md` |
-| Lighthouse (modo snapshot) | 100 en 48 combinaciones | `reports/a3.md` (antes de la integración) |
-| gitleaks | 0 con `.gitleaksignore` sobre historial completo; 4 sin él | `reports/b2b.md`, `reports/i1.md` |
-| Integraciones reales con M3 (15/11) | accidente registrado; infracción confirmada; corte aprobado, activado y finalizado | declaración del equipo; EV-5, ids PENDIENTES de adjuntar |
-| k6, mutation, ZAP, Sonar, dependencias | PENDIENTE | otros agentes están midiendo |
+| Accesibilidad axe | 0 violaciones en 360/768/1280 | `reports/i2.md`, `reports/a3.md` |
+| Contrato y negativos (Newman) | **273 requests, 695 aserciones, 0 fallas** (6 omitidas = defectos conocidos) | `reports/t1.md`; job `api-tests` del CI en verde |
+| Carga (k6, 50 VU × 5 min) | **p95 = 341 ms**, errores 0,01 % (7 de 35 923), 119 req/s | `reports/t1.md` |
+| Mutation (PIT) | **67 %** perfil del pom (200/299); **92 %** alcance ampliado (321/348) | `reports/t2.md`, `mutation-resumen.md` |
+| ZAP (baseline + API activo autenticado) | **0 High, 0 Medium, 1 Low**, 3 Info | `reports/s8.md`, [evidencias/zap](evidencias/zap/README.md) |
+| Dependencias | Trivy backend **0 High/Critical** (antes 25); frontend `npm audit` 0 y Trivy 0 | `reports/s2.md`, `reports/t2.md`; job CI `dependencias` |
+| SonarCloud | **Quality Gate PASSED** en backend y frontend | `reports/s9.md`; job CI `sonarcloud` |
+| Tests inestables (flaky) | `verify` ×3: 0 fallos y sin diferencias entre corridas (349 tests en ese momento) | `reports/t2.md` |
+| gitleaks | 0 con `.gitleaksignore` sobre el historial completo | `reports/b2b.md`; job CI `gitleaks` |
+| CI de `main` (merge #39) | 7/7 jobs en verde | `TABLERO.md` |
+| Integración real con otros módulos | ver sección 7 | `pruebas-modulos-15-11.md` |
 
-Aclaración sobre cantidades: el backend tiene 247 métodos de prueba (210+28+8+1 por rama, ver `07-declaracion-ia.md`); Surefire informa 285 ejecuciones. La diferencia es compatible con las pruebas parametrizadas (cada valor cuenta como una ejecución), pero no la verifiqué una por una: es una inferencia.
+Nota: el conteo de 437 es de esta corrida sobre `c196d7a`; los reportes individuales informan números menores (366-421) porque se midieron sobre sus ramas antes del merge conjunto.
 
 ## 2. Resultados por nivel
 | Nivel | Ejecutados | Pasados | Fallados | Bloqueados | Fuente / nota |
 |---|---|---|---|---|---|
-| Unitario backend (`unit/`, `ai/`, `listener/`) | PENDIENTE (el reporte I1 no separa por nivel) | | | | Los 285 tests totales son la suma de todos los niveles de backend |
-| Integración backend (`integration/`, Testcontainers) | PENDIENTE de desglose | | | | idem |
-| Backend total (build normal) | 285 | 285 | 0 | 0 | `reports/i1.md` |
-| Backend grupo `bug` (reproducciones y 2 de seguridad) | 22 | 16 | 4 | 2 (errores de preparación) | corrida D1 |
-| Frontend unitario/componentes (Vitest) | 59 | 59 | 0 | 0 | `reports/i2.md` |
+| Unitario + integración backend (build normal) | 437 | 437 | 0 | 0 | corrida D2 sobre `c196d7a`. Desglose por nivel: PENDIENTE |
+| Backend grupo `bug` (excluido del build) | 22 | 16 | 4 | 2 (errores de preparación) | corrida D1 del 15/11, **anterior** a los fixes de BOLA/State; PENDIENTE repetir (SEC-BOLA-04 ya salió del grupo) |
+| Frontend unitario/componentes (Vitest) | 59 | 59 | 0 | 0 | `reports/s9.md` |
 | E2E (Playwright, API simulada) | 7 por corrida, 3 corridas | 21 | 0 | 0 | `reports/i2.md` |
-| Contrato (Newman/Postman) | PENDIENTE | | | | otro agente |
-| Carga (k6) | PENDIENTE | | | | ver 4.4 |
-| Seguridad dinámica (ZAP) | PENDIENTE | | | | ver 4.5 |
-| Integración real con M3 (manual) | accidente 1; infracción confirmada 1; corte 1 (aprobar, activar, finalizar) | declarado correcto | 0 declarados | | EV-5; PENDIENTE adjuntar `eventId` y capturas |
+| Contrato / API (Newman, compose local) | 273 requests / 695 aserciones | 695 | 0 | 6 omitidas (KI conocidos) | `reports/t1.md`; en CI (job `api-tests`) |
+| Carga (k6, compose local) | 35 923 requests | umbrales cumplidos (exit 0) | 7 requests (0,01 %) | | `reports/t1.md` |
+| Seguridad dinámica (ZAP, compose local) | baseline + API activo (34 rutas) | 0 High / 0 Medium | 1 Low abierto (CORP) | | `reports/s8.md` |
+| Integración real con otros módulos | ver sección 7 | | | | |
 
-Detalle de la corrida del grupo `bug` (comando: `./mvnw -q -B test -Dbugs.excluded=none -Dgroups=bug -Djacoco.skip=true`):
-| Test | Resultado | Lectura |
-|---|---|---|
-| `SecurityEvidenceTests.bolaParkingSession` | FALLA: lectura 200 y cierre 200 con otro ciudadano | defecto real (DEF-15) |
-| `SecurityEvidenceTests.jwtHasNoPii` | FALLA: el payload del JWT contiene el claim `nationalId` | defecto real (DEF-06) |
-| `BugReproductionTest.bug04_infractionWithoutEvidence` | FALLA: 201 en lugar de 400 | defecto real (DEF-16) |
-| `BugReproductionTest.bug09a_patchInfractionPartial` | FALLA: 400 en lugar de 200 | probable test desactualizado (`finalAmount=1` queda menor que el importe base tras el merge); no confirmado como defecto (DEF-17) |
-| `BugReproductionTest.bug02_approveWithoutDetours`, `bug14_affectedStreetAlwaysEmpty` | ERROR: "affectedSections es obligatorio" al preparar el corte | test desactualizado respecto del handler; no hay veredicto sobre el producto (DEF-18) |
-| Otros 16 (incluye `bug01_flagUnpaidAlways500`, `bug06`, `bug15`) | PASAN | el 500 de estacionamiento impago ya no se reproduce |
+Las 6 aserciones omitidas de Newman correspondían a KI-1..KI-5/5b. KI-1 (BOLA, DEF-15) y KI-2 (rate limit, DEF-22) se cerraron después; KI-3, KI-4 y KI-5 siguen abiertos (DEF-27, 28, 29). **PENDIENTE**: volver a correr Newman sobre `c196d7a` para dejar asentado cuántas omitidas quedan.
 
-## 3. Cobertura
+Detalle de la corrida del grupo `bug` (D1, antes de los fixes): `bolaParkingSession` falló (DEF-15, hoy cerrado); `jwtHasNoPii` falló (DEF-06; hoy PASA con el fix del PR #42); `bug04` falló con 201 (DEF-16, abierto); `bug09a`, `bug02`, `bug14` son pruebas desactualizadas (DEF-17/18); los otros 16 pasaron.
+
+## 3. Cobertura y calidad de las pruebas
 | Medición | Valor | Estado |
 |---|---|---|
-| Backend líneas (JaCoCo, gate 85 %) | 88,5 % | medido (I1) |
-| Backend instrucciones / ramas | 87 % / 70 % | medido el 13/11, antes de IA y fixes; PENDIENTE de repetir |
-| Backend por capa (servicio, web, auth, event, ai) | PENDIENTE | lo mide otro agente |
-| Frontend líneas | 93,43 % | medido (I2) |
-| Frontend ramas | 79 % | medido (B3f) |
-| Mutation (pitest, perfil `mutation`) | PENDIENTE (objetivo >= 60 %) | |
-| Tests flaky (suite repetida 3 veces) | Backend PENDIENTE; E2E 3/3 sin inestables | |
+| Backend líneas (JaCoCo, gate 85 %) | 91,92 % | medido (D2, `c196d7a`) |
+| Backend por capa (service + model + listener) | líneas 94,2 %, ramas 87,4 % (235/269) | medido (T2, antes del merge conjunto) |
+| Backend instrucciones / ramas globales | PENDIENTE de extraer de la corrida actual | |
+| Frontend líneas | 93,43 % | medido (s9) |
+| Mutation, perfil `mutation` del pom (`service.*`) | 67 % (200/299); objetivo ≥ 60 %: cumple | medido (T2) |
+| Mutation, alcance ampliado (service + model + listener, toda la suite) | 92 % (321/348) | medido (T2) |
+| Flaky backend | 3 corridas de `verify`, 0 fallos, sin diferencias | medido (T2, 349 tests) |
+| Flaky E2E | 3/3 sin inestables | medido (I2) |
 
 ## 4. No funcional
 ### 4.1 Tiempos
 | Medición | Valor | Fuente |
 |---|---|---|
 | `/actuator/health` con broker pausado, antes del fix | sin respuesta en 40 s | `reports/b4.md` |
-| `/actuator/health` con broker pausado o detenido, después del fix | 200 UP en ~3 ms (local) | `reports/b4.md` |
-| `/actuator/health` en producción tras el deploy del 15/11 | 0,7 s, UP | `TABLERO.md` |
-| Arranque del compose local con imágenes en caché | 23 s (build en frío no medido) | `reports/a1.md` |
+| `/actuator/health` con broker pausado, después del fix | 200 UP en ~3 ms (local) | `reports/b4.md` |
+| `/actuator/health` en producción tras los deploys del 15/11 | 0,7 s / 0,9 s / 0,7 s, UP | `TABLERO.md` |
+| Arranque del compose local con imágenes en caché | 23 s | `reports/a1.md` |
 | Reconexión al broker tras stop/start (local) | ~9 s | `reports/a1.md` |
 | Duración total del `verify` y de cada nivel | PENDIENTE | |
 
 ### 4.2 Performance (k6)
-PENDIENTE. Escenario previsto: 50 usuarios, 5 minutos, 3 endpoints críticos, p95 < 500 ms, contra el compose local (no producción; el pool de base es de 3 conexiones). No se escribe ningún valor hasta tener el resultado.
+Escenario: 50 VU durante 5 minutos; login + `GET /api/v1/infractions` + `GET /api/v1/street-closures/current`; compose local con pool Hikari de 3 conexiones (igual que producción). Umbrales: p95 < 500 ms y errores < 1 %.
+| Métrica | Valor |
+|---|---|
+| p95 global | 341 ms (cumple) |
+| Errores | 0,01 % (7 de 35 923) (cumple) |
+| Throughput | 119 req/s |
+| p95 por endpoint | login 150 ms; listado de infracciones 472 ms (cerca del límite); cortes 358 ms |
+| Máximos | 2,6 s; una iteración llegó a 31 s |
+Observaciones: la causa de los 7 errores no se investigó (sospecha: contención del pool de 3 conexiones). El listado de infracciones no está paginado y su tiempo crece con la base. Resumen en `tests/reports/k6-resumen.txt`.
 
 ### 4.3 Quality Gate
 | Puerta | Umbral | Resultado |
 |---|---|---|
-| Cobertura backend | >= 85 % líneas | 88,5 %: cumple |
-| Cobertura frontend | >= 85 % líneas | 93,43 %: cumple |
-| Tests del build | 0 fallos | 0 fallos (285): cumple |
-| E2E | >= 5 escenarios en CI | 7 escenarios; job `e2e` agregado al workflow; ejecución en runner de GitHub: ver CI del PR #8 (PENDIENTE de confirmar) |
-| SonarCloud Quality Gate | aprobado | PENDIENTE (cuenta no creada) |
-| Mutation | >= 60 % | PENDIENTE |
-| Secretos | 0 | cumple con `.gitleaksignore` (4 falsos positivos o riesgos aceptados, ver DEF-12) |
-| ZAP | sin alertas High | PENDIENTE |
-| Dependencias | sin CVE crítica sin mitigación | PENDIENTE |
-| CI verde sobre `v2.0-entrega4` | verde | PENDIENTE: el tag no existe |
+| Cobertura backend | ≥ 85 % líneas | 91,92 %: cumple |
+| Cobertura frontend | ≥ 85 % líneas | 93,43 %: cumple |
+| Tests del build | 0 fallos | 0 fallos (437): cumple |
+| E2E | ≥ 5 escenarios en CI | 7 escenarios en el job `e2e`: cumple |
+| SonarCloud Quality Gate | aprobado | PASSED en backend y frontend: cumple. Los proyectos son privados: métricas globales solo en el dashboard |
+| Mutation | ≥ 60 % | 67 % (perfil del pom): cumple |
+| Secretos | 0 | cumple con `.gitleaksignore` (ver DEF-12) |
+| ZAP | sin alertas High | 0 High, 0 Medium: cumple |
+| Dependencias | sin CVE High/Critical sin mitigación | Trivy 0 (job `dependencias` bloqueante): cumple |
+| Carga | p95 < 500 ms con 50 VU | 341 ms: cumple |
+| Defectos | 0 Bloqueantes, 0 Críticos, ≤ 3 Mayores abiertos | 0 / 0 / **7**: **no cumple** (ver 05) |
+| CI verde sobre `v2.0-entrega4` | verde | PENDIENTE: el tag no existe todavía |
 
 ### 4.4 Seguridad dinámica y dependencias
-ZAP baseline y activo: PENDIENTE. Trivy (backend) y `npm audit` (frontend): PENDIENTE. Resultados en `06-informe-seguridad.md` cuando existan.
+Ver `06-informe-seguridad.md`. ZAP: [evidencias/zap](evidencias/zap/README.md). Trivy: job `dependencias` del CI.
 
 ## 5. Defectos encontrados en esta ronda
-Ver `05-registro-defectos.md`. En esta ronda, la ejecución del grupo `bug` confirmó tres defectos reales que no estaban en el listado de partida (DEF-15 BOLA de estacionamiento, DEF-16 evidencia no exigida, y la brecha de cálculo de importes DEF-19 detectada al revisar el código).
+Ver `05-registro-defectos.md`. Hallazgos nuevos del 15/11: KI-2 (Newman), 25 CVE (Trivy), 500 con textos largos/NUL (ZAP), `causationId` nulo (Core), fecha sin offset (M5), constraint sin `EXPIRED` (latente), KI-3/4/5 (Newman).
 
-## 6. Conclusión provisoria
-El build normal está en verde y supera los umbrales de cobertura, pero el informe NO puede declararse completo: faltan carga, mutación, ZAP, Sonar, dependencias, CI sobre tag y adjuntar la evidencia de la integración con M3. La condición de salida de defectos (0 críticos, máximo 3 mayores) no se cumple hoy (ver "Riesgo de salida" en 05).
+## 6. Conclusión
+Build, cobertura, mutation, Sonar, ZAP, dependencias y carga cumplen sus umbrales con evidencia. **No se cumple** la condición de salida de defectos (7 Mayores abiertos, máximo 3). Faltan: tag `v2.0-entrega4` con CI verde, repetir Newman y el grupo `bug` sobre `main` actual, y cerrar las integraciones con M5, M2 y M1 (sección 7).
+
+## 7. Pruebas de integración con otros módulos (producción, 15/11)
+Ejecutadas por el equipo sobre el entorno integrado con Core; resultados confirmados por Core y por cada módulo (fuente: `pruebas-modulos-15-11.md`). Los ids son de datos de prueba.
+| # | Flujo | Ids | Resultado |
+|---|---|---|---|
+| 1 | Corte M3 → M7 (respuesta `streetClosureApproved` y `streetClosureEnded`) | closureRequestId `44555606…`, streetClosureId `c5941b88…`; Approved `6f521edf-177f-43c4-b3ec-0a3eb1245fd5`, Ended `c8479b39-4741-49f3-a3ea-f255d16416c2` | ✅ Core: ROUTED y DELIVERED a `q.obras` y `q.ambiente` en 1 intento, sin DLQ, correlationId conservado. M3: procesó ambos, corte ENDED. Hallazgo: Ended sin causationId (DEF-08, cerrado después) |
+| 2 | Corte M6 → M7 | eventId entrante `3db7aa72-e6cd-4908-a53a-97d0adacdfbc`, closureRequestId `fc780f03-898b-47e8-b374-af61cb4ab86b`, streetClosureId `91b26e25-822b-42d3-84cb-93d49e6ad1a5`; Approved `d25ff155-0b92-4f7d-b529-230f40457a8c`, Ended `af4062fb-4bde-4134-864a-60f6431086d9` | ✅ M6 confirmó ambos eventos (16:46:10 aprobado, 16:46:31 finalizado), correlationId y closureRequestId conservados, sin errores ni reintentos. Falta confirmación de Core sobre causationId (eventos previos al fix). Nota: la ventana autorizada (16:47-18:46) no fue la pedida (16:30-17:30) porque el script fija ahora+1 min a +2 h |
+| 3 | `roadAccidentRegistered` M7 → M3 | eventId `9d7b06ec-dfa3-4ca6-9d28-acc17ed82523`, accidentId `c4c66355…`, dead letter `c5f8d3df-7d2c-4c50-8f6c-a224dae5c0e5` | ✅ Primero DEAD en `q.obras` (consumidor de M3 rechazaba; luego IP de M3 no habilitada en Core). Core reintentó una sola vez la dead letter conservando el eventId → RETRIED/SUCCESS. M3 (17:33): Inbox PROCESSED, 1 intento, 1 proyección, sin persistir DNI/patente/personas/inspectorId. M7 no republicó nada |
+| 4 | `infractionConfirmed` M7 → M5 (y `paymentRegistered` M5 → M7) | eventId `114ab437-f36a-4f26-a565-0a3b59b2b88b`, infractionId `cb63dbb5…` | 🔄 En curso. Core: DELIVERED a `q.rentas` en 1 intento, pero M5 sin consumidores en ese momento. M5 pidió el envelope (enviado sin credenciales) y la fecha con offset (DEF-25, corregido). Falta: procesamiento por M5 y pago simulado → `paymentRegistered` |
+| 5 | Reclamos M2 → M7 (`ticketUpdated` → `updateTicketStatus`) | — | ⬜ PENDIENTE: sin probar; mensaje para M2 preparado |
+| 6 | Identidad M1 (adaptador REST de login) | — | ⬜ PENDIENTE: adaptador corregido (DEF-03) pero sin activar en producción (`USERS_REST_ENABLED` sin definir) |

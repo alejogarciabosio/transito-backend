@@ -13,7 +13,6 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -66,18 +65,18 @@ class SecurityEvidenceTests extends AbstractIntegrationTest {
                 ep(HttpMethod.GET, "/infractions/" + ID, null, true, I, A, C, U),
                 ep(HttpMethod.PATCH, "/infractions/" + ID, Payloads.infractionUpdate(), true, I),
                 ep(HttpMethod.POST, "/infractions/" + ID + "/appeal", REASON, true, C),
-                ep(HttpMethod.POST, "/infractions/" + ID + "/confirmation", "{}", false, A),
-                ep(HttpMethod.POST, "/infractions/" + ID + "/annulment", "{}", false, A),
+                ep(HttpMethod.POST, "/infractions/" + ID + "/confirmation", "{}", true, A),
+                ep(HttpMethod.POST, "/infractions/" + ID + "/annulment", "{}", true, A),
                 ep(HttpMethod.POST, "/parking-sessions", Payloads.session(ID), true, C, I),
                 ep(HttpMethod.GET, "/parking-sessions", null, true, I, A, U),
                 ep(HttpMethod.GET, "/parking-sessions/" + ID, null, true, I, C),
                 ep(HttpMethod.POST, "/parking-sessions/" + ID + "/closure", null, true, C, I),
-                ep(HttpMethod.POST, "/parking-sessions/" + ID + "/unpaid-flag", "{}", false, I),
+                ep(HttpMethod.POST, "/parking-sessions/" + ID + "/unpaid-flag", "{}", true, I),
                 ep(HttpMethod.POST, "/parking-zones", Payloads.zone("Z"), true, A),
-                ep(HttpMethod.PUT, "/parking-zones/" + ID, "{}", false, A),
+                ep(HttpMethod.PUT, "/parking-zones/" + ID, "{}", true, A),
                 ep(HttpMethod.DELETE, "/parking-zones/" + ID, null, true, A),
                 ep(HttpMethod.POST, "/parking-tariffs", Payloads.tariff(ID), true, A),
-                ep(HttpMethod.PUT, "/parking-tariffs/" + ID, "{}", false, A),
+                ep(HttpMethod.PUT, "/parking-tariffs/" + ID, "{}", true, A),
                 ep(HttpMethod.DELETE, "/parking-tariffs/" + ID, null, true, A),
                 ep(HttpMethod.POST, "/accidents", Payloads.accident(), true, I),
                 ep(HttpMethod.GET, "/accidents", null, true, I, A, U),
@@ -86,20 +85,20 @@ class SecurityEvidenceTests extends AbstractIntegrationTest {
                 ep(HttpMethod.PATCH, "/accidents/" + ID, Payloads.accidentUpdate("VERIFIED"), true, I),
                 ep(HttpMethod.GET, "/street-closures", null, true, I, A, U),
                 ep(HttpMethod.GET, "/street-closures/" + ID, null, true, I, A, U),
-                ep(HttpMethod.POST, "/street-closures/" + ID + "/approval", "{}", false, A),
-                ep(HttpMethod.POST, "/street-closures/" + ID + "/rejection", "{}", false, A),
+                ep(HttpMethod.POST, "/street-closures/" + ID + "/approval", "{}", true, A),
+                ep(HttpMethod.POST, "/street-closures/" + ID + "/rejection", "{}", true, A),
                 ep(HttpMethod.POST, "/street-closures/" + ID + "/activation", null, true, I),
-                ep(HttpMethod.POST, "/street-closures/" + ID + "/completion", "{}", false, I),
+                ep(HttpMethod.POST, "/street-closures/" + ID + "/completion", "{}", true, I),
                 ep(HttpMethod.POST, "/operations", Payloads.operation(), true, I),
                 ep(HttpMethod.GET, "/operations", null, true, I, A, U),
                 ep(HttpMethod.GET, "/operations/" + ID, null, true, I, A, U),
-                ep(HttpMethod.PATCH, "/operations/" + ID, "{}", false, I),
-                ep(HttpMethod.POST, "/operations/" + ID + "/closure", "{}", false, I),
+                ep(HttpMethod.PATCH, "/operations/" + ID, "{}", true, I),
+                ep(HttpMethod.POST, "/operations/" + ID + "/closure", "{}", true, I),
                 ep(HttpMethod.POST, "/impoundments", Payloads.impoundment("30777888"), true, I),
                 ep(HttpMethod.GET, "/impoundments", null, true, I, A, U),
                 ep(HttpMethod.GET, "/impoundments/mine", null, true, C),
                 ep(HttpMethod.GET, "/impoundments/" + ID, null, true, I, A, C, U),
-                ep(HttpMethod.PATCH, "/impoundments/" + ID, "{}", false, A),
+                ep(HttpMethod.PATCH, "/impoundments/" + ID, "{}", true, A),
                 ep(HttpMethod.POST, "/impoundments/" + ID + "/release", Payloads.release(), true, A));
     }
 
@@ -360,13 +359,13 @@ class SecurityEvidenceTests extends AbstractIntegrationTest {
         assertThat(ok.getResponse().getHeader("Access-Control-Allow-Origin")).isNull();
     }
 
-    @Tag("bug")
     @Test
-    @DisplayName("SEC-DATA-01: el JWT no transporta datos personales (DNI) — minimización")
+    @DisplayName("SEC-DATA-01: el JWT no transporta datos personales (DNI) — minimización (DEF-06)")
     void jwtHasNoPii() throws Exception {
         String payload = new String(Base64.getUrlDecoder().decode(token(CIUDADANO).split("\\.")[1]), StandardCharsets.UTF_8);
         System.out.println("EVIDENCIA JWT payload=" + payload);
-        assertThat(payload).doesNotContain(CIUDADANO.nationalId());
+        assertThat(payload).doesNotContain(CIUDADANO.nationalId()).doesNotContain("nationalId")
+                .contains("\"sub\"").contains("\"role\"");
     }
 
     // ---------------------------------------------------------------- Resiliencia REST
