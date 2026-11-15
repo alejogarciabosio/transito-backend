@@ -5,6 +5,7 @@ import jakarta.persistence.Embeddable;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -21,8 +22,10 @@ public class Location {
 
     @Column(nullable = false)
     @NotBlank(message = "La calle es obligatoria")
+    @Size(max = 255, message = "No puede superar 255 caracteres")
     private String street;
 
+    @Size(max = 255, message = "No puede superar 255 caracteres")
     private String crossStreet;
 
     @DecimalMin(value = "-90.0", message = "La latitud debe ser mayor o igual a -90")

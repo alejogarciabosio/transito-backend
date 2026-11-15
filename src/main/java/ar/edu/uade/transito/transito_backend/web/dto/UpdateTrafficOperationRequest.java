@@ -9,6 +9,6 @@ import jakarta.validation.constraints.Size;
 public record UpdateTrafficOperationRequest(
         @Size(min = 1, max = 200, message = "La zona debe tener entre 1 y 200 caracteres") String zone,
         LocalDateTime endDateTime,
-        List<@NotBlank(message = "Los identificadores de inspector no pueden estar vacíos") String> assignedInspectors,
-        List<@NotBlank(message = "Los identificadores de móvil no pueden estar vacíos") String> assignedUnits) {
+        List<@NotBlank(message = "Los identificadores de inspector no pueden estar vacíos") @Size(max = 255, message = "No puede superar 255 caracteres") String> assignedInspectors,
+        List<@NotBlank(message = "Los identificadores de móvil no pueden estar vacíos") @Size(max = 255, message = "No puede superar 255 caracteres") String> assignedUnits) {
 }

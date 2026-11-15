@@ -1,8 +1,8 @@
 {
 	"@programName": "ZAP",
 	"@version": "2.17.0",
-	"@generated": "Sun, 15 Nov 2026 20:12:28",
-	"created": "2026-11-15T20:12:28.201277055Z",
+	"@generated": "Sun, 15 Nov 2026 20:37:36",
+	"created": "2026-11-15T20:37:36.997795504Z",
 	"insights":[
 		{
 			"level": "Medium",
@@ -10,7 +10,7 @@
 			"site": "http://host.docker.internal:8080",
 			"key": "insight.code.4xx",
 			"description": "Percentage of responses with status code 4xx",
-			"statistic": "88"
+			"statistic": "89"
 		},
 		{
 			"level": "Info",
@@ -83,14 +83,6 @@
 			"key": "insight.endpoint.total",
 			"description": "Count of total endpoints",
 			"statistic": "240"
-		},
-		{
-			"level": "Info",
-			"reason": "Informational",
-			"site": "http://host.docker.internal:8080",
-			"key": "insight.response.slow",
-			"description": "Percentage of slow responses",
-			"statistic": "9"
 		}
 	],
 	"site":[ 
@@ -100,166 +92,6 @@
 			"@port": "8080",
 			"@ssl": "false",
 			"alerts": [ 
-				{
-					"pluginid": "30001",
-					"alertRef": "30001",
-					"alert": "Buffer Overflow",
-					"name": "Buffer Overflow",
-					"riskcode": "2",
-					"confidence": "2",
-					"riskdesc": "Medium (Medium)",
-					"desc": "<p>Buffer overflow errors are characterized by the overwriting of memory spaces of the background web process, which should have never been modified intentionally or unintentionally. Overwriting values of the IP (Instruction Pointer), BP (Base Pointer) and other registers causes exceptions, segmentation faults, and other process errors to occur. Usually these errors end execution of the application in an unexpected way.</p>",
-					"instances":[ 
-						{
-							"id": "10366",
-							"uri": "http://host.docker.internal:8080/api/v1/accidents",
-							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/accidents ()({accidentDateTime,location:{street,crossStreet,latitude,longitude},involvesInfrastructureDamage,damageDescription,vehicles:[{licensePlate,ownerNationalId}],persons:[{nationalId,injuryLevel}],originTicketId,damageDescriptionValid})",
-							"method": "POST",
-							"param": "crossStreet",
-							"attack": "ajAPAqiwaJFRRSxcQIrxIyHajXydhlxBIQwJgBueTHuZZJohbYlHCLgyFcUCnFIduaLDwtEyKdpmqAkgtXnuNnFOFdxjudJIiNfZBmQFVfTRMgRvGZobEFOmbnJJlIHwLCJRlBFDDJcJLLIhUpSCUpgJfhJSIpbvVMqdQJXlDrBltyLpRvcFmDQIIPQCQCOvKuymxLHQcuAJcjOdaMgZdTZYqRmXmdiuPlNwGvelxJYpjZvjUtBRQkWZPAQGQFFlfJCDJhWnyydVEHOlCDxEtPnEurusRLsOPnppStuuoFaeMJdCvWAijDowVURUbSDSTAFgRpPPaZksGSUngldCrabTkXNtQBFybkmmCWXCYbfTyodTlnwEHxaWjWjfkrOwbcKKXeoOfOOEDfZogrIbpKFpRppgnnLFVuVdGNOCaTKqtpqnqpsWUfLcfqSHWWmAyHBJTZlwiDALeNmuNEnieoSnqKNLYiWEDjKtdhADcrjkGujEJWhSbnvRLFsNuUlqnOxnEsnsnHMUnVkPbgfSclZWGUYgjuvGDyHijNTcmfkeTCAcVQvyrSFtEZyoYbnLmcxxRImcILkBDYLiscJrlTytoputYMQYebOwyQnZlXCxXbsaKYhwwlhZahwLADbxGDuqAtXgGBIfsHLFYNHVxYQuqLoywdsEfnGGiZolvekpUDvNrusTFDMQucikYGmRwmeaTcsZQvoMMUJkpEQqBCxNLheDoivbHHKNMxVIaXbuoajvjnynQufYhsyQcvZaHHuvCDrJWEClLXNLGQSOwoELnCsdTvTcvJrYcdfwVfIeMsINdVtaYLXOUfWxaWrDkBrKgMtKoAepYKTIyFuusMohPYgEhCEAUqjlwmnDftEyIcBRcfyRIpjiKotnWoXTQNPeanOTntFKxbutjPUSdLSeQuNyttYWptkhNefhpsDXiHjWuRQjCKAGKAqVNMpTgESkfAeuHCvffPBPoyFqIWuqdONZtAmoaWsjXAfTpkCfhSIoNktwsBlXVrYotgoLomSHgJWEAFYdKGMnDCruuNKTbBABOwwCWMfWCgmrdIWTCtvLMHTlkAKNxEvCKnwtskbAUwgqufEegkoSFPEvSVbaHyiDDkiNcEgZnrBLjUYkSNdNiFBwLjVJEJsWdGQgSoJDXXslyHChSNBJSmhYcfqvyNGJueONhvwrNoWXnFqYSlEIuGHlTRGQspdJQiOuAgfdEtPYBiPEyjDKFcLUjjGTFrZciiDqexHbgdYIsCxSaNpKDTHewStqQmTDcgGufewKvoFYHMXXWPMrQhZExQiRbRPSgIqHiYFTBgsQEPvLawfNTKctFqXOeJCAwbLvAEraHPFPseeIsJnTnCPyGjpbmxXXgqXRnahSobublGVTonWraoZDOBETlNvJGxigkGkwNPitkOxElUThlXvYXdSTutISWscgBQGeTlvCMoOqSYUoRcBEeKAtPnpFtthOHTnIhscLxgmodUMLCUukPChnkUHgCaZNdflaEwBbxwsGtLHBwiDEEqqSxnlYubOmgivqYwuviPlJCMQGecoFYRjHgpeMGiTbyxqleTVvkRTFtZxodruWLgbQRNUJHBhEyRxjoxReSeTQwTduwKjWLFeandnkwDaiABDTtGyHYQSilVvVkDnmNnOdNGbOtnhthDSTPmGrrgpiIcCbFNtBlTHLfrxFJZXIZYHBWpLOnBhprOhMVYyamFhChbIffliVdoUSqYsmRiNIUqcbCVwMoiYFnLQWLtWjyBTuaNyeplCuDehUUdtGTeecJtUsYyvffMoUwcJpOQsEcQoEGqBMVlUssrUjHtwJyObqHjqNCQGdoRIkmlHPLbfBRwLuSJqOOmEaYialZwcTPFIfeZLdNZeUHlOkLSlorXfHxXKkdiWALYECeOHSqwPnScwHpoivfNofZHLMsJnQtmaLxHfDCkROdANIjuGTUTjescEswUrROrVTkYBxHnFEspRtpPkkZICFxoBsxpnaqclFRTqMJdYsGFSoLKGydLdqfWNeTNQPMcPyEpXoXVopTvoKhpbUNjidXiFmmkOqkulkkfblPmqsYPEgngLXmGgAQOvkuYYTnWpXagrT",
-							"evidence": "Connection: close",
-							"otherinfo": "Potential Buffer Overflow. The script closed the connection and threw a 500 Internal Server Error."
-						},
-						{
-							"id": "10397",
-							"uri": "http://host.docker.internal:8080/api/v1/accidents",
-							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/accidents ()({accidentDateTime,location:{street,crossStreet,latitude,longitude},involvesInfrastructureDamage,damageDescription,vehicles:[{licensePlate,ownerNationalId}],persons:[{nationalId,injuryLevel}],originTicketId,damageDescriptionValid})",
-							"method": "POST",
-							"param": "damageDescription",
-							"attack": "WYLLfCBHYPgGvSXNusHVgtoMkdAaASEqwsfAVjPogbfQrHjrBbDiCRhRcwKfOltkkOqCgrmQElEHKcMqDEqFNiswuRPpmiQXbVkxdlSAxyZtkEPEiYKjlhZQvoomcrtvBLoTmOHhqUeBKYTpFvZZlAbVMQBHycvBjtnlNfLkBVfWRnvthGRRLVxdsSyuPykIBRBXpWIjuOnoyMbIcYFVycrMJauQbjHpIClHDakniIDDIivChgABoIOrsZvccYFicFOqEFmphKjrKKmlSGkaaCHdePURCdWQmjXNcgeKtTdTchtwrEsSaYDaECblMbAEVKrUlpTAocCUSXkORiMKOtuoCMdiiykBaYhUWSxsafpXCokMobNaPimOmmMblPixOChtWofOtmWClyKQPhlfpljqFjvcSrDLpqBfeXOidUahJNvdMqxDYGYUOWFldCtiexipfyKHVlCbBKObnIXGoNwOBgINKPZPYqDFpoAKXBfbXdIvhpeZPDROpabwwOOPufSmZvmAIPMEExkktvAbeAdNUUBTPQgbGNfQNslgGwhcYRrubjjjyBQgHWhkmPDwyameNtyjouUwdidVlpIwACSpClhntcHLXWKfAPcLkVQEatMHCUvZjDGXuIjOWWRiiPwgZIPGybvdKXsLKequZAWpIGngPeZttuLVwBPqxtiruVNXsNixgWDtxosVCOedifptUMXjtXMuvGRgGaRhdVPJEmGZECvKVIlZeSJvSARSDxRQhyWCAkYbPPXSrySgMlCbKiHKpgZDgriPoZKexjpRhlPPmsNAlilihVxqkLtytSYHiVVTeNwECbKcGvBOlHxCPvkvHIKNExMGodqtcYjbRQyWhQMHqqnIQaLCyaGgOfKvvlWbxTEKXaNtlEEHnmBREbFqSHXmIDvXarAoLbKexNnkhMmFqVLMuIxPoPgEuvePtAbtfLrgJglZEqVQOYpQmlvesYECrPMVVmMWEYEexSupZxSjxhscBaxUcgKDalGvElKmixFrYvqVbuQKmHOcRPfYVcdUdQSGQcBHcorcwqBCTqMiWOtQUSdQMSZuuIxgeWolxEATqsjnDCfHSrcIgCPLlWcmGUBvUiRkuNWvLfswFuvpZyFgMCPLyWWHnYhgkByWSJylDxREaeAZjeRteTPuoBsFfMDcHOvwDhUbKnBLucExnOVpEFjgFTEWdIaJXcTrWKhufbZVErKWrFTMEOORXGhRUlejiOGTftKaJZORXHTiEQxLRfPwCHPPYeYREssmOspVaYMwlHOVBqUUTmDSoLGFaapQlEoAnWchSfpvxaRvHRwtXgrFQQRASuVUeDcWxrrysCbpmZDtwHoQATCPrQveriafmmLXBhmIYrXkhyINwXbuMfmoKATnXWwActeqWxDggAqUZEYUVtJYkUOEFGdOOedtYEfSPRLRQfuRXvFUrBgOcblTErlWnAOGotQsyfPRyBJUTixobeRukuxPGJFasoRCjttJCLMHVqXVItFCKygAXHtDJInqGanBTMVLCJigYsMwaintwDlrjnuBsQQlaTkoBnjXwrnjvfXLhTdIUVLheKiWMHTXRwhJWoSLyyltmwAOctyvQLxHUbTvZyuVFvjTHyCUwXHcGCdOJIqkawkmvHgVQJhncVHHajttUQhVZlyuBYSIJtBVaxhZegUaPQsLZmrCVndogTmmbcGKHsfVUjjfgpuKqJdiaeZKyqDUoeIwTGuTaMPaeVnJKsCcnnyBVwnyrCTONUmZKQHsCgouxYfQmEZVKwPhaKMRnWHSxoTnnqcRPFyCZdRFmiPMdmoZKAYknFZMCGCRLUXKwlFFwqCgSiiJOAtyoCmfZJSVGFwSgWoSnZerpJogeaXhMehNLLmEbmWHvTQvibNUXrNnxlKhcAsJIFJrMOTpndCGFEMWyBqDEYsXXEJIHQxdDTYgZqaqJWiUbpLhttsRnUxMBImAhirrHCipBclqvKaSvYWoegCENhvXPnIaZJtCdTvGOQivgEekBbskdmSaWBpebiTbDnKjfEUOSbDprZIjmGVHuLfYjjavpuEvIjdEGKUqcxBTCUHbPGIuxSiMyYxnIDwUhrRkqpKEusKr",
-							"evidence": "Connection: close",
-							"otherinfo": "Potential Buffer Overflow. The script closed the connection and threw a 500 Internal Server Error."
-						},
-						{
-							"id": "10407",
-							"uri": "http://host.docker.internal:8080/api/v1/accidents",
-							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/accidents ()({accidentDateTime,location:{street,crossStreet,latitude,longitude},involvesInfrastructureDamage,damageDescription,vehicles:[{licensePlate,ownerNationalId}],persons:[{nationalId,injuryLevel}],originTicketId,damageDescriptionValid})",
-							"method": "POST",
-							"param": "licensePlate",
-							"attack": "fhMdvhpLwwMbNhWuNYaBNxvrbMHHulcQqAGUYiiQfaLrEODNQiIwBVkSNLSasfFFtjhXiaUgrPFcShNIIRWIHUbBAcIpphkNLAmhXYcSpfbUhxAnBOJFBUiJbAhBrPPAZiBDgwiHDtmdgMfpjMTvbtcBOSFRBVlwGXvNcJldjUGCbgBXEdZtgdJqsbkaAnhmrKySSpAtZqANaKAmdeSHhKJkRXkpXmrZlULxucaUAniUGqMXtseuZZcBRRmyaQdRHhCKGQqQAHJEoJAxPNKQJdQbgSQUBXSqDwaPrIfSGEQFiXZdInSYbcEwjKxVSwwZjUXcqlJtuKwvWgybJDBAwxesNrAvyKMWapiQXRpkAFjZdYUIERgpZrFSlqCpmCfycRfleOkMrPeRyCMiBIbaCEtFmAmRJuDMoGiqHplWegLXNpBZJPKGapwWDsABBBaqwkyZHXJQPHSkyjYCrbuRhXdTrvxgtUGYmUaxOYkOEBxHfmMBmKCNuErdioUdoebDnZeRQXKnddFUHrpwOqfiVZCCxKnflqZNMXCvwDqQTYVyOBllRfcREQmKhpYfmgBTTwPSVilwUpSnngUwnIPayZlYTvcseQKgbXjbcPpPwEfedyfwFZfxrdaOxadYkANybFZhPxbHievUgPtlysEwMKsDnhecaEvKDjwHgqBlZMslBWsaJGhEYZtZFOSJNwYUCheHCqRiZumyXHHnVmiilhEafMVgibhNfSaACgWrmJApjrsWubNqGvyWPHEujBBngsfqiLUpdZRaqfTXTyyrvaCOEmNkMIJdKantoIJgsCKvRXlAGfgnBVYnKyMXYPKabgkRvCaMQGxKILAxMCPFMbetFgCupHNaiqarvVTYVgmFRKQNHrkbovREeLFexEdnkYipBGBUEGKOKBnUqrbsPDNwhYbYTNpbcPkimjfjXIknFjaGwdmgcddZAxsdhbCWyDIGfDqnXebQHIqVxhPhQHFiggYEebEFELULsOfJpaQxDkLNxBEFPbQMpokoLrdXcRBcrVjwveJamgGaBPkYoBYnsHRCfQPAEEopwcLxNmrshjFqhnPAUhOpuopEUDTeJOERICHAiINqGQgVCOQZjehVnGNEjjGCWStPnnmrgSiPPATrGXDYdkmHGLKHhCcxDZRPjctaCirFtHaRVBPVrqoBpZNJZEfsfnrEbYbQrMHYixPQhhkokNoXSQmSfwkoVyJwHkceJGcndTLBwVJARETaCPOuxINEvVrVFugalHUrmULHjrYjijZVdVSIQevWgZRJueMoPLibXVHKpadRBhgbvZNdAimNKRWSUQuanjHjxLfTPvMBXeKkFOWmmYTwSJbDCyVgfrkuRnBrhRwwNQnmOobjllGWEFoQyASLHUGtTAiqKRMUhbvrULhNhSkNwkJjnCMnWPeqFOjscnuKggmwuUOMJWQOwIPMRebbKfGZpJnuGnbwcJyYlZLONgNLjcqvVhlagGbAwaRIyDwJIOSUvuHnpQbbTZfcgmWEsxHQiHqNhYVLdVCSXotXeyrCPOVcytbfnGfNogbbNTHbklXWcRwMemoOSnqbuqikykRUhBLhrMyLPBICsYXKjFRTnAqsjlvtFdyZNZMTSsZjJDoLpTYhlAmkyDwWkJyLIVXddeSwVRhAefthAXtAeiXZZrfcyyKpvGevJbghHHRQrRorTtoEQKGtaeWiGaOftHrFbtMZbPWSwPPvWSGybmDjlWbeedaACVekPMGLjjCMsGYBKxNKRaVVNmbmcmSOUYNZjrsRwrOpxNrbcLJLMHZNMfseRhfZkawQpZsTctrjucfJCPepheJLYtNWQCyAREvaZBnaFGGBXEVpWJqkMGOAXnTptIAjocHHMkGpKRPWpaZiaBdCTLnTpFuTlnQcqPbwRcPhNrSyCRmQZmIXeVECvBCLZmTUyPekSRbVoxaZBixNdJeEUtLYMoRLvthTxgKHCqwPZesaROCdxnAUdMPyhASFictWTbXsCGOJxhpMtwPYZvJVCFNMdtQEkXMuvJOcoodBdJFPAONveVIRCPhdfVwgYeXXUdyotkOKBPpPYHoIJravALYrhkpHEUZXiMckpjOXHKfg",
-							"evidence": "Connection: close",
-							"otherinfo": "Potential Buffer Overflow. The script closed the connection and threw a 500 Internal Server Error."
-						},
-						{
-							"id": "10417",
-							"uri": "http://host.docker.internal:8080/api/v1/accidents",
-							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/accidents ()({accidentDateTime,location:{street,crossStreet,latitude,longitude},involvesInfrastructureDamage,damageDescription,vehicles:[{licensePlate,ownerNationalId}],persons:[{nationalId,injuryLevel}],originTicketId,damageDescriptionValid})",
-							"method": "POST",
-							"param": "nationalId",
-							"attack": "gBnUPHDrclWmKUfHtSUDjuEEaDYgEHSZLtnlGdhWqilSuoeumVRNdNtDnRXecnPnGAoCKShoPHkdMAdEUOuZLkGDHmxOvuXiyGliwlXFVIfHmyasMuKsgYdhYOsdXeNESnjNdEUnWaJtXJtUttaLJOHXXTcPSIEIRIOWKoleCLoBxDUdYACYFfVaPTHABubOElqlfowxjxmKuLbYRGeYMaacLrEXZSqKRUgfykYPGQgRHfcMNKerbHLiniyJBqEPrbMfEOftGkOGkHEntiNsLkEMtxRehnYcfaeBXGbeeJxdNNJrHWZSqkCmDMaMydbrSdLOvqJhiFEAUHNVVNUMnesMPbtnvOdaDaZaRsxXeGIoccXGcJmUCcISoOPyEohUuHYAslAFIDPIiyopmTMStDSlCPrOuTkpkKAVGhpjVBxJVckNylcTYtCyanMWAaKDIJxCMPFNIbunAWUBZwMkbGBTFpxGMcqLxNeICyYkDUjHriATvCBloBHshDIoyhTKbpYixwqDrQIwwURaGMJNtAQwAPCIIqiPeYmIlRUoyCKNosNdkOyFaUeVLHVfIcQPZtjlCGLcwOgoQVUWvLmNBPrlIVdIGWWDxZSORcqeQjEximXeutlKYQtqFsiJvHPHfHsKkUmhDvFEptCBILhtBeCQHBXaLAyHxQHTSTrwgJppGfIiCsRcTFDZmWbExLojJXUggdpDBYvAPaTkiWXFVWlvhACWJdvWekNjgLiPjgoAsQKZafPXeGaXwpUpSuJxhBSTPHvJqfubKQXxiGdZvXFaaECSEuLKfTiESUbPugWGgqeRLujfnRWajeFqKQZdKGoDMwAbFwHDnCERVybEBJAjddpLNxJwkQxjlZRfnFckQBTpmOegoGHGBouMhkWlJiAEvLCEGYxWOGhXcbXENkMwkunCrQBwIhSkVXoyTbPKlTZmhYXtltiqsZGJuWoKAOqjWvvoCZJsPoooYaZZlEeYpywkYgosWVJTsicFhEBWFIKcFaNhVqhOYQSLYprlALJMgWeyMXfeRELFakPSfinVQSybyYSxpEUTRSwKCqCxNRdEbRsmuHiboWPdFmChYOckJJvDtJhZvAxGnueuyaJoGbhkkeKVpjBinrQIaDwhZYHjwoSunbjvvKUSyRWmciRGDujcQMtKZMxVOMUXSrRcBLCHaToIprqxmlYPvaypNUnFDawXmOGJnItHCEqytyFeeMddYAKeRVuTuahrFgVSrkPQuLqnAtqOneDJXVHkatggDNutisgsQttRuDZQnRKLvviCNcCEGwRoDIAvFJPJWItsgbykuKJVcvueubCMLlcFDoOjlwHLkkvXijRswDTgtBnjceQBLnGAPjZauSetKDSlGYdrSeOjMbFEuBamrZKpoAXbxVqZmyGuepGJdNPlOMBiGPViyehvqTprRXntFsoyHCyLNtKwglhABTkXLyJHoHfMoypnESLEuLQgwTuvYtGMwnqCkDyOjrKCAtRrMllWvsrNGvjNhHnLMJWSnLJPZmbkbrFeXtJPHKoBudeNwQgkStbYxhihclhfBmHNgmxZUTBOwXJZmWUGntJoQAIQugSoNWZVykNfUmSjFrENMHiLdMOuWYBmJEfSbKnORYrAfHLFZZAjuLvKPkjqDwFxZHBfugBonQmSvZCKdtlXbyqoIRGEjifwugbdHJUbOoTyYRmZjfYWEZsxnNVFqmAtMoPcQRLFsmyYSKvkLMsqXqIeiDSGDujpQFHfWwuSQxaBttmkmehPQvZyDNAdVQMCFHHVFaVLqsURSbqKgCfiZiBFyJJVTYrsCgoBDYvgMJNNppxUwnXUdbLUdFfnHlLuLHlfLuXGKhtrLvEsKwPBgZRiFmxyBrQfPrVoBBwSjYCQGCnVqsrLxbAoBHiRJetUVerkaqZEJgZvniAwaVmMrvqhTredAthxrnltspPSjxrTCamqBTrlohNwoBYtbOoIMyablEnSbMEGMAsjeytWiuHHZoTqfsXEhuUslsilOhOwaAAgByGqUxphBnRBhHPIeBqdwLWWMdaHdavaegCEBJOtJeMUQfCuhhDKInCaHUFISnGglDtxpcWdvBFUbXfefjBC",
-							"evidence": "Connection: close",
-							"otherinfo": "Potential Buffer Overflow. The script closed the connection and threw a 500 Internal Server Error."
-						},
-						{
-							"id": "10422",
-							"uri": "http://host.docker.internal:8080/api/v1/accidents",
-							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/accidents ()({accidentDateTime,location:{street,crossStreet,latitude,longitude},involvesInfrastructureDamage,damageDescription,vehicles:[{licensePlate,ownerNationalId}],persons:[{nationalId,injuryLevel}],originTicketId,damageDescriptionValid})",
-							"method": "POST",
-							"param": "originTicketId",
-							"attack": "AcrEJdRGWCwFkJSEQeriZFGqVnJbsWFVRSVxBwsABMiVjwNChvSgmNACBDmcBMrSqQGLHgbgwweYuUHVLICsTisUaRWfTHQySBICIcEHPgMsEUmXESdvPXnBeUPipdIBCWdZwBdQyAKsknLkGFGYTfBmxncIXOhQOjXNJuUSbUIaciWyShuCJFpXoFnhYEWFPNBixqbXCCeCQBRlnDtZUEXLYUqPhxDeHbOeZxDVQlgwVBTCPKwNkPNBTNLXDWrDpexNvBvOCTOASJtkfsHwifCLLDImREXwKfuRoWfYrbffUEveXgVDGfjfjTWUIMXUGpGjqyjFaCPvGRqqxQXNMxQdjxRvjShTTvZSSDAsNIYMWUQnFhXkTmDoNAAjBDEaHVQAVqgujdYIOecTyeVetwvIJrtHUyEbbyqhHKsMHbuSCeyPWFBZlbBQUljfFyPpRiCRgnEqwrUAdKEhbXwnOjLmHyBePyrMHUjVgAbrIclLGfnGWhTVIOvlLudOpJsNQtFEjZFUMdMyWfKSTTUxeQpoGZrWvZidynblSrGlGrQKuTvFgHZoylLvdEejVaHWWpNwJkkFdfBGFQLEMLbsxYXgvnwvfFPdaZXlXnDauqhPerqyEbUnqtPVYsqxaEsxesjvWbiarFqZgtAOZHONKJwifHWnJjsXRYguCAFWqbCCOQCIhCYdCLAxCudDsKNHxEhmVnKfsGruGXGnHMNdxeExWBDxYHECRxZseMPgEtWTVfiWBeyPJiovmMgkQfrVToCZyJHYTBDfsFnCayXpXuYcDbwOnfoXHMOTiesGrBoXFasYgUuGOIWOSrKKgtGeVwwVswgHhBqOEGclXwlOYsPVDylSexgfYJmOoHYAbBJAmJAkpClVSEcGDveIaowkxhMUVBUvfDvaHvFpvadwBhvnnMnTAhbJxhlTtZWwdEdGdBoxGGTtkmXomubRctVBVqVUiZFarnqeblEsoLQWeJUDFwoTYPVBuTFJYBNDZrAeotMKhNanwbuPVatLNuMrAaDvynxcEyRbyDPBbEbsYIjYcLEhhPmGMyoBKuithRWKPMMnayFfclFUxKaPRcfKqbWGXlnZYFvgvrUDuqErWsINuJvbiDSVmsWyfxmTxokrTIgOokxdtmrFVKXbnlibhYxVJWULMeAVOXEjeyFfNElLXcwjEbcjEBaRGtFkgjpIOxibhNKjrNOfarJKWHHykLjSwvNsnVgqwDaksiBdjXGJQhKVKRNDmHJNRItbbutpEUOFoZRTZclDJjywGMTGiTrFobkDbKeBSIDhwfIpJuUOfCdwvLwbGulxOXcLCTjXsclhUemjLGtSGvnQeEWIGtGAUxTponKomadSNILxxynvUjWWhDdRjLyFilVkKXZrtLPSUiGRibLUoIlSdPHsFaWAKKcwvJFkmKAisnOKNHFVWrdIYwxFbJDALaeThpjHKsPsUOVKxcJZMggmisEWRuDaxnBTjnIOjKZyTyBljRIAfFiTDqMpthIZIAqMGYncKudhFKDgJehkQZdPVdcBIfEpEhlpqkaEUTRyhoQVutcmlTCJJVgrErWNKGRwKADrcrPKBxtSQNmJiltTTPdhOwTSerLuEbjgFeYSmsSTJLGUVojsYtjFeMxqAoXXHeooBsqYrstuddjZZbYZTJmobUjpkJmDfpeXABHnwEjEofMMAghsVQIdBTgVJpAtbwTdTyjHsAfeNyAfrZdambHfkKOwvVQRboHOHxdLcGtVGvsGPQilCyiNyteKQPojPhbnWDJmPJgpoWtlKjXaBjVHlofZsWIqwghoXLWuFUAhcivmRdYIvTUyBMQUrIjJbKEgljhkZHnupSlvIKQEZXFfJhmfsFOKUPugsjvfTNgNbmMXNjLTGmBwiKuRtCvoNUdLOdWKUIhccAtObWLQpDkEIlDOZDLZButUHvbiCVprJZNabOgKIsnJVPckuEOFpaDXYPkleFpakrKJXFAcwedjAfoUqTgkvwAVTCpwmMTSRWNStXGYhTsdvkiKlwFKwbQVjuZvvWFFVASdokvsZkNSnOIlvtoKaRQHsuYFOWiGLmXjFJwBgPgbhOPieIrcEQtEgfKqqQDe",
-							"evidence": "Connection: close",
-							"otherinfo": "Potential Buffer Overflow. The script closed the connection and threw a 500 Internal Server Error."
-						},
-						{
-							"id": "10412",
-							"uri": "http://host.docker.internal:8080/api/v1/accidents",
-							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/accidents ()({accidentDateTime,location:{street,crossStreet,latitude,longitude},involvesInfrastructureDamage,damageDescription,vehicles:[{licensePlate,ownerNationalId}],persons:[{nationalId,injuryLevel}],originTicketId,damageDescriptionValid})",
-							"method": "POST",
-							"param": "ownerNationalId",
-							"attack": "PiBITSOOhfMMBebggLQiDDnvZmCvpEpouxLCyYkquMOtPYeNFRhQeTyoOpslcxbUqyuUtGJFWuafkGqnWGoveYmZZQByRDvYfOoCPSWxFdNpasGWOGtyNMDspvtncJQsGFrvheBKXiUrlQCKxEyrhjikbKcxWVQVtifqokHwjbCqboNKJauEwMMMuFmKfgALQCyaLxMdRkJjYctUgknkGiBhnfoYGCXlorKMZPifyhBjaREZlGRfQDAVWKMvrMSKkcOHhQySLVHoeWFCxCawJNGrwPxhFxpGHpHrXLXvSBjuRImbHZryblBpGTBTPlcNBHwFkKyfrFoPKKMlKPupPRvAbpdSKArFScSnrsfbDJPprGxcQIRJqrlZIPSnkowhheeENvSSOqtsHGZBchXpDTAJQIMrDOEYTjJPGUBEyAnLmnDAXwJefLwiYlfAQXcHhMPeQNSGSSeDcTKmaCpKOihBlJuGlZGjvqgGvAEmsEqiPZhCInEPghoLCZVdkQwkjMuUctLQAILVyPmIoGnGpOsaQXJJJiBltEkXPNOFqvvUnqFpGyalrtQnGIcHJuYuvClBtgHkTSalRulbedChMwetsSrxYfpgCcbCDeMaaSjaZvGAeDZyFALxixiIbchyXdWJgrLXlmxLSoqQkbrkupZbtmhNyeppiemWDgfGfvpPGqDPRcfWWxCxZdBwFWbkwgsKBcCZPSFWNAPywGbJhIVaZZYVLZQjwnnmZvvKXLXmKZVGWdjxISjUQJlxSabJbxOSBLlOHesBeKtBVhurCEFEaPMcGSXdAJlqQOytNKQHsMlTrmVFIjIZZJDlKwpJSIsjTiZRNJBpEdQYGwhTJBKbQxsckSMlRrNNsbbPtWUIoTFNMELhbRNDwyeWomupVtAcSMQBPgjPZpuwYNXKyRDuFaqhLLjyReRZfkrEGnVSHOBKXQDZSmBgdRFLkVtMCrKDpUjWQmbdTniKJFdGFcEyqcugpfewPUxWZUqfFLgyFCxQmkZfrJBeMpkWPOXdvKEZSAsqRXPBbAvAwlqwjCCwLsvOPyMLwRMnleYLuEwGaJgFyjiAuVqCSTpdKkJvMSMggAXtCQJiGqSEStuKwifMgnvyfssPyhfcxMQZQvFEPiOdMHoTbewZErjoZXulPUCndbKAnHCnUiBrLggObsPNSpbcCqZFCMAHThMTpXKPywmSeoFCTkeRdWZcpuluamLYYwjgMBqLBJuTgngYHJUeFgRegeUDvtXdckNyOMbZdimAnwwpHEMjRmXgIYGxTMIbePGbMqAFuaRrDhmsmdNkWxqSynuwQcKsAvtuRvXfGXAshWvMCOlWgmqMvIlQXOxTABrMMkmEftvEiKRTcJgTaJNhtrmqjwyMkxPioUSDdRNqiGlnrIHwcZqISGFMJFaWOmnwLPgcrGTyUKEeRmaUAbQmijfBLfJFALGFujaXJONqPfLcNRkWNORLojXhglHkIDRNwoQxoqthdeXIldfIIilxGsesrSdWNMkPRhJKReeKCavKAUypxZVYwbOFpESobaQPYexrHKQvIikTglRyTXADQUslAonJTMANyMPqZWQLkhpxYfcqfUuSehAdvhMjaXwJZyMtnBadKWfnJAGJRBlOSMiLekfuJZrsIiFFUyQFpllAwJRNpbORvMfqsUrXcLpPEgdXqZLgQcXSyQRoQPGixeRsqGFcOojmGrEgsaBjDYVwrYWYLGIHINJiRGIrnpXlSJPNQGwZnaKJdOsGMUYJwPjpZsRXTRSgNEuSxetvdnxDAfoeQFFWxSBjFnKLuxDoGQAFlkrRhgZkOPACMeKfSYAtrmQVABUiZUNbsDUYMbDRNMfikmhNHesdkEKKaOfPQKQNvejvmJtUMJjfSmyLhsDVKYdHqgivpmBkXGSHmXEYgbbajmMQrmDpuNoubUEIYPVmOflZUkwlfykYcBAjNNgxNuiCLdfqbvxgKUIFbgERvmLqbaZYtQEpxQShXsYFTxuQInpUusHcfHYBZWBoUsjIkMbsmVAOILSRmnRuPedYiZiitBQQRtUMPomRPebBKPyJrnmaiePWmHwoNfjuBwHgpTkrWxcDWivBqCaIalVF",
-							"evidence": "Connection: close",
-							"otherinfo": "Potential Buffer Overflow. The script closed the connection and threw a 500 Internal Server Error."
-						},
-						{
-							"id": "10330",
-							"uri": "http://host.docker.internal:8080/api/v1/accidents",
-							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/accidents ()({accidentDateTime,location:{street,crossStreet,latitude,longitude},involvesInfrastructureDamage,damageDescription,vehicles:[{licensePlate,ownerNationalId}],persons:[{nationalId,injuryLevel}],originTicketId,damageDescriptionValid})",
-							"method": "POST",
-							"param": "street",
-							"attack": "MStZJbhlrUcfJBxposBUjgLwsMLraBmFAZskPCAfiKexiAQBpFBjQlqFAenstLqoNLAQLYMWmbTMRViMOyNmkBrlXWnXJNxESqcLWAYRsjDcdknytHXFgpwFUTumQBYqqiuvgeRVrUxYwMBgQLsLMtYxOeYlSOZCqEYhaqTOnxRTGjKxfRAECCuNXJUPFZtevtiVMbBAmemTtRXRggUHUPFMMmoiSQSZgIhWvRfohVBewOKVJeRZkFehOKvMOZxPZKwiYKEkVhIJPZlFCwdcMHwdvSVElNvUGRaYXBCTrGGwHKbHUCmihxrGqrBLPKXrhYqjqiGyZZPeGSveSljYExsURkAJWCTnIbZkdqhPvpjarLHEcVNvMpcUugmGnrjRtZxiQKkwcVrIrhDRcKZaquwiNwefhcyMKjxgAiJBgQDZYsLbxwwtHMJQjoIPgTvqyHCTdjTbbmBDKFahyjAfRXEIOYODawcSIbPebPFdWDsjatdjTdMkamMuZNmjAPpkhjWSxuCkLWbflrDYjcdaKcwYTqsRkQmCcFwXrCvYbwxswDMtwcaZlJZgWsVBkNloAPTWgEAnxcHUHbFniYkTfsHMIPyyYbyyVLpxuWOKdSpRMkPPNBpVSfJGlcVFBODEhycIqnMIkkoJeAtpGCHoIoxjnvIZtlPjmmmrTSbcQvjpQMRhMseZMiqpUBtbnpttBLKIdenauGZeeYvZtWmsYvbSJsPvYyuKlFiaAabOVHYBggyoefrTxajAoNdPeXGTHkvwPuBhMJwnnTsCdRYatGkWePyQaYCLdPiTSYqxTarcdMFeVHaPniPcdAdYpLETSgENgLmisLSXVQYtDPKTVcOnhVPQuQXvqrNYJiRfCctRTHMfFdlWdgFGNkmkdSZhAdoaqsbWgjfYgrnNwvIwDoaJZsakLryjbZMvuTDlnAwNlbxeBoMHhEyonEEbCvDuKdKKfVpUwSRgJXgIuGfBKrPcKQEnAPlWhTYXNVXRjVbmsAYCUsmZrbwVFSVKdpoHOciJcnIPuXQKlQGjUiHIVxfTjvVMvQwmURpXYieIiddRkntdjaVFqNUxcPpbybZelmommvBwhGTwMbdAXpfynuCvIhLXQkPwhAxdYkgvhZxtpFvQqtUhVojYvJIhiiCtcJBmhXkoxDfACWhcpXaEwvymEflpDXcrqVCrWvJldIrZfVHwUqUuanZSVvHDqPMlkRxcSZtwmHVXISdxdhjEhcdUSpxiHiagVmRcpYlHKJWIeOMmvTfXBcHgpEAcMaZRNrAtMeQWHSdSCaHInVoISxVQfPXHXMSRHWOBKmRWySLEkqbPHIeUVfionGPoomwGnFBfKfVhPboRIVMtLUOQCJxljsaiNKaslmxuyiwmuBNHnLGRkTtltxRicQvkNQsRsBTEimOsLQCbBgxyPPjaiHpjKoKJMVGJhbMsLRybMbEcHsSjLfYmjsWVRPDkdrZhMyrFUIqyrhqCywGZtVUxeCwoKqprmNCFNqQkAtQsWxcZwHKUBvdajVgMgEZHGsseHquQYuEbAYFGFcPxBFfXirslsAOmsabUeTEjYsZXCiCqSnkBdSXPiMiTqSVPhMUSOlOouZLhbRvpfYcpYZdDCOOBftDojfyvdHDuUajNErsQBsNksMwyiqxNyuirWKVlanEyVnBSUbAPSlWMlvmcxNBBSgAHHUIbWufueopbyRSEvdFlCsgIfDOnFRSBLxTaZXUyLlFcTOoMtpHLqOmLScnuFVMGbQSPdSQghLDltyDmymmLnprXXAImofMnbZalXywiiYPuRfWwOhKMgsTqHDlwfGGhjLIJUuxwhylsAIxCTivxqtADNgllAnFZSXQXWfmIJIBjLtRCFTApyrFgSUMOftfQZnysumdwlDPmWDUYcLZDgNiKLGIlJutgvjnIdQuJYpXfxGElkAVLMZYDYOwesfLoXUpjZYuiElSoMXmYKBGCdSObwYPfpLlxUPegbSDARhxqtMOoTLOqBDMRiLmuWcxceQAoaWbYWeQStQKCZUvXWxOWbbDwKpQmVHXuTfmQvtAvbpOMSXtSAjOBLIqUOuOuvdNLZPhDlfWLnWFXhlfswRbp",
-							"evidence": "Connection: close",
-							"otherinfo": "Potential Buffer Overflow. The script closed the connection and threw a 500 Internal Server Error."
-						},
-						{
-							"id": "10374",
-							"uri": "http://host.docker.internal:8080/api/v1/operations",
-							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/operations ()({type,zone,startDateTime,endDateTime,assignedInspectors:[],assignedUnits:[],ticketId,dateRangeValid})",
-							"method": "POST",
-							"param": "assignedInspectors[0]",
-							"attack": "NAMhUjTpKMoRVcXUWDXHPhYWemxDImLEpivwbXorslgGbIlbZlrbcWcsFlqvgVTiIqwAqAGdatMrpxHnFUFulcFvxvMOuujUTblcPKRCxBVeyIpGQbZHYZNiFuLHnATbhMkJIsBmgRlhjnMNaGOKbQsbblULfbxXqNRBNYTJDZBTlJXbswRiMoYDjIHvhQtMxhklMhMqESkRvcpCYfJpLhFGfxlOuoPbjKsXBgqqWHRbiwJnbcmcmcKwSoGBeOBpSQkrlFdyDNrUVoQqCYEYJBZXTGFqHwjSwuTPRrfssSPGqpVCTcvNpGPpyHYyUUdABIQNTvVKCZxqbeiFAuMpaveJCQypUtHmlPGkpeBqAfDceyhuRuqpOHcpEpiJcRQCcyGUphcOaNWgLpisTuslyQJncMpShjuuIbuBCsNBZtGuEZFHHFcfVjlTnGSYLXlxhLkpMfCKygnsafwcUQjvDlPvIduyOHYgjaHoZhnZaADDBBRBjvGfVndpoOZChJMlSSgUjRweLhsQdKdlQkObbcqilYmkRbCFYuTTRHGZarvOFXucFQITAbHnDybqDjBZfhrQjXYeXbhxKcLyYqpSFmWPqpDDULiSHiXaGrTiyMlEDupXRlPJYEWSQoUQgIVjhqMBkEJZvuvmfnNsOWxAgrxnDsKQNoxTKnpAJkkyCDppwNlPHoToXiJhcmcfEtfHkuayVQCFuvCfLvQYJqJGVyGVMDxUtjdghGWNEMXGfCTadVKcTVyxkJZLwgRJgYTiykJLdpvIWsjuswmJoCkDGDuaGfaubEhGVodpAAghqxmGMbjDXxNkKIvawPNtyOyPsdPXcokdcpeFKEyerSdZJiSjgEIgTinNwffcCbnFWVmfaZOINFSMPRTIErHPHFliyaAJrIBhfLROxSqvgAeoRCpWprybQRLaKxBvxWAXDceEKvekupYJLpsfbEDUyPyyPBUhrYsEkaXBFxhBoFwZsAjCsiWqxwhgGmQAbywqvUpwTAlGLYiEILpRTiFkvJCDeYtuKrYFqcVZTTqPRSvZPoQgQrxUIClbgwvoOhHfrHGJuXjkwBbUYtqqCCVRQRaelactlCMNropoMsGhiqpYWxQURbTuyXeJCkOxIoQFkQkYmwpTeXXYSjEpkEumeKgTwbojpRwUZPswRoClsPnEfRpnbvFrdSmYjAGKlHpNJbLjIVQNkLPouTkGHCIiYwhvLpegjIADkdvjKsHJOfLQMqtybguhcVxUWWZyFObffHnWFYcpaDNKpVMTJIGUMKfYCvWclLwQuFmXHxCnaqgORlVpOZtGwTFqbwYEttqnHKNQZsFgLVMPFgnRBfCksqcRVDUXEtoAvqTjZdkMtooxdqvFhcckegSuMZnEePCKysOjPHdDYRMQGTvZVCUbTSGfpOeYgSxEbmbsTEbwUMbsiCdUvLlBXAeLcFvlnRXjExybeWraFmJxmGFdKqcagthaHaWHiTBlvFoOaUYjRGHPRPSsbTbRJLVqwbYnuABwLOatTUOAtXhVSgUdqBBxLGmWrMhRtencEnyXtkupWphQdhAhDsPwyUMiLBVnSrYWCPjyrgdwvPnHdjkpSUxQkTcOMrQwLouiNeeMaqQRMwrRaNQrfxSiNmNfZHunAGmqJnmvTFUIFNhTeGSnLtTnvYnDyUYpXVtrsHZmjCjwGKWSnsxVMPqxgMLAAdmaBSTEIDEJNhrCebpTXLiayJbLdqEBcekPKviSGCydkFGbGiOYDYDxQyeOWWUOsBlydWwNmNSSBYkRosGoDbtrVRgpIKnfLxBDJpHyxBpUHuItkdBZxyRjMQTuwunvdxWEHVhMCEGZqYLvKGCJswvfQyhVsUhIkfLsCHFCNcFPlisdktIhxiyQiWIATeDlsBAVFoclwJiZyCAgdUwCtclAKXoBeMRFbKiDispPyjTjDSOJhIVlFMGrmpwTHjWneSBnfuMKEpItAHFGDchIxpAbBDIOJbFghPPLxiWhWfbcFFRGWxXDHpRXGprhbKoPcqaxPEteQfUwhYKxrSmgiYrZauYjfAkaiTgGxsnNADeEnWXLudyiSWMUNUwtCwgcWJyJSDvJXOtRyUabVvVY",
-							"evidence": "Connection: close",
-							"otherinfo": "Potential Buffer Overflow. The script closed the connection and threw a 500 Internal Server Error."
-						},
-						{
-							"id": "10388",
-							"uri": "http://host.docker.internal:8080/api/v1/operations",
-							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/operations ()({type,zone,startDateTime,endDateTime,assignedInspectors:[],assignedUnits:[],ticketId,dateRangeValid})",
-							"method": "POST",
-							"param": "assignedUnits[0]",
-							"attack": "oQODbEFfYwkIpEGCwiZQJgeFDCELGOyZDEXBjGFdhEEkDAKiXLnSgVButNbcZYUAETVRVmDkErOKtHjVmZyeTqGbBPCwfswaXQffDIESYRQaqHToSiSYqugUpmXObZETVwlwGjTeKAFBvEnMRIQnTUFRWdnIGDqNGUxQgGWwPaZWUHifOeAqKHETHuSKtiakBZrXRbLvTHaEbYgTSuPPaEcvyxbubLSSiIjBhdLenmEbsgJsJwRHNHbEaHUqCHduVAXEZlRjXklMrEFxEXPqOyMvxSKZRXDBZHlSVeEXTLXAONLLeGASxLlDZbniEopRrSyCYPHOjVQZcejOJBsQWKgEMZaioEQTAteVDepFUDRXgVEjBrEpKkQRklhNPBxkReYHKRbqqUpqGOtNSZACSiuTBJjNORpCVopPUhXDgSnVInXawIeSQMZMdKiZeiHkYmNNmKeBkAoZgEPFDRKYTUorDLXiHYhDDFKborkBUadIQXYSktWNdVKGNRvSFHAlBJTHIWqRhEPsHwQHVgTFLXNtfEQiaibalpYalRodcsdcAWAXVnajhICpMiBXXSdFWvnIpoTZKcnhfLRUPGlpZUDPmvNGjiThvqCEkgcwJNUEXWvZNjHqFMVdlySkpauIjCfHObchrKKQcrfaPIVjiotmJPRdRlqSHHoJRyuErXeqRYmeLQXVRCvkbBJTPJLWdDkMUQbEupEMbdYlxrPoqprfOploZfpTULOqYpaPqDAkjAkHWZlSQlAvlFALtBXdhEYIdrXHqsoNnltjKjuhKUjskrLDMOlhWWEOYmAvFBIyajJMWomqQuuHfjTKwqggXEvtMQcpmYNHMvwcQCxNXBSWBpfKTvEdyeZNhAjaFUwYQNrSSZRHUyPZWYqGERbmXVvEufitjiCAuDDAPDouMpybGhPCSLtQTQdsoZxVgURqebKsbycXpbRuEBVqKYhCfxUhoISIXslgCUdhBMKgtyYRbSuAYDmiQlMwinJaNRfVwUjmLMdwqCCWMsTJYuHRulsWbhQedipAldfnWyYVyQeaEUtHIssLNeCHYajdwFlVjmRgmFUkAQEUQdytcFUFLVPmkmuavRInIjlCUtJUuefbLMPPrkFUeqkHtVcdhFUKFpBwNPlgHDdeITVrcAcDijvSmrQmngTUOBSYFkIhsqyGCtaWDXxqTOFlueOYsQGiYgJRvaknGjVxWCgMLIhciEdtqXpQikHtHOEeLZWhgMlfcMktxLgFtdgwdwOjHFbgDQNFWYKhFnKPwiKbfMiMiwGDytLPAgDFZifDppptPJvQpkwJoPoqBrKkRvjTgisoMpkHSqCIrlPsJfgfMDKVcsDEdJhxnmexYPkkXhMZVCcOslApLHBBfUaPCfufMxoceUTCDfEgpnVEyFElNvWhWwHoGyiPEqpqyyvLAVTNsgkaXqLfvDdYaRORJfhQqJPhXWEglUaDiwUyyVwdjMyacwkdbmCkEXTOKLKPQwQwEvDtZgxIUXqsgXLBioQmvATuvxaPZwchZbfbPSEoWXruHNmwjabpsphyqyFtLDhYpgRGIjgGZPZYlnmQkssYvhflZQDNeRtZbeEoZwPHRCfFMahILXVYQQWWvAZvgvGVMAjsJWlhsVjebppBqISYkklfanmETThTwXJtcWidaJeQtaMyYPsUZHNEkpCCBpYhWfqAHWaqspsHVQlUivAjqrTMdttWbBBIIJqgvnKYijwZhjMyFDkbqWqQcCiEZCiZTBJagEAuSPdZrBdBtrdSJIdduVFPPAGPrLllPCwJwXldfKXgogWrOIpSQgoKqfvXOAyVJuKLOyjnQAVmnFOTIZWfVrlPuZwxBXhmHxjeFKTZgnOyYkxcctTrCZKGVuUscBdVNHvkyqfZJFlYxKiatmkvQnlWJQijYtKFNObERVCbYcKHEnDOAddkmXQrbOLELXpZGMypxYUpIJejHtrlEZCguwtmeDeDkOLIraRDujVogHOaMkNlJIpaSJcuYMUnVWVJRkVpEUWUavymTKsJGYBxAReiEpIoSNlseVnmKqgQreFIwNtpVtaqjlbtUHEQCCWbrCLAxPueQqeUvqsGPTycRBtQMeXl",
-							"evidence": "Connection: close",
-							"otherinfo": "Potential Buffer Overflow. The script closed the connection and threw a 500 Internal Server Error."
-						},
-						{
-							"id": "10402",
-							"uri": "http://host.docker.internal:8080/api/v1/operations",
-							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/operations ()({type,zone,startDateTime,endDateTime,assignedInspectors:[],assignedUnits:[],ticketId,dateRangeValid})",
-							"method": "POST",
-							"param": "ticketId",
-							"attack": "qAMwuPVSnVEjVriZCBIYfFCvFdDvMewPTBkbHrbwpFWwFuObSqynDBfvNkRoBDjNpgsGvHHDvZINdBLKkFdDnFuUbjODAnZsmabBbJtnnjyQghnJSKluSmNoewmAgoHZqndChKaJSRddndEEUVUuuxQfxFumPBKcYUQgXTQIcIdXwxVfJvYacrEUJymxHmUNSYshygOyhaipmahfRXxqiNlRrPDVRCDnOWumjSXpOkwKDTOTiUCEfPvpucoZUEyuiJCSOqJaQCMVxiJXLdfpPdVXxmqJWeYGDQEhLbQyRMHkodLEDrpykRALfgptHBxttEZnTrfjtutEyQcDGNgNZXifhOrGDupaILJfZdkVIUEWkSQXRhQkPXiYVYIEPHLIGiEiewfDPELwRpFjqJICoIVKkdMGhdDkwxLTkciardCdYGNoZufiEJqMbULoAkMQOpWTqLZuHPaOIyclcDIGugjPfOQZGbIJAlGbZEkmOkFnYuNfmabUytNAPEAoFUtjlllnbTCnCMiUdARmEAWPwqPACFKNGWJKZLsRMZMoRqJJNwTbUHaGxiFPsrpGFBJQGvCiPoHLqRAZNqKOyroLfrvmbrcieZHuQOXCOBnKbFnfAHIpkXDaqZSBqSnfstkPkfqgJEeVUvtVtlhLsExlneMHokbNjUoRVeEgMFHJNCYVlHuTPudEfjdReDBQhuBheIjfOnKfVlgZZbvxELkxaYWMBPGwsoRNACUixnxiLtQSNvGAyVOhraYxOUuRFEfrlVFLdJIuFehZAivgKOWtJtcyHNboUScfuPVdPjbmMteoloMtvrLwqqyEUPStqJGOkRAXljTRhSPskllZtFslFqKwNJxtfkVwQICAVhXbecaywZvXObRLOeskBmVvChYaFwPREsCQHKwHAfNeSqeEQKUFSDTDdbEngHcDvcvSANDdHITeJHTZwSCATQxYNTjYcSNnGHVXfYxYkSIagGCWiZQUQJTeSSBRDlpDnPmTJPKWqwGkCCOVrZswFGumahyJZnvxInGWyqsEGfjbAIdxJfPZGDkjLTXVHlYkaCwkTJnjbMatQxajGqrvjxquwdvxnOryLfdDbXmBqUUaHpEtMwbkTIGkkCqRiuYuqBKpmuCfsXcpspXHBuhKBSwaAdQVhTVxPJSFlGEGqgptNtwssyoFqIsZONFkkoNaThJktxCigqxpDyDLSbpjYmqidoTwTtifXEDtvolhQLKSlIqZkvalVBhMPuHjxladDamDTWftoZkGMxaTcJIwTiGurUtWppRBfZOECKomLgRvywvCQAdkyXYROZkUoXiBfIAZqbLtQrdVgJSUxlHpUFGQlyUNYVuepyHoAbwNUyNHJCsufsJasjmVweNcYcjitwGqaRhiZTEKVMHkXpmdcAWLBYrWHVqaDDnmgnlsjMAHitkNxjAQnLjMuBWCYfdTqKElUwOXwPgpipPqnynVvpYEieIgDPvmDrSRFiBKEPGjQschKuwBEyLoJQQGKoIFFUdbCsXlhMEWAumxsJWCgSShmLGDvMhdtfvpXXNrEqmpwvLGeDANmiFndDFGSKtqIooVvdsQOpDJYVxpihoGvKrOaoJNZgiFuvLTPJTEIJsQDAqBfMgFMDaCSEbXgRLZNGxUBQlmqWKFFSBrLJQiZhkxgXbqEhbsAbKnjmBaZwWeWCVQerTjJPoPdCSLECFZuDYEHPMyXeLDFCsPAJnvHEKQdFCQsyFQPAiSlAnXdYfksixiUwrHBgWsJHvjkfZbKuupbIsDimMRPQqeBXDEkhMjkNRNsqlUQRVnRuIMiKswkFRPIslWPnpovQbkuAPFcxyDcYDnAYVxAeeSblTJIVmDtmKVWYGcYxPMnsnYuYhieSTNOxRykMDDljGGJpSaVLeYDlBmaxHPrEHMTOrEYjSBOqnjUMGkLNFVqiGjLPtVHHMshNvmUtLRAsRLxggmymtIxuUIhfcfNoJYuvMlbBrsedXFMKQfkDounwQRIGwOMFVoSfajoEZbPwpBlsCreDtudBZHvShosUfBJdlqyaDrBdexoFnMpmXHZxyLaWCLBAyofiWAslKHkTTrBhwRsvnVObvtNlakmdMe",
-							"evidence": "Connection: close",
-							"otherinfo": "Potential Buffer Overflow. The script closed the connection and threw a 500 Internal Server Error."
-						}
-					],
-					"count": "10",
-					"systemic": false,
-					"solution": "<p>Rewrite the background program using proper return length checking. This will require a recompile of the background executable.</p>",
-					"otherinfo": "<p>Potential Buffer Overflow. The script closed the connection and threw a 500 Internal Server Error.</p>",
-					"reference": "<p>https://owasp.org/www-community/attacks/Buffer_overflow_attack</p>",
-					"cweid": "120",
-					"wascid": "7",
-					"sourceid": "11654"
-				},
-				{
-					"pluginid": "100000",
-					"alertRef": "100000-2",
-					"alert": "A Server Error response code was returned by the server",
-					"name": "A Server Error response code was returned by the server",
-					"riskcode": "1",
-					"confidence": "3",
-					"riskdesc": "Low (High)",
-					"desc": "<p>A response code of 500 was returned by the server.</p><p>This may indicate that the application is failing to handle unexpected input correctly.</p><p>Raised by the 'Alert on HTTP Response Code Error' script</p>",
-					"instances":[ 
-						{
-							"id": "10329",
-							"uri": "http://host.docker.internal:8080/api/v1/accidents",
-							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/accidents ()({accidentDateTime,location:{street,crossStreet,latitude,longitude},involvesInfrastructureDamage,damageDescription,vehicles:[{licensePlate,ownerNationalId}],persons:[{nationalId,injuryLevel}],originTicketId,damageDescriptionValid})",
-							"method": "POST",
-							"param": "",
-							"attack": "",
-							"evidence": "500",
-							"otherinfo": ""
-						},
-						{
-							"id": "10373",
-							"uri": "http://host.docker.internal:8080/api/v1/operations",
-							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/operations ()({type,zone,startDateTime,endDateTime,assignedInspectors:[],assignedUnits:[],ticketId,dateRangeValid})",
-							"method": "POST",
-							"param": "",
-							"attack": "",
-							"evidence": "500",
-							"otherinfo": ""
-						}
-					],
-					"count": "2",
-					"systemic": false,
-					"solution": "",
-					"otherinfo": "",
-					"reference": "",
-					"cweid": "388",
-					"wascid": "20",
-					"sourceid": "11619"
-				},
 				{
 					"pluginid": "90004",
 					"alertRef": "90004-1",
@@ -271,7 +103,17 @@
 					"desc": "<p>Cross-Origin-Resource-Policy header is an opt-in header designed to counter side-channels attacks like Spectre. Resource should be specifically set as shareable amongst different origins.</p>",
 					"instances":[ 
 						{
-							"id": "161",
+							"id": "137",
+							"uri": "http://host.docker.internal:8080/api/v1/infractions",
+							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/infractions",
+							"method": "GET",
+							"param": "Cross-Origin-Resource-Policy",
+							"attack": "",
+							"evidence": "",
+							"otherinfo": ""
+						},
+						{
+							"id": "138",
 							"uri": "http://host.docker.internal:8080/api/v1/operations",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/operations",
 							"method": "GET",
@@ -281,7 +123,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "168",
+							"id": "126",
 							"uri": "http://host.docker.internal:8080/api/v1/parking-sessions",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/parking-sessions",
 							"method": "GET",
@@ -291,7 +133,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "143",
+							"id": "113",
 							"uri": "http://host.docker.internal:8080/api/v1/parking-zones",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/parking-zones",
 							"method": "GET",
@@ -301,17 +143,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "184",
-							"uri": "http://host.docker.internal:8080/api/v1/infractions/suggestions",
-							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/infractions\/suggestions ()({description})",
-							"method": "POST",
-							"param": "Cross-Origin-Resource-Policy",
-							"attack": "",
-							"evidence": "",
-							"otherinfo": ""
-						},
-						{
-							"id": "164",
+							"id": "140",
 							"uri": "http://host.docker.internal:8080/api/v1/operations",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/operations ()({type,zone,startDateTime,endDateTime,assignedInspectors:[],assignedUnits:[],ticketId,dateRangeValid})",
 							"method": "POST",
@@ -328,7 +160,7 @@
 					"reference": "<p>https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cross-Origin-Embedder-Policy</p>",
 					"cweid": "693",
 					"wascid": "14",
-					"sourceid": "31"
+					"sourceid": "36"
 				},
 				{
 					"pluginid": "100000",
@@ -351,7 +183,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10246",
+							"id": "10239",
 							"uri": "http://host.docker.internal:8080/api/v1/parking-tariffs/id/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/parking-tariffs\/id\/",
 							"method": "DELETE",
@@ -371,7 +203,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10249",
+							"id": "10254",
 							"uri": "http://host.docker.internal:8080/api/v1/parking-zones/id/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/parking-zones\/id\/",
 							"method": "DELETE",
@@ -381,7 +213,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "372",
+							"id": "321",
 							"uri": "http://host.docker.internal:8080",
 							"nodeName": "http:\/\/host.docker.internal:8080",
 							"method": "GET",
@@ -401,9 +233,9 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "50",
-							"uri": "http://host.docker.internal:8080/3313844642759690695",
-							"nodeName": "http:\/\/host.docker.internal:8080\/3313844642759690695",
+							"id": "39",
+							"uri": "http://host.docker.internal:8080/1399767016587372714",
+							"nodeName": "http:\/\/host.docker.internal:8080\/1399767016587372714",
 							"method": "GET",
 							"param": "",
 							"attack": "",
@@ -411,7 +243,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "424",
+							"id": "346",
 							"uri": "http://host.docker.internal:8080/api",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api",
 							"method": "GET",
@@ -421,7 +253,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10266",
+							"id": "10265",
 							"uri": "http://host.docker.internal:8080/api/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/",
 							"method": "GET",
@@ -431,9 +263,9 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "51",
-							"uri": "http://host.docker.internal:8080/api/8565074542514587195",
-							"nodeName": "http:\/\/host.docker.internal:8080\/api\/8565074542514587195",
+							"id": "40",
+							"uri": "http://host.docker.internal:8080/api/4658835118638756871",
+							"nodeName": "http:\/\/host.docker.internal:8080\/api\/4658835118638756871",
 							"method": "GET",
 							"param": "",
 							"attack": "",
@@ -441,7 +273,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "448",
+							"id": "356",
 							"uri": "http://host.docker.internal:8080/api/v1",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1",
 							"method": "GET",
@@ -461,9 +293,9 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "52",
-							"uri": "http://host.docker.internal:8080/api/v1/5770511726593120277",
-							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/5770511726593120277",
+							"id": "41",
+							"uri": "http://host.docker.internal:8080/api/v1/250908066684529808",
+							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/250908066684529808",
 							"method": "GET",
 							"param": "",
 							"attack": "",
@@ -471,7 +303,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10269",
+							"id": "10270",
 							"uri": "http://host.docker.internal:8080/api/v1/accidents/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/accidents\/",
 							"method": "GET",
@@ -481,9 +313,9 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "53",
-							"uri": "http://host.docker.internal:8080/api/v1/accidents/4267160506432957279",
-							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/accidents\/4267160506432957279",
+							"id": "42",
+							"uri": "http://host.docker.internal:8080/api/v1/accidents/8907840800974664679",
+							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/accidents\/8907840800974664679",
 							"method": "GET",
 							"param": "",
 							"attack": "",
@@ -491,7 +323,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "11587",
+							"id": "11578",
 							"uri": "http://host.docker.internal:8080/api/v1/accidents/actuator/health",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/accidents\/actuator\/health",
 							"method": "GET",
@@ -501,7 +333,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "43",
+							"id": "32",
 							"uri": "http://host.docker.internal:8080/api/v1/accidents/id",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/accidents\/id",
 							"method": "GET",
@@ -511,7 +343,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10270",
+							"id": "10268",
 							"uri": "http://host.docker.internal:8080/api/v1/accidents/id/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/accidents\/id\/",
 							"method": "GET",
@@ -521,7 +353,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "49",
+							"id": "38",
 							"uri": "http://host.docker.internal:8080/api/v1/accidents/mine",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/accidents\/mine",
 							"method": "GET",
@@ -541,7 +373,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "460",
+							"id": "505",
 							"uri": "http://host.docker.internal:8080/api/v1/auth",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/auth",
 							"method": "GET",
@@ -551,7 +383,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10272",
+							"id": "10277",
 							"uri": "http://host.docker.internal:8080/api/v1/auth/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/auth\/",
 							"method": "GET",
@@ -561,9 +393,9 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "54",
-							"uri": "http://host.docker.internal:8080/api/v1/auth/9056256653403073132",
-							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/auth\/9056256653403073132",
+							"id": "43",
+							"uri": "http://host.docker.internal:8080/api/v1/auth/7701007386357402234",
+							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/auth\/7701007386357402234",
 							"method": "GET",
 							"param": "",
 							"attack": "",
@@ -571,7 +403,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10274",
+							"id": "10276",
 							"uri": "http://host.docker.internal:8080/api/v1/impoundments/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/impoundments\/",
 							"method": "GET",
@@ -581,9 +413,9 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "55",
-							"uri": "http://host.docker.internal:8080/api/v1/impoundments/7029370603243798677",
-							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/impoundments\/7029370603243798677",
+							"id": "44",
+							"uri": "http://host.docker.internal:8080/api/v1/impoundments/4729468923632158106",
+							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/impoundments\/4729468923632158106",
 							"method": "GET",
 							"param": "",
 							"attack": "",
@@ -591,7 +423,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "41",
+							"id": "30",
 							"uri": "http://host.docker.internal:8080/api/v1/impoundments/id",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/impoundments\/id",
 							"method": "GET",
@@ -601,7 +433,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10273",
+							"id": "10272",
 							"uri": "http://host.docker.internal:8080/api/v1/impoundments/id/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/impoundments\/id\/",
 							"method": "GET",
@@ -611,9 +443,9 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "56",
-							"uri": "http://host.docker.internal:8080/api/v1/impoundments/id/5032056699793137049",
-							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/impoundments\/id\/5032056699793137049",
+							"id": "45",
+							"uri": "http://host.docker.internal:8080/api/v1/impoundments/id/2360427068519412497",
+							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/impoundments\/id\/2360427068519412497",
 							"method": "GET",
 							"param": "",
 							"attack": "",
@@ -621,7 +453,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "48",
+							"id": "37",
 							"uri": "http://host.docker.internal:8080/api/v1/impoundments/mine",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/impoundments\/mine",
 							"method": "GET",
@@ -631,7 +463,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10278",
+							"id": "10283",
 							"uri": "http://host.docker.internal:8080/api/v1/impoundments/mine/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/impoundments\/mine\/",
 							"method": "GET",
@@ -641,7 +473,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10282",
+							"id": "10278",
 							"uri": "http://host.docker.internal:8080/api/v1/infractions/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/infractions\/",
 							"method": "GET",
@@ -651,9 +483,9 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "57",
-							"uri": "http://host.docker.internal:8080/api/v1/infractions/1950199978538703303",
-							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/infractions\/1950199978538703303",
+							"id": "46",
+							"uri": "http://host.docker.internal:8080/api/v1/infractions/4239857656504391064",
+							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/infractions\/4239857656504391064",
 							"method": "GET",
 							"param": "",
 							"attack": "",
@@ -661,7 +493,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "39",
+							"id": "28",
 							"uri": "http://host.docker.internal:8080/api/v1/infractions/id",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/infractions\/id",
 							"method": "GET",
@@ -671,7 +503,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10279",
+							"id": "10273",
 							"uri": "http://host.docker.internal:8080/api/v1/infractions/id/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/infractions\/id\/",
 							"method": "GET",
@@ -681,9 +513,9 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "58",
-							"uri": "http://host.docker.internal:8080/api/v1/infractions/id/398713635427213041",
-							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/infractions\/id\/398713635427213041",
+							"id": "47",
+							"uri": "http://host.docker.internal:8080/api/v1/infractions/id/7936966076777197055",
+							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/infractions\/id\/7936966076777197055",
 							"method": "GET",
 							"param": "",
 							"attack": "",
@@ -691,7 +523,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "47",
+							"id": "36",
 							"uri": "http://host.docker.internal:8080/api/v1/infractions/mine",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/infractions\/mine",
 							"method": "GET",
@@ -701,7 +533,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10276",
+							"id": "10275",
 							"uri": "http://host.docker.internal:8080/api/v1/infractions/mine/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/infractions\/mine\/",
 							"method": "GET",
@@ -711,7 +543,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10275",
+							"id": "10274",
 							"uri": "http://host.docker.internal:8080/api/v1/operations/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/operations\/",
 							"method": "GET",
@@ -721,9 +553,9 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "59",
-							"uri": "http://host.docker.internal:8080/api/v1/operations/3082127539845195798",
-							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/operations\/3082127539845195798",
+							"id": "48",
+							"uri": "http://host.docker.internal:8080/api/v1/operations/5172657485694591018",
+							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/operations\/5172657485694591018",
 							"method": "GET",
 							"param": "",
 							"attack": "",
@@ -731,7 +563,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "37",
+							"id": "26",
 							"uri": "http://host.docker.internal:8080/api/v1/operations/id",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/operations\/id",
 							"method": "GET",
@@ -741,7 +573,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10280",
+							"id": "10279",
 							"uri": "http://host.docker.internal:8080/api/v1/operations/id/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/operations\/id\/",
 							"method": "GET",
@@ -751,9 +583,9 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "60",
-							"uri": "http://host.docker.internal:8080/api/v1/operations/id/2029049477236434526",
-							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/operations\/id\/2029049477236434526",
+							"id": "49",
+							"uri": "http://host.docker.internal:8080/api/v1/operations/id/7078159075444141340",
+							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/operations\/id\/7078159075444141340",
 							"method": "GET",
 							"param": "",
 							"attack": "",
@@ -761,7 +593,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10283",
+							"id": "10281",
 							"uri": "http://host.docker.internal:8080/api/v1/parking-sessions/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/parking-sessions\/",
 							"method": "GET",
@@ -771,9 +603,9 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "61",
-							"uri": "http://host.docker.internal:8080/api/v1/parking-sessions/8084314787287143900",
-							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/parking-sessions\/8084314787287143900",
+							"id": "50",
+							"uri": "http://host.docker.internal:8080/api/v1/parking-sessions/8210439384552456716",
+							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/parking-sessions\/8210439384552456716",
 							"method": "GET",
 							"param": "",
 							"attack": "",
@@ -781,7 +613,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "46",
+							"id": "35",
 							"uri": "http://host.docker.internal:8080/api/v1/parking-sessions/id",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/parking-sessions\/id",
 							"method": "GET",
@@ -791,7 +623,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10281",
+							"id": "10280",
 							"uri": "http://host.docker.internal:8080/api/v1/parking-sessions/id/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/parking-sessions\/id\/",
 							"method": "GET",
@@ -801,9 +633,9 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "62",
-							"uri": "http://host.docker.internal:8080/api/v1/parking-sessions/id/3985212978916373996",
-							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/parking-sessions\/id\/3985212978916373996",
+							"id": "51",
+							"uri": "http://host.docker.internal:8080/api/v1/parking-sessions/id/7249007183583617811",
+							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/parking-sessions\/id\/7249007183583617811",
 							"method": "GET",
 							"param": "",
 							"attack": "",
@@ -811,7 +643,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "478",
+							"id": "517",
 							"uri": "http://host.docker.internal:8080/api/v1/parking-tariffs",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/parking-tariffs",
 							"method": "GET",
@@ -831,7 +663,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10285",
+							"id": "10290",
 							"uri": "http://host.docker.internal:8080/api/v1/parking-tariffs/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/parking-tariffs\/",
 							"method": "GET",
@@ -841,9 +673,9 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "63",
-							"uri": "http://host.docker.internal:8080/api/v1/parking-tariffs/6499668006001427158",
-							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/parking-tariffs\/6499668006001427158",
+							"id": "52",
+							"uri": "http://host.docker.internal:8080/api/v1/parking-tariffs/5135928910133192941",
+							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/parking-tariffs\/5135928910133192941",
 							"method": "GET",
 							"param": "",
 							"attack": "",
@@ -861,7 +693,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10291",
+							"id": "10284",
 							"uri": "http://host.docker.internal:8080/api/v1/parking-tariffs/id/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/parking-tariffs\/id\/",
 							"method": "GET",
@@ -871,7 +703,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10288",
+							"id": "10286",
 							"uri": "http://host.docker.internal:8080/api/v1/parking-zones/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/parking-zones\/",
 							"method": "GET",
@@ -881,9 +713,9 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "64",
-							"uri": "http://host.docker.internal:8080/api/v1/parking-zones/3927745467684068889",
-							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/parking-zones\/3927745467684068889",
+							"id": "53",
+							"uri": "http://host.docker.internal:8080/api/v1/parking-zones/8293294192001694023",
+							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/parking-zones\/8293294192001694023",
 							"method": "GET",
 							"param": "",
 							"attack": "",
@@ -901,7 +733,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10284",
+							"id": "10285",
 							"uri": "http://host.docker.internal:8080/api/v1/parking-zones/id/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/parking-zones\/id\/",
 							"method": "GET",
@@ -911,7 +743,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10289",
+							"id": "10287",
 							"uri": "http://host.docker.internal:8080/api/v1/street-closures/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/street-closures\/",
 							"method": "GET",
@@ -921,9 +753,9 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "65",
-							"uri": "http://host.docker.internal:8080/api/v1/street-closures/3936542080867203026",
-							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/street-closures\/3936542080867203026",
+							"id": "54",
+							"uri": "http://host.docker.internal:8080/api/v1/street-closures/2243100884250801031",
+							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/street-closures\/2243100884250801031",
 							"method": "GET",
 							"param": "",
 							"attack": "",
@@ -931,7 +763,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10286",
+							"id": "10292",
 							"uri": "http://host.docker.internal:8080/api/v1/street-closures/current/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/street-closures\/current\/",
 							"method": "GET",
@@ -941,7 +773,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "45",
+							"id": "34",
 							"uri": "http://host.docker.internal:8080/api/v1/street-closures/id",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/street-closures\/id",
 							"method": "GET",
@@ -951,7 +783,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10292",
+							"id": "10288",
 							"uri": "http://host.docker.internal:8080/api/v1/street-closures/id/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/street-closures\/id\/",
 							"method": "GET",
@@ -961,9 +793,9 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "66",
-							"uri": "http://host.docker.internal:8080/api/v1/street-closures/id/6123892643379875676",
-							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/street-closures\/id\/6123892643379875676",
+							"id": "55",
+							"uri": "http://host.docker.internal:8080/api/v1/street-closures/id/8537085740558518204",
+							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/street-closures\/id\/8537085740558518204",
 							"method": "GET",
 							"param": "",
 							"attack": "",
@@ -971,7 +803,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "491",
+							"id": "535",
 							"uri": "http://host.docker.internal:8080/soap",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap",
 							"method": "GET",
@@ -991,9 +823,9 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "67",
-							"uri": "http://host.docker.internal:8080/soap/8596206455592464102",
-							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/8596206455592464102",
+							"id": "56",
+							"uri": "http://host.docker.internal:8080/soap/7287852918534814290",
+							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/7287852918534814290",
 							"method": "GET",
 							"param": "",
 							"attack": "",
@@ -1021,7 +853,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "44",
+							"id": "33",
 							"uri": "http://host.docker.internal:8080/api/v1/accidents/id",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/accidents\/id ()({accidentDateTime,location:{street,crossStreet,latitude,longitude},involvesInfrastructureDamage,damageDescription,vehicles:[{licensePlate,ownerNationalId}],persons:[{nationalId,injuryLevel}],status,damageDescriptionValid})",
 							"method": "PATCH",
@@ -1041,7 +873,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "42",
+							"id": "31",
 							"uri": "http://host.docker.internal:8080/api/v1/impoundments/id",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/impoundments\/id ()({reason,depotLocation,ownerNationalId})",
 							"method": "PATCH",
@@ -1051,7 +883,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10234",
+							"id": "10236",
 							"uri": "http://host.docker.internal:8080/api/v1/impoundments/id/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/impoundments\/id\/ ()({reason,depotLocation,ownerNationalId})",
 							"method": "PATCH",
@@ -1061,9 +893,9 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "40",
+							"id": "29",
 							"uri": "http://host.docker.internal:8080/api/v1/infractions/id",
-							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/infractions\/id ()({licensePlate,location:{street,crossStreet,latitude,longitude},evidenceUrl:[],offenderNationalId,vehicleOwnerTaxId,debtorId,debtorIdType,baseAmount,aggravatingFactors:[],finalAmount,debtorIdentificationComplete,finalAmountValid})",
+							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/infractions\/id ()({licensePlate,location:{street,crossStreet,latitude,longitude},evidenceUrl:[],offenderNationalId,vehicleOwnerTaxId,debtorId,debtorIdType,baseAmount,aggravatingFactors:[],finalAmount,finalAmountValid,debtorIdentificationComplete})",
 							"method": "PATCH",
 							"param": "",
 							"attack": "",
@@ -1073,7 +905,7 @@
 						{
 							"id": "10238",
 							"uri": "http://host.docker.internal:8080/api/v1/infractions/id/",
-							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/infractions\/id\/ ()({licensePlate,location:{street,crossStreet,latitude,longitude},evidenceUrl:[],offenderNationalId,vehicleOwnerTaxId,debtorId,debtorIdType,baseAmount,aggravatingFactors:[],finalAmount,debtorIdentificationComplete,finalAmountValid})",
+							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/infractions\/id\/ ()({licensePlate,location:{street,crossStreet,latitude,longitude},evidenceUrl:[],offenderNationalId,vehicleOwnerTaxId,debtorId,debtorIdType,baseAmount,aggravatingFactors:[],finalAmount,finalAmountValid,debtorIdentificationComplete})",
 							"method": "PATCH",
 							"param": "",
 							"attack": "",
@@ -1081,7 +913,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "38",
+							"id": "27",
 							"uri": "http://host.docker.internal:8080/api/v1/operations/id",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/operations\/id ()({zone,endDateTime,assignedInspectors:[],assignedUnits:[]})",
 							"method": "PATCH",
@@ -1091,7 +923,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10239",
+							"id": "10243",
 							"uri": "http://host.docker.internal:8080/api/v1/operations/id/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/operations\/id\/ ()({zone,endDateTime,assignedInspectors:[],assignedUnits:[]})",
 							"method": "PATCH",
@@ -1121,7 +953,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "7772",
+							"id": "7798",
 							"uri": "http://host.docker.internal:8080/metadata/instance",
 							"nodeName": "http:\/\/host.docker.internal:8080\/metadata\/instance ()({accidentDateTime,location:{street,crossStreet,latitude,longitude},involvesInfrastructureDamage,damageDescription,vehicles:[{licensePlate,ownerNationalId}],persons:[{nationalId,injuryLevel}],status,damageDescriptionValid})",
 							"method": "PATCH",
@@ -1131,7 +963,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "7797",
+							"id": "7811",
 							"uri": "http://host.docker.internal:8080/metadata/v1",
 							"nodeName": "http:\/\/host.docker.internal:8080\/metadata\/v1 ()({accidentDateTime,location:{street,crossStreet,latitude,longitude},involvesInfrastructureDamage,damageDescription,vehicles:[{licensePlate,ownerNationalId}],persons:[{nationalId,injuryLevel}],status,damageDescriptionValid})",
 							"method": "PATCH",
@@ -1141,7 +973,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "7664",
+							"id": "7667",
 							"uri": "http://host.docker.internal:8080/opc/v1/instance/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/opc\/v1\/instance\/ ()({accidentDateTime,location:{street,crossStreet,latitude,longitude},involvesInfrastructureDamage,damageDescription,vehicles:[{licensePlate,ownerNationalId}],persons:[{nationalId,injuryLevel}],status,damageDescriptionValid})",
 							"method": "PATCH",
@@ -1151,7 +983,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "7706",
+							"id": "7724",
 							"uri": "http://host.docker.internal:8080/opc/v2/instance/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/opc\/v2\/instance\/ ()({accidentDateTime,location:{street,crossStreet,latitude,longitude},involvesInfrastructureDamage,damageDescription,vehicles:[{licensePlate,ownerNationalId}],persons:[{nationalId,injuryLevel}],status,damageDescriptionValid})",
 							"method": "PATCH",
@@ -1161,7 +993,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "7807",
+							"id": "7822",
 							"uri": "http://host.docker.internal:8080/openstack/latest/meta_data.json",
 							"nodeName": "http:\/\/host.docker.internal:8080\/openstack\/latest\/meta_data.json ()({accidentDateTime,location:{street,crossStreet,latitude,longitude},involvesInfrastructureDamage,damageDescription,vehicles:[{licensePlate,ownerNationalId}],persons:[{nationalId,injuryLevel}],status,damageDescriptionValid})",
 							"method": "PATCH",
@@ -1171,7 +1003,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "81",
+							"id": "59",
 							"uri": "http://host.docker.internal:8080/api/v1/accidents",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/accidents ()({accidentDateTime,location:{street,crossStreet,latitude,longitude},involvesInfrastructureDamage,damageDescription,vehicles:[{licensePlate,ownerNationalId}],persons:[{nationalId,injuryLevel}],originTicketId,damageDescriptionValid})",
 							"method": "POST",
@@ -1181,7 +1013,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10245",
+							"id": "10233",
 							"uri": "http://host.docker.internal:8080/api/v1/accidents/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/accidents\/ ()({accidentDateTime,location:{street,crossStreet,latitude,longitude},involvesInfrastructureDamage,damageDescription,vehicles:[{licensePlate,ownerNationalId}],persons:[{nationalId,injuryLevel}],originTicketId,damageDescriptionValid})",
 							"method": "POST",
@@ -1191,7 +1023,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "36",
+							"id": "25",
 							"uri": "http://host.docker.internal:8080/api/v1/auth/login",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/auth\/login ()({username,gmail,dni,password})",
 							"method": "POST",
@@ -1201,7 +1033,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "241",
+							"id": "238",
 							"uri": "http://host.docker.internal:8080/api/v1/auth/login",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/auth\/login ()({username,gmail,dni,password})",
 							"method": "POST",
@@ -1211,7 +1043,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10233",
+							"id": "10234",
 							"uri": "http://host.docker.internal:8080/api/v1/auth/login/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/auth\/login\/ ()({username,gmail,dni,password})",
 							"method": "POST",
@@ -1221,7 +1053,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "34",
+							"id": "23",
 							"uri": "http://host.docker.internal:8080/api/v1/impoundments",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/impoundments ()({licensePlate,ownerNationalId,reason,depotLocation,entryDateTime,originType,originId})",
 							"method": "POST",
@@ -1231,7 +1063,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10237",
+							"id": "10247",
 							"uri": "http://host.docker.internal:8080/api/v1/impoundments/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/impoundments\/ ()({licensePlate,ownerNationalId,reason,depotLocation,entryDateTime,originType,originId})",
 							"method": "POST",
@@ -1241,7 +1073,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "35",
+							"id": "24",
 							"uri": "http://host.docker.internal:8080/api/v1/impoundments/id/release",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/impoundments\/id\/release ()({verifiedRequirements:[],towingAndStorageFee,paymentReference,paymentReferenceValid})",
 							"method": "POST",
@@ -1251,7 +1083,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10244",
+							"id": "10237",
 							"uri": "http://host.docker.internal:8080/api/v1/impoundments/id/release/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/impoundments\/id\/release\/ ()({verifiedRequirements:[],towingAndStorageFee,paymentReference,paymentReferenceValid})",
 							"method": "POST",
@@ -1261,9 +1093,9 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "30",
+							"id": "19",
 							"uri": "http://host.docker.internal:8080/api/v1/infractions",
-							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/infractions ()({licensePlate,infractionType,infractionDateTime,location:{street,crossStreet,latitude,longitude},evidenceUrl:[],offenderNationalId,vehicleOwnerTaxId,debtorId,debtorIdType,baseAmount,aggravatingFactors:[],finalAmount,originOperationId,originTicketId,originParkingSessionId,debtorIdentificationComplete,finalAmountValid})",
+							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/infractions ()({licensePlate,infractionType,infractionDateTime,location:{street,crossStreet,latitude,longitude},evidenceUrl:[],offenderNationalId,vehicleOwnerTaxId,debtorId,debtorIdType,baseAmount,aggravatingFactors:[],finalAmount,originOperationId,originTicketId,originParkingSessionId,finalAmountValid,debtorIdentificationComplete})",
 							"method": "POST",
 							"param": "",
 							"attack": "",
@@ -1271,9 +1103,9 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10240",
+							"id": "10242",
 							"uri": "http://host.docker.internal:8080/api/v1/infractions/",
-							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/infractions\/ ()({licensePlate,infractionType,infractionDateTime,location:{street,crossStreet,latitude,longitude},evidenceUrl:[],offenderNationalId,vehicleOwnerTaxId,debtorId,debtorIdType,baseAmount,aggravatingFactors:[],finalAmount,originOperationId,originTicketId,originParkingSessionId,debtorIdentificationComplete,finalAmountValid})",
+							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/infractions\/ ()({licensePlate,infractionType,infractionDateTime,location:{street,crossStreet,latitude,longitude},evidenceUrl:[],offenderNationalId,vehicleOwnerTaxId,debtorId,debtorIdType,baseAmount,aggravatingFactors:[],finalAmount,originOperationId,originTicketId,originParkingSessionId,finalAmountValid,debtorIdentificationComplete})",
 							"method": "POST",
 							"param": "",
 							"attack": "",
@@ -1281,7 +1113,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "33",
+							"id": "22",
 							"uri": "http://host.docker.internal:8080/api/v1/infractions/id/annulment",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/infractions\/id\/annulment ()({annulmentReason})",
 							"method": "POST",
@@ -1291,7 +1123,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10242",
+							"id": "10245",
 							"uri": "http://host.docker.internal:8080/api/v1/infractions/id/annulment/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/infractions\/id\/annulment\/ ()({annulmentReason})",
 							"method": "POST",
@@ -1301,7 +1133,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "32",
+							"id": "21",
 							"uri": "http://host.docker.internal:8080/api/v1/infractions/id/appeal",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/infractions\/id\/appeal ()({reason})",
 							"method": "POST",
@@ -1311,7 +1143,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10236",
+							"id": "10240",
 							"uri": "http://host.docker.internal:8080/api/v1/infractions/id/appeal/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/infractions\/id\/appeal\/ ()({reason})",
 							"method": "POST",
@@ -1321,7 +1153,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "31",
+							"id": "20",
 							"uri": "http://host.docker.internal:8080/api/v1/infractions/id/confirmation",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/infractions\/id\/confirmation",
 							"method": "POST",
@@ -1331,7 +1163,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10243",
+							"id": "10244",
 							"uri": "http://host.docker.internal:8080/api/v1/infractions/id/confirmation/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/infractions\/id\/confirmation\/",
 							"method": "POST",
@@ -1341,7 +1173,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10305",
+							"id": "10321",
 							"uri": "http://host.docker.internal:8080/api/v1/infractions/suggestions",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/infractions\/suggestions ()({description})",
 							"method": "POST",
@@ -1351,7 +1183,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10241",
+							"id": "10246",
 							"uri": "http://host.docker.internal:8080/api/v1/infractions/suggestions/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/infractions\/suggestions\/ ()({description})",
 							"method": "POST",
@@ -1361,7 +1193,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "80",
+							"id": "77",
 							"uri": "http://host.docker.internal:8080/api/v1/operations",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/operations ()({type,zone,startDateTime,endDateTime,assignedInspectors:[],assignedUnits:[],ticketId,dateRangeValid})",
 							"method": "POST",
@@ -1371,7 +1203,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10254",
+							"id": "10249",
 							"uri": "http://host.docker.internal:8080/api/v1/operations/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/operations\/ ()({type,zone,startDateTime,endDateTime,assignedInspectors:[],assignedUnits:[],ticketId,dateRangeValid})",
 							"method": "POST",
@@ -1381,7 +1213,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "29",
+							"id": "18",
 							"uri": "http://host.docker.internal:8080/api/v1/operations/id/closure",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/operations\/id\/closure ()({resolution})",
 							"method": "POST",
@@ -1391,7 +1223,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10251",
+							"id": "10241",
 							"uri": "http://host.docker.internal:8080/api/v1/operations/id/closure/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/operations\/id\/closure\/ ()({resolution})",
 							"method": "POST",
@@ -1411,7 +1243,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10255",
+							"id": "10251",
 							"uri": "http://host.docker.internal:8080/api/v1/parking-sessions/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/parking-sessions\/ ()({licensePlate,zoneId,startDateTime})",
 							"method": "POST",
@@ -1421,7 +1253,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "28",
+							"id": "17",
 							"uri": "http://host.docker.internal:8080/api/v1/parking-sessions/id/closure",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/parking-sessions\/id\/closure",
 							"method": "POST",
@@ -1431,7 +1263,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10253",
+							"id": "10248",
 							"uri": "http://host.docker.internal:8080/api/v1/parking-sessions/id/closure/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/parking-sessions\/id\/closure\/",
 							"method": "POST",
@@ -1451,7 +1283,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10252",
+							"id": "10250",
 							"uri": "http://host.docker.internal:8080/api/v1/parking-sessions/id/unpaid-flag/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/parking-sessions\/id\/unpaid-flag\/ ()({baseAmount})",
 							"method": "POST",
@@ -1471,7 +1303,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10248",
+							"id": "10257",
 							"uri": "http://host.docker.internal:8080/api/v1/parking-tariffs/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/parking-tariffs\/ ()({zoneId,pricePerHour,validFrom,validTo,dateRangeValid})",
 							"method": "POST",
@@ -1481,7 +1313,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "9097",
+							"id": "9113",
 							"uri": "http://host.docker.internal:8080/api/v1/parking-zones",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/parking-zones ()({name,boundaries,allowedHours})",
 							"method": "POST",
@@ -1501,7 +1333,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10257",
+							"id": "10260",
 							"uri": "http://host.docker.internal:8080/api/v1/parking-zones/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/parking-zones\/ ()({name,boundaries,allowedHours})",
 							"method": "POST",
@@ -1521,7 +1353,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10250",
+							"id": "10259",
 							"uri": "http://host.docker.internal:8080/api/v1/street-closures/id/activation/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/street-closures\/id\/activation\/",
 							"method": "POST",
@@ -1541,7 +1373,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10258",
+							"id": "10256",
 							"uri": "http://host.docker.internal:8080/api/v1/street-closures/id/approval/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/street-closures\/id\/approval\/ ()({detours:[{street,alternateRoute}],conditions:[],authorizedFrom,authorizedTo})",
 							"method": "POST",
@@ -1591,7 +1423,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "4980",
+							"id": "5037",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()( response.write({0}*{1}) )",
 							"method": "POST",
@@ -1601,9 +1433,9 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "4954",
+							"id": "5025",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
-							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(\" response.write(107,311*162,674) \")",
+							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(\" response.write(267,036*385,473) \")",
 							"method": "POST",
 							"param": "",
 							"attack": "",
@@ -1611,7 +1443,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "7573",
+							"id": "7564",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(\"')",
 							"method": "POST",
@@ -1621,7 +1453,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "3080",
+							"id": "2975",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(\")",
 							"method": "POST",
@@ -1631,7 +1463,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "5876",
+							"id": "6191",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(\",\"John Doe\"\",cat \/etc\/passwd)",
 							"method": "POST",
@@ -1641,7 +1473,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "6033",
+							"id": "6330",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(\",\"John Doe\"\",type %SYSTEMROOT%\\win.ini)",
 							"method": "POST",
@@ -1651,7 +1483,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "11816",
+							"id": "11809",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(\"\/><xsl:value-of select)",
 							"method": "POST",
@@ -1661,7 +1493,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "4860",
+							"id": "4961",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(\";print(chr(122).chr(97).chr(112).chr(95...)",
 							"method": "POST",
@@ -1671,7 +1503,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "2215",
+							"id": "2307",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(\"><!--#EXEC cmd)",
 							"method": "POST",
@@ -1681,7 +1513,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "3216",
+							"id": "3159",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(\"John Doe\" AND 1)",
 							"method": "POST",
@@ -1691,7 +1523,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "3346",
+							"id": "3255",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(\"John Doe\" UNION ALL select NULL -- )",
 							"method": "POST",
@@ -1701,7 +1533,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "3279",
+							"id": "3194",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(\"John Doe\"\" AND \"1\")",
 							"method": "POST",
@@ -1711,7 +1543,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "3410",
+							"id": "3302",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(\"John Doe\"\" UNION ALL select NULL -- )",
 							"method": "POST",
@@ -1721,7 +1553,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "3096",
+							"id": "2995",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(\"John Doe\"\")",
 							"method": "POST",
@@ -1731,7 +1563,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "5902",
+							"id": "6208",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(\"John Doe\"\";cat \/etc\/passwd;\")",
 							"method": "POST",
@@ -1741,7 +1573,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "6141",
+							"id": "6422",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(\"John Doe\"\";get-help)",
 							"method": "POST",
@@ -1751,7 +1583,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "6050",
+							"id": "6344",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(\"John Doe\"\"|type %SYSTEMROOT%\\win.ini)",
 							"method": "POST",
@@ -1761,7 +1593,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "3247",
+							"id": "3169",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(\"John Doe\"' AND '1')",
 							"method": "POST",
@@ -1771,7 +1603,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "3384",
+							"id": "3292",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(\"John Doe\"' UNION ALL select NULL -- )",
 							"method": "POST",
@@ -1781,7 +1613,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "3162",
+							"id": "3087",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(\"John Doe\"'()",
 							"method": "POST",
@@ -1791,7 +1623,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "3064",
+							"id": "2947",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(\"John Doe\"')",
 							"method": "POST",
@@ -1801,7 +1633,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "3437",
+							"id": "3332",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(\"John Doe\"') UNION ALL select NULL -- )",
 							"method": "POST",
@@ -1811,7 +1643,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "5927",
+							"id": "6243",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(\"John Doe\"',',cat \/etc\/passwd)",
 							"method": "POST",
@@ -1821,7 +1653,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "6060",
+							"id": "6360",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(\"John Doe\"',',type %SYSTEMROOT%\\win.ini)",
 							"method": "POST",
@@ -1831,7 +1663,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "5958",
+							"id": "6255",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(\"John Doe\"';cat \/etc\/passwd;')",
 							"method": "POST",
@@ -1841,7 +1673,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "6159",
+							"id": "6444",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(\"John Doe\"';get-help)",
 							"method": "POST",
@@ -1851,7 +1683,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "6084",
+							"id": "6375",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(\"John Doe\"'|type %SYSTEMROOT%\\win.ini)",
 							"method": "POST",
@@ -1871,7 +1703,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "3425",
+							"id": "3319",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(\"John Doe\") UNION ALL select NULL -- )",
 							"method": "POST",
@@ -1881,7 +1713,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "5845",
+							"id": "6148",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(\"John Doe\",cat \/etc\/passwd)",
 							"method": "POST",
@@ -1891,7 +1723,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "5981",
+							"id": "6286",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(\"John Doe\",type %SYSTEMROOT%\\win.ini)",
 							"method": "POST",
@@ -1901,7 +1733,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "3125",
+							"id": "3041",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(\"John Doe\";)",
 							"method": "POST",
@@ -1911,7 +1743,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "5857",
+							"id": "6177",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(\"John Doe\";cat \/etc\/passwd;)",
 							"method": "POST",
@@ -1921,7 +1753,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "6173",
+							"id": "6451",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(\"John Doe\";get-help #)",
 							"method": "POST",
@@ -1931,7 +1763,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "6116",
+							"id": "6407",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(\"John Doe\";get-help)",
 							"method": "POST",
@@ -1941,7 +1773,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "6012",
+							"id": "6306",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(\"John Doe\"|type %SYSTEMROOT%\\win.ini)",
 							"method": "POST",
@@ -1951,7 +1783,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "9394",
+							"id": "9589",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(#set($engine)",
 							"method": "POST",
@@ -1961,7 +1793,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "9584",
+							"id": "9716",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(#{%x(sleep 15)})",
 							"method": "POST",
@@ -1971,7 +1803,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "9473",
+							"id": "9630",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(#{global.process.mainModule.require('chi...)",
 							"method": "POST",
@@ -1981,7 +1813,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "4906",
+							"id": "4988",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(${@print(chr(122).chr(97).chr(112).chr(9...)",
 							"method": "POST",
@@ -1991,7 +1823,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "9533",
+							"id": "9676",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(${__import__(\"subprocess\").check_output(...)",
 							"method": "POST",
@@ -2001,7 +1833,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "3142",
+							"id": "3073",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()('()",
 							"method": "POST",
@@ -2011,7 +1843,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "3046",
+							"id": "2930",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(')",
 							"method": "POST",
@@ -2021,7 +1853,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "4872",
+							"id": "4976",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(';print(chr(122).chr(97).chr(112).chr(95...)",
 							"method": "POST",
@@ -2031,7 +1863,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "1458",
+							"id": "1492",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(5;URL)",
 							"method": "POST",
@@ -2041,9 +1873,9 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "1364",
+							"id": "1422",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
-							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(6117232665928486641.owasp.org)",
+							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(8747992205133759047.owasp.org)",
 							"method": "POST",
 							"param": "",
 							"attack": "",
@@ -2051,7 +1883,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "3103",
+							"id": "3015",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(;)",
 							"method": "POST",
@@ -2061,7 +1893,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "4939",
+							"id": "5016",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(;print(chr(122).chr(97).chr(112).chr(95)...)",
 							"method": "POST",
@@ -2071,7 +1903,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "2207",
+							"id": "2294",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(<!--#EXEC cmd)",
 							"method": "POST",
@@ -2081,7 +1913,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "7581",
+							"id": "7574",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(<!--)",
 							"method": "POST",
@@ -2091,7 +1923,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "9350",
+							"id": "9574",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(<#assign ex)",
 							"method": "POST",
@@ -2101,7 +1933,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "9460",
+							"id": "9614",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(<%)",
 							"method": "POST",
@@ -2111,7 +1943,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "11801",
+							"id": "11792",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(<)",
 							"method": "POST",
@@ -2121,7 +1953,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "11821",
+							"id": "11816",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(<xsl:value-of select)",
 							"method": "POST",
@@ -2131,7 +1963,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "11807",
+							"id": "11798",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(<xsl:value-of>)",
 							"method": "POST",
@@ -2141,7 +1973,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "11833",
+							"id": "11829",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(<xsl:variable name)",
 							"method": "POST",
@@ -2151,17 +1983,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10341",
-							"uri": "http://host.docker.internal:8080/soap/authentication",
-							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(KqPAolZCZxCGREHMZwmDynPVGFjcSQrmHuuEeZiB...)",
-							"method": "POST",
-							"param": "",
-							"attack": "",
-							"evidence": "415",
-							"otherinfo": ""
-						},
-						{
-							"id": "11091",
+							"id": "11250",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(Set-cookie: Tamper)",
 							"method": "POST",
@@ -2171,7 +1993,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "1475",
+							"id": "1514",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(URL)",
 							"method": "POST",
@@ -2181,7 +2003,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10710",
+							"id": "10700",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(ZAP %1!s%2!s%3!s%4!s%5!s%6!s%7!s%8!s%9!s...)",
 							"method": "POST",
@@ -2191,7 +2013,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10705",
+							"id": "10695",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(ZAP%n%s%n%s%n%s%n%s%n%s%n%s%n%s%n%s%n%s%...)",
 							"method": "POST",
@@ -2201,7 +2023,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10700",
+							"id": "10689",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(ZAP)",
 							"method": "POST",
@@ -2211,7 +2033,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "7585",
+							"id": "7579",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(]]>)",
 							"method": "POST",
@@ -2221,7 +2043,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "11142",
+							"id": "11274",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(any\nSet-cookie: Tamper)",
 							"method": "POST",
@@ -2231,7 +2053,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "11107",
+							"id": "11256",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(any\r\nSet-cookie: Tamper)",
 							"method": "POST",
@@ -2241,7 +2063,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "11151",
+							"id": "11286",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(any?\nSet-cookie: Tamper)",
 							"method": "POST",
@@ -2251,7 +2073,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "11131",
+							"id": "11264",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(any?\r\nSet-cookie: Tamper)",
 							"method": "POST",
@@ -2261,7 +2083,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "5832",
+							"id": "6133",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(cat \/etc\/passwd)",
 							"method": "POST",
@@ -2271,7 +2093,17 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "6101",
+							"id": "10399",
+							"uri": "http://host.docker.internal:8080/soap/authentication",
+							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(dhHxcbuGWVtFyMiiwPAQIpmSgPGpPICOnFiiHUEN...)",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "415",
+							"otherinfo": ""
+						},
+						{
+							"id": "6397",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(get-help)",
 							"method": "POST",
@@ -2281,9 +2113,9 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "1570",
+							"id": "1576",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
-							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(http:\/\/\\6117232665928486641.owasp.org)",
+							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(http:\/\/\\8747992205133759047.owasp.org)",
 							"method": "POST",
 							"param": "",
 							"attack": "",
@@ -2291,7 +2123,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "430",
+							"id": "386",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(http:\/\/www.google.com)",
 							"method": "POST",
@@ -2301,7 +2133,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "368",
+							"id": "335",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(http:\/\/www.google.com\/)",
 							"method": "POST",
@@ -2311,7 +2143,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "441",
+							"id": "401",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(http:\/\/www.google.com\/search?q)",
 							"method": "POST",
@@ -2321,7 +2153,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "403",
+							"id": "355",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(http:\/\/www.google.com:80\/)",
 							"method": "POST",
@@ -2331,7 +2163,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "452",
+							"id": "417",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(http:\/\/www.google.com:80\/search?q)",
 							"method": "POST",
@@ -2341,9 +2173,9 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "1397",
+							"id": "1449",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
-							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(https:\/\/6117232665928486641.owasp.org)",
+							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(https:\/\/8747992205133759047.owasp.org)",
 							"method": "POST",
 							"param": "",
 							"attack": "",
@@ -2351,9 +2183,9 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "1500",
+							"id": "1527",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
-							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(https:\/\/6117232665928486641.owasp.org\/?\"...)",
+							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(https:\/\/8747992205133759047.owasp.org\/?\"...)",
 							"method": "POST",
 							"param": "",
 							"attack": "",
@@ -2361,9 +2193,9 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "1552",
+							"id": "1555",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
-							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(https:\/\/\\6117232665928486641.owasp.org)",
+							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(https:\/\/\\8747992205133759047.owasp.org)",
 							"method": "POST",
 							"param": "",
 							"attack": "",
@@ -2371,9 +2203,9 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "5001",
+							"id": "5062",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
-							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(response.write(107,311*162,674))",
+							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(response.write(267,036*385,473))",
 							"method": "POST",
 							"param": "",
 							"attack": "",
@@ -2381,7 +2213,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "11811",
+							"id": "11802",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(system-property('xsl:vendor')\/>)",
 							"method": "POST",
@@ -2391,7 +2223,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "5973",
+							"id": "6268",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(type %SYSTEMROOT%\\win.ini)",
 							"method": "POST",
@@ -2401,7 +2233,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "524",
+							"id": "476",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(www.google.com)",
 							"method": "POST",
@@ -2411,7 +2243,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "472",
+							"id": "441",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(www.google.com\/)",
 							"method": "POST",
@@ -2421,7 +2253,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "559",
+							"id": "488",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(www.google.com\/search?q)",
 							"method": "POST",
@@ -2431,7 +2263,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "490",
+							"id": "455",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(www.google.com:80\/)",
 							"method": "POST",
@@ -2441,7 +2273,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "570",
+							"id": "500",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(www.google.com:80\/search?q)",
 							"method": "POST",
@@ -2451,9 +2283,9 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "7926",
+							"id": "7921",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
-							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(zj 3865*9579 zj)",
+							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(zj 5209*4948 zj)",
 							"method": "POST",
 							"param": "",
 							"attack": "",
@@ -2461,7 +2293,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "8084",
+							"id": "8069",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(zj#set($x)",
 							"method": "POST",
@@ -2471,9 +2303,9 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "7976",
+							"id": "7983",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
-							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(zj#{2550*9258}zj)",
+							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(zj#{4489*4634}zj)",
 							"method": "POST",
 							"param": "",
 							"attack": "",
@@ -2481,9 +2313,9 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "7955",
+							"id": "7960",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
-							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(zj${2261*3436}zj)",
+							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(zj${6270*4794}zj)",
 							"method": "POST",
 							"param": "",
 							"attack": "",
@@ -2491,7 +2323,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "8063",
+							"id": "8059",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(zj<%)",
 							"method": "POST",
@@ -2501,7 +2333,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "8100",
+							"id": "8085",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(zj<p th:text)",
 							"method": "POST",
@@ -2511,9 +2343,9 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "7995",
+							"id": "7998",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
-							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(zj{#3466*9678}zj)",
+							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(zj{#9672*5658}zj)",
 							"method": "POST",
 							"param": "",
 							"attack": "",
@@ -2521,9 +2353,9 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "7942",
+							"id": "7937",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
-							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(zj{6195*1893}zj)",
+							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(zj{4489*8667}zj)",
 							"method": "POST",
 							"param": "",
 							"attack": "",
@@ -2531,9 +2363,9 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "8014",
+							"id": "8016",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
-							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(zj{@6494*3055}zj)",
+							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(zj{@5884*1906}zj)",
 							"method": "POST",
 							"param": "",
 							"attack": "",
@@ -2541,7 +2373,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "8123",
+							"id": "8100",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(zj{@math key)",
 							"method": "POST",
@@ -2551,7 +2383,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "8051",
+							"id": "8041",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(zj{{)",
 							"method": "POST",
@@ -2561,9 +2393,9 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "8034",
+							"id": "8132",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
-							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(zj{{3538*3660}}zj)",
+							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(zj{{36320|add:89370}}zj)",
 							"method": "POST",
 							"param": "",
 							"attack": "",
@@ -2571,9 +2403,9 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "8137",
+							"id": "8032",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
-							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(zj{{66050|add:66200}}zj)",
+							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(zj{{4566*4081}}zj)",
 							"method": "POST",
 							"param": "",
 							"attack": "",
@@ -2581,9 +2413,9 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "8144",
+							"id": "8145",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
-							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(zj{{print \"3376\" \"8746\"}}zj)",
+							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(zj{{print \"2087\" \"7420\"}}zj)",
 							"method": "POST",
 							"param": "",
 							"attack": "",
@@ -2591,7 +2423,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "9593",
+							"id": "9728",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()({system(\"sleep 15\")})",
 							"method": "POST",
@@ -2601,7 +2433,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "9508",
+							"id": "9662",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()({{\"\".__class__.__mro__[1].__subclasses__...)",
 							"method": "POST",
@@ -2611,7 +2443,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "9429",
+							"id": "9604",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()({{)",
 							"method": "POST",
@@ -2621,7 +2453,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "9549",
+							"id": "9689",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()({{__import__(\"subprocess\").check_output(...)",
 							"method": "POST",
@@ -2631,7 +2463,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "9495",
+							"id": "9653",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()({{range.constructor(\"return eval(\\\"globa...)",
 							"method": "POST",
@@ -2641,7 +2473,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10260",
+							"id": "10258",
 							"uri": "http://host.docker.internal:8080/soap/authentication/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication\/ ()(\"John Doe\")",
 							"method": "POST",
@@ -2661,7 +2493,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10247",
+							"id": "10252",
 							"uri": "http://host.docker.internal:8080/api/v1/parking-tariffs/id/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/parking-tariffs\/id\/ ()({pricePerHour,validFrom,validTo,dateRangeValid})",
 							"method": "PUT",
@@ -2681,7 +2513,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "10256",
+							"id": "10255",
 							"uri": "http://host.docker.internal:8080/api/v1/parking-zones/id/",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/parking-zones\/id\/ ()({name,boundaries,allowedHours,status})",
 							"method": "PUT",
@@ -2711,7 +2543,7 @@
 					"desc": "<p>The given request has been identified as an authentication request. The 'Other Info' field contains a set of key=value lines which identify any relevant fields. If the request is in a context which has an Authentication Method set to \"Auto-Detect\" then this rule will change the authentication to match the request identified.</p>",
 					"instances":[ 
 						{
-							"id": "187",
+							"id": "158",
 							"uri": "http://host.docker.internal:8080/api/v1/auth/login",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/auth\/login ()({username,gmail,dni,password})",
 							"method": "POST",
@@ -2741,7 +2573,7 @@
 					"desc": "<p>The response contents are not storable by caching components such as proxy servers. If the response does not contain sensitive, personal or user-specific information, it may benefit from being stored and cached, to improve performance.</p>",
 					"instances":[ 
 						{
-							"id": "20",
+							"id": "76",
 							"uri": "http://host.docker.internal:8080/api/v1/parking-tariffs/id",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/parking-tariffs\/id",
 							"method": "DELETE",
@@ -2751,7 +2583,17 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "19",
+							"id": "68",
+							"uri": "http://host.docker.internal:8080/api/v1/parking-tariffs/id",
+							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/parking-tariffs\/id",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "no-store",
+							"otherinfo": ""
+						},
+						{
+							"id": "69",
 							"uri": "http://host.docker.internal:8080/api/v1/parking-zones/id",
 							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/parking-zones\/id",
 							"method": "GET",
@@ -2761,7 +2603,7 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "17",
+							"id": "65",
 							"uri": "http://host.docker.internal:8080/soap/authentication",
 							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication",
 							"method": "GET",
@@ -2771,23 +2613,13 @@
 							"otherinfo": ""
 						},
 						{
-							"id": "21",
-							"uri": "http://host.docker.internal:8080/api/v1/street-closures/id/completion",
-							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/street-closures\/id\/completion ()({notes})",
+							"id": "67",
+							"uri": "http://host.docker.internal:8080/soap/authentication",
+							"nodeName": "http:\/\/host.docker.internal:8080\/soap\/authentication ()(\"John Doe\")",
 							"method": "POST",
 							"param": "",
 							"attack": "",
 							"evidence": "no-store",
-							"otherinfo": ""
-						},
-						{
-							"id": "18",
-							"uri": "http://host.docker.internal:8080/api/v1/parking-tariffs/id",
-							"nodeName": "http:\/\/host.docker.internal:8080\/api\/v1\/parking-tariffs\/id ()({pricePerHour,validFrom,validTo,dateRangeValid})",
-							"method": "PUT",
-							"param": "",
-							"attack": "",
-							"evidence": "PUT ",
 							"otherinfo": ""
 						}
 					],

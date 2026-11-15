@@ -14,13 +14,13 @@ import jakarta.validation.constraints.Size;
 public record UpdateInfractionRequest(
         @Size(min = 1, max = 15, message = "La patente debe tener entre 1 y 15 caracteres") String licensePlate,
         @Valid Location location,
-        List<@NotBlank(message = "Las URL de evidencia no pueden estar vacías") String> evidenceUrl,
-        String offenderNationalId,
-        String vehicleOwnerTaxId,
-        String debtorId,
+        List<@NotBlank(message = "Las URL de evidencia no pueden estar vacías") @Size(max = 255, message = "No puede superar 255 caracteres") String> evidenceUrl,
+        @Size(max = 255, message = "No puede superar 255 caracteres") String offenderNationalId,
+        @Size(max = 255, message = "No puede superar 255 caracteres") String vehicleOwnerTaxId,
+        @Size(max = 255, message = "No puede superar 255 caracteres") String debtorId,
         DebtorIdType debtorIdType,
         @DecimalMin(value = "0.0", inclusive = true, message = "El importe base no puede ser negativo") BigDecimal baseAmount,
-        List<@NotBlank(message = "Los agravantes no pueden estar vacíos") String> aggravatingFactors,
+        List<@NotBlank(message = "Los agravantes no pueden estar vacíos") @Size(max = 255, message = "No puede superar 255 caracteres") String> aggravatingFactors,
         @DecimalMin(value = "0.0", inclusive = true, message = "El importe final no puede ser negativo") BigDecimal finalAmount) {
 
     @AssertTrue(message = "debtorId y debtorIdType deben informarse juntos")

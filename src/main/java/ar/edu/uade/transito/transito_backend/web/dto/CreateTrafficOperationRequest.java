@@ -16,10 +16,10 @@ public record CreateTrafficOperationRequest(
         @NotNull(message = "La fecha de inicio es obligatoria") LocalDateTime startDateTime,
         LocalDateTime endDateTime,
         @NotNull(message = "La lista de inspectores es obligatoria")
-        List<@NotBlank(message = "Los identificadores de inspector no pueden estar vacíos") String> assignedInspectors,
+        List<@NotBlank(message = "Los identificadores de inspector no pueden estar vacíos") @Size(max = 255, message = "No puede superar 255 caracteres") String> assignedInspectors,
         @NotNull(message = "La lista de móviles es obligatoria")
-        List<@NotBlank(message = "Los identificadores de móvil no pueden estar vacíos") String> assignedUnits,
-        String ticketId) {
+        List<@NotBlank(message = "Los identificadores de móvil no pueden estar vacíos") @Size(max = 255, message = "No puede superar 255 caracteres") String> assignedUnits,
+        @Size(max = 255, message = "No puede superar 255 caracteres") String ticketId) {
 
     @AssertTrue(message = "La fecha de finalización no puede ser anterior a la fecha de inicio")
     public boolean isDateRangeValid() {
