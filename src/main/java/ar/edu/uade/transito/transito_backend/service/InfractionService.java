@@ -15,10 +15,10 @@ import ar.edu.uade.transito.transito_backend.event.payload.InfractionAppealedPay
 import ar.edu.uade.transito.transito_backend.event.payload.InfractionConfirmedPayload;
 import ar.edu.uade.transito.transito_backend.event.payload.InfractionRegisteredPayload;
 import ar.edu.uade.transito.transito_backend.exception.InvalidRequestException;
-import ar.edu.uade.transito.transito_backend.exception.InvalidStateTransitionException;
 import ar.edu.uade.transito.transito_backend.exception.ResourceNotFoundException;
 import ar.edu.uade.transito.transito_backend.model.Infraction;
 import ar.edu.uade.transito.transito_backend.model.enums.InfractionStatus;
+import ar.edu.uade.transito.transito_backend.model.state.InfractionStates;
 import ar.edu.uade.transito.transito_backend.repository.InfractionRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -69,7 +69,7 @@ public class InfractionService {
 
     public Infraction update(UUID infractionId, Infraction changes) {
         Infraction existing = findById(infractionId);
-        requireNotFinal(existing);
+        InfractionStates.of(existing).requireEditable(existing);
 
         if (changes.getLicensePlate() != null) {
             existing.setLicensePlate(changes.getLicensePlate());
@@ -109,12 +109,7 @@ public class InfractionService {
 
     public Infraction appeal(UUID infractionId, String reason) {
         Infraction existing = findById(infractionId);
-        if (existing.getStatus() != InfractionStatus.PENDING_APPEAL) {
-            throw new InvalidStateTransitionException(
-                    "Solo se puede apelar una infracción en estado " + InfractionStatus.PENDING_APPEAL);
-        }
-
-        existing.setStatus(InfractionStatus.APPEALED);
+        existing.setStatus(InfractionStates.of(existing).appeal(existing).status());
         Infraction saved = infractionRepository.save(existing);
 
         eventPublisher.publish(EventEnvelope.of("infractionAppealed",
@@ -125,13 +120,7 @@ public class InfractionService {
 
     public Infraction confirm(UUID infractionId) {
         Infraction existing = findById(infractionId);
-        if (existing.getStatus() != InfractionStatus.PENDING_APPEAL
-                && existing.getStatus() != InfractionStatus.APPEALED) {
-            throw new InvalidStateTransitionException(
-                    "No se puede confirmar una infracción en estado " + existing.getStatus());
-        }
-
-        existing.setStatus(InfractionStatus.CONFIRMED);
+        existing.setStatus(InfractionStates.of(existing).confirm(existing).status());
         Infraction saved = infractionRepository.save(existing);
 
         eventPublisher.publish(EventEnvelope.of("infractionConfirmed", new InfractionConfirmedPayload(
@@ -152,9 +141,7 @@ public class InfractionService {
 
     public Infraction annul(UUID infractionId, String annulmentReason, String authorizedBy) {
         Infraction existing = findById(infractionId);
-        requireNotFinal(existing);
-
-        existing.setStatus(InfractionStatus.ANNULLED);
+        existing.setStatus(InfractionStates.of(existing).annul(existing).status());
         Infraction saved = infractionRepository.save(existing);
 
         eventPublisher.publish(EventEnvelope.of("infractionAnulled", new InfractionAnulledPayload(
@@ -164,12 +151,5 @@ public class InfractionService {
                 OffsetDateTime.now(MUNICIPAL_TIME_ZONE))));
 
         return saved;
-    }
-
-    private void requireNotFinal(Infraction infraction) {
-        if (infraction.getStatus() == InfractionStatus.CONFIRMED || infraction.getStatus() == InfractionStatus.ANNULLED) {
-            throw new InvalidStateTransitionException(
-                    "La infracción " + infraction.getInfractionId() + " ya está firme (" + infraction.getStatus() + ")");
-        }
     }
 }

@@ -74,6 +74,8 @@ En vez de que cada controller decida a mano qué código HTTP devolver ante un e
 
 ---
 
+Las transiciones de estado de cortes de calle e infracciones se modelan con el **patrón State** (`model/state/`); ver [patron-state.md](patron-state.md).
+
 ## 7. Qué falta definir para un backend más sólido
 
 Lista consolidada de todo lo que quedó pendiente durante la construcción — para que el equipo la revise y priorice:
