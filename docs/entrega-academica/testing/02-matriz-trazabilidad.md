@@ -15,7 +15,7 @@ Fuente de las HU y criterios: Google Doc del TPO, secciones F1-F7: **31 historia
 | Evidencia | Qué es |
 |---|---|
 | EV-1 | `./mvnw -q -B verify` sobre la rama del PR #57 `fix/s22-activacion-en-ventana` (15/11 ~21:30): exit 0, **532 tests**, 0 fallos; líneas **94,45 %**, ramas 82,43 % (638/774). Antes: 518 tests y 94,34 % (`integration/entrega4-f`); 497 tests y 93,74 % (`main` `57b2765`) |
-| EV-2 | Frontend frontend `main` `0279950`: `npm ci && npm run test:coverage` → **65 tests**, 0 fallos, **94,04 % de líneas** (1059/1126) (15/11 ~21:30). Antes: 60 tests y 93,48 % sobre `1f0187d` |
+| EV-2 | Frontend `main` `0279950`: `npm ci && npm run test:coverage` → **65 tests**, 0 fallos, **94,04 % de líneas** (1059/1126) (15/11 ~21:30). Antes: 60 tests y 93,48 % sobre `1f0187d` |
 | EV-3 | E2E Playwright 7/7 en el CI de `main` del frontend; 3 corridas sin inestables (`reports/i2.md`) |
 | EV-4 | Grupo `bug` sobre `57b2765` (D3, 15/11): `./mvnw -q -B test -Dbugs.excluded=none -Dgroups=bug -Djacoco.skip=true` -> 19 tests, 16 pasan, 1 falla (`bug09a`) y 2 dan error de preparación (`bug02`, `bug14`); las 3 son pruebas desactualizadas (DEF-17, DEF-18) |
 | EV-5 | Pruebas con otros módulos en producción del 15/11, con `eventId` confirmados por Core y por cada módulo (`04-informe-ejecucion.md` sección 7, `pruebas-modulos-15-11.md`) |
