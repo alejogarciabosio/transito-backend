@@ -53,7 +53,7 @@ Los nombres `TC-BE-*` son los ids que ya figuran en los `@DisplayName` de los te
 | HU-INF-06 | Sin apelación pendiente y firme | TC-BE-INF-16/18 | `InfractionIntegrationTest.confirmPending`, `confirmInvalid`; `InfractionServiceTest.confirmMatrix` | PASA | EV-1 | |
 | HU-INF-06 | `debtorId` y `debtorIdType` | TC-BE-INF-01 | `RequestValidationTests.rejectsInvalidInfractionAmountsAndIncompleteDebtorIdentification` | PASA | EV-1 | |
 | HU-INF-06 | Datos de infracción, vehículo, importe, inspector, ubicación | TC-BE-INF-16 | `InfractionIntegrationTest.confirmPending` (sobre `infractionConfirmed` completo) | PASA | EV-1 | |
-| HU-INF-06 | Publica `infractionConfirmed`; no envía `infractionAnulled` | TC-BE-INF-16, TC-BE-INF-18 | `confirmPending`, `confirmInvalid` (no republica); integración real con Core/M5 (Rentas) | PASA (automático; fecha con offset: `InfractionConfirmedOffsetTest`). Real: Core entregó a `q.rentas`; procesamiento por M5 PENDIENTE | EV-1, EV-5 | DEF-25 (cerrado) |
+| HU-INF-06 | Publica `infractionConfirmed`; no envía `infractionAnulled` | TC-BE-INF-16, TC-BE-INF-18 | `confirmPending`, `confirmInvalid` (no republica); integración real con Core/M5 (Rentas) | PASA (automático; fecha con offset: `InfractionConfirmedOffsetTest`). Real: PARCIAL, Core entregó a `q.rentas` pero M5 lo rechazó por la fecha sin offset (corregido 15/11 17:50); falta repetir con una infracción nueva cuando M5 pase un DNI válido | EV-1, EV-5 | DEF-25 (cerrado) |
 
 ## F2 - Cortes de calle
 | HU | Criterio | Caso | Test automatizado | Resultado | Evid. | Defecto |
@@ -64,7 +64,7 @@ Los nombres `TC-BE-*` son los ids que ya figuran en los `@DisplayName` de los te
 | HU-COR-01 | Evento duplicado no se procesa dos veces | TC-BE-EVT-D | `listener/IncomingEventDispatcherTest.discardsEventAlreadyProcessed` | PASA | EV-1 | |
 | HU-COR-02 | Consultar la solicitud | TC-BE-SC-08 | `StreetClosureIntegrationTest.permissions` | PASA | EV-1 | |
 | HU-COR-02 | Aprobar publica `streetClosureApproved`; condiciones | TC-BE-SC-03 | `StreetClosureIntegrationTest.approve`; E2E-7; real con M3 y M6 | PASA | EV-1, EV-3, EV-5 | |
-| HU-COR-02 | Rechazar con motivo publica `streetClosureRejected` | TC-BE-SC-05 | `StreetClosureIntegrationTest.reject`; `AdditionalServiceCoverageTests.streetClosureCanBeRejectedOnlyWhileRequested`; front `staff.test.jsx` | PASA | EV-1, EV-2 | |
+| HU-COR-02 | Rechazar con motivo publica `streetClosureRejected` | TC-BE-SC-05 | `StreetClosureIntegrationTest.reject`; `AdditionalServiceCoverageTests.streetClosureCanBeRejectedOnlyWhileRequested`; front `staff.test.jsx`; real con M3 (15/11) | PASA. Real: M3 PROCESSED, solicitud REJECTED (validado por M3) | EV-1, EV-2, EV-5 | |
 | HU-COR-02 | Conserva referencia a la solicitud y al módulo | TC-BE-SC-03/05 | `approve`, `reject` | PASA | EV-1 | |
 | HU-COR-02 | Transición no permitida -> 409 | TC-BE-SC-07 | `StreetClosureIntegrationTest.invalidTransitions`; `OtherServicesTest.closureApproveOnlyFromRequested`; `StateTransitionTests.streetClosureCannotActivateBeforeApproval` | PASA | EV-1 | |
 | HU-COR-02 | Aprobar sin desvíos devuelve 200 | BUG-BE-02 | `BugReproductionTest.bug02_approveWithoutDetours` | ERROR de preparación del test ("affectedSections es obligatorio"): test desactualizado, no hay veredicto sobre el producto | EV-4 | DEF-18 |
@@ -75,7 +75,7 @@ Los nombres `TC-BE-*` son los ids que ya figuran en los `@DisplayName` de los te
 | HU-COR-04 | Extender el período | TC-BE-SC-EXT | `StreetClosureRequestedHandlerTest.keepsTheReferenceToThePreviousRequestForAnExtension` (la prórroga llega como nuevo evento) | PASA | EV-1 | |
 | HU-COR-04 | Finalizar un corte activo, fecha y hora, observaciones | TC-BE-SC-06 | `fullLifecycle`; `AdditionalServiceCoverageTests.streetClosureCompletesTheApprovedLifecycle`; real con M3 y M6 | PASA | EV-1, EV-5 | |
 | HU-COR-04 | Publica `streetClosureEnded` con `causationId` | TC-BE-SC-06, TC-BE-SC-09 | `fullLifecycle`, `StreetClosureIntegrationTest.responsesKeepCorrelationAndCausation`, `OtherServicesTest.expireDueClosures` | PASA. Real: circuito v1.1 con M3 validado por Core y M3 el 15/11 | EV-1, EV-5 | DEF-08 (cerrado), DEF-33 (cerrado) |
-| HU-COR-04 | Vencimiento automático de ventana | TC-BE-SC-U02 | `OtherServicesTest.expireDueClosures` | PASA | EV-1 | |
+| HU-COR-04 | Vencimiento automático de ventana | TC-BE-SC-U02 | `OtherServicesTest.expireDueClosures`; real con M3 (15/11) | PASA. Real: corte ACTIVE cerrado por el scheduler (`streetClosureEnded` automático, solicitud ENDED) y corte APPROVED sin activar → EXPIRED sin Ended (validado por M3) | EV-1, EV-5 | |
 | HU-COR-04 | RF-COR-11: publicar `streetClosureActivated` | TC-PEND-14b | `fullLifecycle` afirma que NO se publica la activación | NO IMPLEMENTADO por diseño; a confirmar con el PO | git grep | DEF-21 |
 | HU-COR-05 | Recibir servicios urbanos, podas, riesgo de árboles, obras | TC-PEND-04 | ninguno: no hay handlers para esos eventos en `listener/handler/` (5 handlers: pagos, deuda, ticket, solicitud de corte, reverso) | NO IMPLEMENTADO | git grep | DEF-20 |
 | HU-COR-05 | Identificar zona; disponible para evaluar | TC-PEND-04 | ninguno | NO IMPLEMENTADO | git grep | DEF-20 |
@@ -90,7 +90,7 @@ Los nombres `TC-BE-*` son los ids que ya figuran en los `@DisplayName` de los te
 | HU-OPE-03 | Cierre con resultado; cerrado no se edita | TC-BE-OP-04/06 | `closeSetsEnd`, `closedIsFinal`; `StateTransitionTests.closedOperationCannotBeClosedAgain` | PASA | EV-1 | |
 | HU-OPE-04 | Retención asociada al operativo con `originType=OPERATION` y `originId` | TC-BE-IMP-01 | `integration/VehicleImpoundmentIntegrationTest.register_publishesEvent` (usa `Payloads` con origen OPERATION); front `staff.test.jsx` "ingreso desde un operativo" | PASA | EV-1, EV-2 | |
 | HU-OPE-04 | Publica `vehicleImpounded` | TC-BE-IMP-01 | `register_publishesEvent` | PASA | EV-1 | |
-| (soporte) | Ticket de M2 derivado a M7 crea operativo; `updateTicketStatus` cumple el esquema de Core | TC-BE-EVT-01..03, TC-BE-EVT-SCH | `TicketEventListenerIntegrationTest.*`; `unit/TicketUpdatedHandlerTest.*`; `CoreSchemaContractTest` (5) | PASA. Real con M2: PENDIENTE (falta su `ticketUpdated`) | EV-1 | DEF-31 (cerrado) |
+| (soporte) | Ticket de M2 derivado a M7 crea operativo; `updateTicketStatus` cumple el esquema de Core | TC-BE-EVT-01..03, TC-BE-EVT-SCH | `TicketEventListenerIntegrationTest.*`; `unit/TicketUpdatedHandlerTest.*`; `CoreSchemaContractTest` (5) | PASA. Real con M2: PASA (STARTED y RESOLVED; validado por M2 el 15/11 23:11) | EV-1, EV-5 | DEF-31 (cerrado) |
 
 ## F4 - Accidentes
 | HU | Criterio | Caso | Test automatizado | Resultado | Evid. | Defecto |
@@ -102,7 +102,7 @@ Los nombres `TC-BE-*` son los ids que ya figuran en los `@DisplayName` de los te
 | HU-ACC-03 | Acciones asociadas; cierre solo al finalizar atención | TC-BE-ACC-03/04/05 | `updatePreliminary`, `verifiedIsFinal`, `preliminaryStatusIgnored`; `StateTransitionTests.verifiedAccidentCannotBeModified` | PASA | EV-1 | |
 | HU-ACC-03 | Conservar historial de la actuación | TC-PEND-03c | sin test: no hay entidad de historial | NO VERIFICABLE | | |
 | HU-ACC-04 | Ticket que originó la actuación; asociación; actualizaciones de M2 | TC-BE-EVT-01..03 | `TicketEventListenerIntegrationTest.routedToTransito`, `otherArea`, `otherUpdateTypes`; `TicketUpdatedHandlerTest.*` | PASA | EV-1 | |
-| HU-ACC-04 | Informar evolución a M2 (`updateTicketStatus`) | TC-BE-EVT-01, TC-BE-EVT-SCH | `TicketUpdatedHandlerTest.routedTicketForM7CreatesOperationAndPublishesStartedUsingCoreEnvelope`; `TrafficOperationIntegrationTest.closeSetsEnd`; `CoreSchemaContractTest.resolvedPayloadsMatchSchema` | PASA (contra el esquema de Core); real con M2 PENDIENTE | EV-1 | DEF-31 (cerrado) |
+| HU-ACC-04 | Informar evolución a M2 (`updateTicketStatus`) | TC-BE-EVT-01, TC-BE-EVT-SCH | `TicketUpdatedHandlerTest.routedTicketForM7CreatesOperationAndPublishesStartedUsingCoreEnvelope`; `TrafficOperationIntegrationTest.closeSetsEnd`; `CoreSchemaContractTest.resolvedPayloadsMatchSchema` | PASA (contra el esquema de Core). Real con M2: PASA (validado por M2 el 15/11) | EV-1, EV-5 | DEF-31 (cerrado) |
 | (soporte) | Accidente propio del ciudadano (`/mine`) | TC-BE-ACC-CIU-01/02 | `RoadAccidentIntegrationTest.mine`, `mine_asVehicleOwnerOnly`; `SecurityEvidenceTests.bolaAccidents` | PASA | EV-1 | |
 
 ## F5 - Vehículos retenidos
@@ -160,4 +160,4 @@ Los nombres `TC-BE-*` son los ids que ya figuran en los `@DisplayName` de los te
 - 31 HU de F1-F7: todas tienen al menos una fila. Ninguna HU queda sin caso: las que no tienen test tienen un caso `TC-PEND-*` en 03.
 - HU con algún criterio sin implementar o sin test (marcadas arriba): HU-INF-01 (importe y reincidencia), HU-INF-03 (un criterio), HU-INF-04 (adjuntos, `appealId`), HU-COR-04 (evento de activación), HU-COR-05, HU-OPE-03, HU-ACC-03 (historial), HU-VEH-02, HU-VEH-03 (parcial), HU-EST-03, HU-EST-04, HU-IND-01, HU-IND-02, HU-IND-03 (parcial).
 - Criterios con test que FALLA hoy en el build normal: **ninguno** (EV-1: 0 fallos). En el grupo `bug` (EV-4) solo fallan 3 reproducciones desactualizadas (`bug09a`, `bug02`, `bug14`; DEF-17 y DEF-18), que no son veredicto sobre el producto.
-- Pendiente de prueba real con otros módulos (EV-5): procesamiento de `infractionConfirmed` por M5 y `ticketUpdated` de M2. El adaptador de M1 quedó validado en local contra M1 real el 15/11 (TC-REAL-M1). El circuito de cortes con M3 v1.1 quedó validado por Core y M3 el 15/11 (DEF-33 cerrado).
+- Pendiente de prueba real con otros módulos (EV-5): procesamiento de `infractionConfirmed` por M5 (parcial: falta un DNI válido de M5 para una infracción nueva). El circuito de reclamos con M2 quedó validado por M2 el 15/11 23:11, y las pruebas adicionales de cortes con M3 (rechazo, cierre automático, vencimiento sin activar) por M3 el 15/11 22:45; en ambos casos resta la verificación de Core. El adaptador de M1 quedó validado en local contra M1 real el 15/11 (TC-REAL-M1). El circuito de cortes con M3 v1.1 quedó validado por Core y M3 el 15/11 (DEF-33 cerrado).
