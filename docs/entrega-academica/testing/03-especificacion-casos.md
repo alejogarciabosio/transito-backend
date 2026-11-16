@@ -1,6 +1,6 @@
 # 03 - Especificación de casos de prueba
 
-Convenciones: Tipo = P (positivo), N (negativo), B (borde). Prioridad = A (alta), M (media), B (baja). "Auto" indica la clase y método real (verificados con `git grep`); `no` significa que el caso está definido pero no tiene test (se ejecuta a mano o está PENDIENTE). Los usuarios de prueba (ciudadano, inspector, administrador) son los del validador local; sus contraseñas salen de variables de entorno (DEF-01) y no se reproducen aquí. Estado del código: `main` `57b2765` (15/11/2026). Los ids `TC-BE-*` son los que ya aparecen en los `@DisplayName` de los tests; los `TC-PEND-*` y `TC-IA-*` los definió este informe.
+Convenciones: Tipo = P (positivo), N (negativo), B (borde). Prioridad = A (alta), M (media), B (baja). "Auto" indica la clase y método real (verificados con `git grep`); `no` significa que el caso está definido pero no tiene test (se ejecuta a mano o está PENDIENTE). Los usuarios de prueba (ciudadano, inspector, administrador) son los del validador local; sus contraseñas salen de variables de entorno (DEF-01) y no se reproducen aquí. Estado del código: `main` `57b2765` (15/11/2026); la sección I se agregó sobre la rama `fix/s22-activacion-en-ventana` (PR #57). Los ids `TC-BE-*` son los que ya aparecen en los `@DisplayName` de los tests; los `TC-PEND-*` y `TC-IA-*` los definió este informe.
 
 Prefijo de rutas: `/api/v1`. "Corte" = `StreetClosure`. Todas las rutas con rol exigen `Authorization: Bearer <jwt>`.
 
@@ -69,10 +69,10 @@ Prefijo de rutas: `/api/v1`. "Corte" = `StreetClosure`. Todas las rutas con rol 
 | TC-BE-SC-U02 | corte ACTIVE y otro APPROVED con ventana vencida | scheduler | `expireDueClosures` | ACTIVE termina y se publica `streetClosureEnded`; APPROVED pasa a `EXPIRED` | M | B | `OtherServicesTest.expireDueClosures` |
 | TC-BE-SC-EXT | evento con referencia a solicitud anterior | prórroga | despacho | conserva la referencia | M | B | `StreetClosureRequestedHandlerTest.keepsTheReferenceToThePreviousRequestForAnExtension` |
 | TC-BE-SC-CIU-01 | ciudadano o anónimo | | GET `/street-closures/current` | público; solo APPROVED o ACTIVE | M | P | `StreetClosureIntegrationTest.currentForCitizens` |
-| TC-PEND-14 | corte aprobado con `startDate` en el futuro | activar ahora | POST activation | debería rechazar (409/422) | M | B | no (la regla no existe; en la prueba real se activó 7 s antes, DEF-07) |
+| TC-PEND-14 | corte aprobado con `startDate` en el futuro | activar ahora | POST activation | debería rechazar (409/422) | M | B | sí desde DEF-42: `StreetClosureIntegrationTest.activateBeforeWindowStart` (409) y TC-BE-SC-DEF42-01..04 |
 | TC-PEND-14b | corte activado | activar | POST activation | debería publicarse `streetClosureActivated` (RF-COR-11) | B | P | no (el test `fullLifecycle` afirma lo contrario; DEF-21) |
 | TC-PEND-04 | evento `urbanServiceScheduled`/`treePruningScheduled`/`treeRiskDetected` | evento válido | despacho | queda disponible para evaluar | B | P | no (NO IMPLEMENTADO, DEF-20) |
-| TC-REAL-M3 | producción, evento de M3 | corte real | aprobar, activar, finalizar con `prueba-prod.sh` | M3 recibe `streetClosureApproved` y `streetClosureEnded` | A | P | no, manual 15/11: PASÓ (ids en 04 sección 7). Re-prueba con `causationId` PENDIENTE (DEF-33) |
+| TC-REAL-M3 | producción, evento de M3 | corte real | aprobar, activar, finalizar con `prueba-prod.sh` | M3 recibe `streetClosureApproved` y `streetClosureEnded` | A | P | no, manual 15/11: PASÓ (ids en 04 sección 7). Re-prueba v1.1 con `causationId` (19:45–19:48): PASÓ, validada por Core (20:51) y M3 (20:54); DEF-33 cerrado |
 | TC-REAL-M6 | producción, evento de M6 | corte real | aprobar, activar, finalizar | M6 confirma ambos eventos con ids originales | A | P | no, manual 15/11: PASÓ (04 sección 7) |
 
 ## D. Operativos, accidentes, retenidos (F3, F4, F5)
@@ -158,7 +158,29 @@ Prefijo de rutas: `/api/v1`. "Corte" = `StreetClosure`. Todas las rutas con rol 
 | E2E-6 | sesión | token vencido (401) | acción cualquiera | vuelve al login con aviso | A | N | idem |
 | E2E-7 | administrador | desvío | aprobar corte | queda aprobado | A | P | idem |
 
+## I. Casos agregados en la etapa final (Testcontainers, descargo, ventana de activación, gateway de IA)
+| Id | Precondición | Datos | Pasos | Resultado esperado | Prio | Tipo | Auto |
+|---|---|---|---|---|---|---|---|
+| TC-BE-TC-01 | PostgreSQL y RabbitMQ reales (Testcontainers) | infracción pendiente | confirmar | el relay publica `infractionConfirmed` en `muni.inbox` con el mismo sobre; la fila queda PUBLISHED | A | P | `OutboxRabbitContainerIntegrationTest.publicaViaOutbox` |
+| TC-BE-TC-02 | idem, RabbitMQ detenido | infracción pendiente | confirmar, levantar el broker | la confirmación responde, el evento queda PENDING y al volver se publica una sola vez | A | N | `OutboxRabbitContainerIntegrationTest.brokerCaidoSinPerdida` |
+| TC-BE-TC-03 | idem | el mismo `streetClosureRequested` (mismo `eventId`) dos veces | publicar en la cola de entrada | se crea un solo corte | A | B | `ConsumerRabbitContainerIntegrationTest.consumoIdempotente` |
+| TC-BE-TC-04 | idem | JSON roto y payload inválido | publicar en la cola de entrada | rechazo sin requeue; los mensajes terminan en la DLQ | A | N | `ConsumerRabbitContainerIntegrationTest.mensajeInvalidoVaALaDlq` |
+| TC-BE-TC-05 | idem | JSON roto con DNI y patente de prueba | publicar en la cola de entrada | va a la DLQ y el log no muestra el cuerpo (DEF-05) | A | N | `ConsumerRabbitContainerIntegrationTest.jsonRotoNoFiltraDatosPersonalesAlLog` |
+| TC-BE-INF-15b | ciudadano titular, infracción no firme | motivo del descargo | apelar y consultar como titular y como personal | `appealReason` en la respuesta y en el GET (DEF-38) | A | P | `InfractionIntegrationTest.appealReasonIsPersisted` |
+| TC-BE-INF-15c | infracciones sin apelar o anteriores al cambio | | GET | `appealReason` null sin romper | M | B | `InfractionIntegrationTest.appealReasonNullForLegacyRows` |
+| TC-BE-INF-15d | infracción apelada | confirmar, anular, editar | ejecutar cada acción | `appealReason` no viaja en `infractionConfirmed` ni `infractionAnulled`; editar no lo borra | A | N | `InfractionIntegrationTest.appealReasonNotPublished` |
+| TC-BE-SC-DEF42-01 | corte APPROVED, reloj de test antes de `startDate` | | activar | 409 Problem Details, sigue APPROVED y sin evento (DEF-42) | A | N | `StreetClosureIntegrationTest.activateBeforeWindowStart`; `StreetClosureStateTest`; `StreetClosureActivationWindowTest` |
+| TC-BE-SC-DEF42-02 | corte APPROVED, reloj en `startDate` | | activar | 200 ACTIVE | A | B | `StreetClosureIntegrationTest.activateAtWindowStart` |
+| TC-BE-SC-DEF42-03 | corte APPROVED, reloj en `endDate` o después | | activar | 409 (ventana semiabierta `[startDate, endDate)`) | A | B | `StreetClosureIntegrationTest.activateAfterWindowEnd` |
+| TC-BE-SC-DEF42-04 | corte REQUESTED | inicio ≥ fin, o fin ya pasado | aprobar | 400 y sigue REQUESTED | A | N | `StreetClosureIntegrationTest.approveWithInvalidWindow` |
+| TC-IA-GW-01 | gateway real contra proveedor simulado por HTTP | respuesta válida del proveedor | POST `/infractions/suggestions` | 200 con `source` AI | M | P | `AiGatewaySafetyTest.validProviderResponse` |
+| TC-IA-GW-02 | idem | texto con instrucción de inyección; salida fuera del catálogo | POST | el dato va delimitado; la salida fuera del enum se descarta | A | N | `AiGatewaySafetyTest.promptInjectionOutputOutsideEnumIsDiscarded` |
+| TC-IA-GW-03 | idem | descripción ajena al tránsito | POST | sin sugerencia | M | N | `AiGatewaySafetyTest.outOfDomainGivesNoSuggestion` |
+| TC-IA-GW-04 | idem | texto con DNI y patente; token del usuario | POST | el prompt no lleva DNI, patente ni datos del token | A | N | `AiGatewaySafetyTest.promptCarriesNoPiiNorTokenData` |
+| TC-IA-GW-05 | idem | | POST y revisar logs | ni la descripción, ni la respuesta cruda, ni la clave aparecen en los logs | A | N | `AiGatewaySafetyTest.providerResponseIsNeverLogged` |
+| TC-IA-GW-06 | idem | proveedor con 5xx, timeout o conexión rechazada | POST | 200 con `source` MANUAL (degradación) | A | N | `AiGatewaySafetyTest.providerDownDegradesToManual` |
+
 ## Conteo de tipos
 Se cuenta una fila de las tablas anteriores como un caso (algunas filas agrupan varios tests). El conteo se hace sobre la columna Tipo; las filas con tipo mixto (P/N, N/B) se cuentan como negativas o de borde.
 
-Resultado del conteo (script sobre esta misma tabla, `main` `57b2765`): **122 filas**; 37 positivas puras, 85 negativas o de borde (incluye las mixtas) = **69,7 %**, por encima del 40 % exigido. 105 filas tienen test automatizado; las 17 marcadas `no` en Auto son los casos de brecha (`TC-PEND-*`), las pruebas manuales (`TC-AUT-PROD`, `TC-REAL-M3`, `TC-REAL-M6`, `TC-BROKER-LOCAL`) y las pendientes de ejecución (`TC-IA-08`). Respecto del borrador anterior (112 filas) se agregaron los casos de los defectos cerrados el 15/11 (evidencia o inspector, `causationId`, esquema de Core, outbox, `/auth/me`, `@Valid`, 403 antes que 400, Problem Details, CORP) y se reemplazaron los que describían defectos ya corregidos.
+Resultado del conteo (script sobre esta misma tabla, rama `fix/s22-activacion-en-ventana`, 15/11): **140 filas**; 40 positivas puras, 100 negativas o de borde (incluye las mixtas) = **71,4 %**, por encima del 40 % exigido. 124 filas tienen test automatizado; las 16 marcadas `no` en Auto son los casos de brecha (`TC-PEND-*`), las pruebas manuales (`TC-AUT-PROD`, `TC-REAL-M3`, `TC-REAL-M6`, `TC-BROKER-LOCAL`) y las pendientes de ejecución (`TC-IA-08`). Respecto del borrador anterior (112 filas) se agregaron los casos de los defectos cerrados el 15/11 (evidencia o inspector, `causationId`, esquema de Core, outbox, `/auth/me`, `@Valid`, 403 antes que 400, Problem Details, CORP) y se reemplazaron los que describían defectos ya corregidos. En la etapa final (15/11 noche) se agregaron 18 filas (sección I): Testcontainers (TC-BE-TC-01..05), descargo persistido (TC-BE-INF-15b/c/d, DEF-38), activación dentro de la ventana (TC-BE-SC-DEF42-01..04, DEF-42) y gateway de IA (TC-IA-GW-01..06, `AiGatewaySafetyTest`); antes eran 122 filas (69,7 %).

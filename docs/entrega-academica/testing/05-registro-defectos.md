@@ -1,6 +1,6 @@
 # 05 - Registro de defectos
 
-Actualizado: 15/11/2026 ~21:10 ART (cierre de DEF-33 con la confirmación de Core y M3 de las 20:51/20:54; nuevo DEF-42 corregido en el PR `fix/s22-activacion-en-ventana`, pendiente de merge y deploy; con ese PR `./mvnw -q -B verify` da **532 tests, 0 fallos, 94,45 % de líneas**). Estado anterior: (integración `integration/entrega4-f`: PR #55, #54 y #53 sobre `main` `b3b990f`; se despliega inmediatamente después del CI; `./mvnw -q -B verify` **518 tests, 0 fallos, 94,34 % de líneas**). Frontend en producción: `main` `6040e60` (PR #12). Estado anterior: Versión de referencia: `main` del backend en `57b2765` (merge del PR #48, desplegado en Railway y verificado: health UP, Core conectado, 6 eventos registrados, tabla `outbox_events` creada y relay activo) y `main` del frontend en `1f0187d` (PR #10).
+Actualizado: 15/11/2026 ~21:30 ART (cierre de DEF-33 con la confirmación de Core y M3 de las 20:51/20:54; DEF-42 cerrado con el PR #57 `fix/s22-activacion-en-ventana`, que se mergea y despliega al pasar el CI; con ese PR `./mvnw -q -B verify` da **532 tests, 0 fallos, 94,45 % de líneas**; frontend `main` `0279950`: 65 tests, 94,04 %). Estado anterior: (integración `integration/entrega4-f`: PR #55, #54 y #53 sobre `main` `b3b990f`; se despliega inmediatamente después del CI; `./mvnw -q -B verify` **518 tests, 0 fallos, 94,34 % de líneas**). Frontend en producción: `main` `6040e60` (PR #12). Estado anterior: Versión de referencia: `main` del backend en `57b2765` (merge del PR #48, desplegado en Railway y verificado: health UP, Core conectado, 6 eventos registrados, tabla `outbox_events` creada y relay activo) y `main` del frontend en `1f0187d` (PR #10).
 Fuentes: código de `main` (`git grep`; cada "cerrado" se revisó en el código), `./mvnw verify` sobre `57b2765` (497 tests, 0 fallos, 93,74 % de líneas), CI de `main` (Newman, ZAP baseline, Trivy, Sonar, gitleaks en verde), reportes de los agentes (s1-s15, i3-i5, d2, t1, t2), `TABLERO.md` y `pruebas-modulos-15-11.md`. No se hicieron pruebas nuevas contra producción para este registro.
 
 ## Severidades usadas
@@ -57,7 +57,7 @@ Estados: **Abierto**, **Cerrado** (corregido en `main`, desplegado y verificado 
 | DEF-38 | Backend: el texto del descargo no se persistía (se recibía en `AppealRequest.reason` y se perdía) | Mayor | **Cerrado — desplegado 15/11** (PR #54, en `integration/entrega4-f`); vinculado a DEF-35 |
 | DEF-40 | Listado de infracciones degradado con muchos datos: N+1 de colecciones y open-in-view agotan el pool (p95 10 s, 25 % de HTTP 500 a 50 VU con 5 950 infracciones) | Mayor | **Cerrado — desplegado 15/11** (PR #55, en `integration/entrega4-f`) |
 | DEF-41 | Spring Boot genera e imprime al arrancar "Using generated security password" (usuario en memoria que no se usa) | Menor | **Cerrado — desplegado 15/11** (PR #55, en `integration/entrega4-f`) |
-| DEF-42 | Se podía activar un corte antes del inicio de la ventana autorizada (hallado por Core en producción) | Mayor | **Corregido en PR** (`fix/s22-activacion-en-ventana`; Abierto hasta merge y deploy) |
+| DEF-42 | Se podía activar un corte antes del inicio de la ventana autorizada (hallado por Core en producción) | Mayor | **Cerrado — desplegado 15/11** (PR #57 `fix/s22-activacion-en-ventana`) |
 
 Nota de numeración: los PR #54 y #55 usaron ambos "DEF-38"; se dejó DEF-38 para el descargo y se renumeraron los de #55 a DEF-40 y DEF-41. **DEF-39 no se usa** (quedó libre al renumerar; no hay ningún defecto con ese número).
 
@@ -141,12 +141,12 @@ Nota de numeración: los PR #54 y #55 usaron ambos "DEF-38"; se dejó DEF-38 par
 - **Verificación**: `InputLimitsValidationTests` (256 → 400, 255 → 201, NUL → 400) y re-escaneo ZAP: 0 High, 0 Medium ([evidencias/zap](evidencias/zap/README.md)).
 
 ## Detalle de los abiertos y aceptados
-### DEF-42 Activación de un corte antes del inicio de la ventana autorizada — Corregido en PR (Mayor)
+### DEF-42 Activación de un corte antes del inicio de la ventana autorizada — Cerrado (Mayor)
 - **Hallado por Core** en producción el 15/11, en la re-prueba del circuito v1.1 con M3 (DEF-33): un corte APPROVED con ventana autorizada `startDate` 19:46:41 se activó a las 19:45:51, 50 s antes del inicio. **M3 confirmó** que no es válido: solo se puede activar dentro de la ventana autorizada `[startDate, endDate)`. Es el mismo defecto que DEF-07 (registrado antes desde el código como Menor, sin workaround técnico); DEF-07 queda como duplicado.
 - **Causa raíz**: `ApprovedState.activate` solo validaba el estado; no comparaba la hora actual con la ventana. El script de los circuitos aprueba con inicio = ahora + 1 min y activa enseguida, por eso se disparó.
 - **Por qué Mayor**: incumple una regla de negocio acordada con los módulos de origen y produce un comportamiento visible para otros módulos (el corte figura ACTIVE en la consulta ciudadana antes de lo autorizado). No es Crítico: no hay pérdida de datos ni evento erróneo (la activación no se publica) y hay workaround (activar recién al llegar `startDate`).
 - **Corrección** (PR `fix/s22-activacion-en-ventana`): `StreetClosureState.activate(closure, now)`; `ApprovedState` rechaza `now < startDate` o `now >= endDate` con `InvalidStateTransitionException` → **409 Problem Details** "El corte solo puede activarse dentro de la ventana autorizada (desde … hasta …)". La hora sale de un `java.time.Clock` inyectable (bean nuevo `ClockConfig`, reloj del sistema). Además la aprobación valida la ventana: inicio ≥ fin, o un fin nuevo ya vencido → **400** (un inicio pasado con fin futuro sigue permitido). La **finalización manual** de un ACTIVE se mantiene en cualquier momento, también antes de `endDate` (la obra puede terminar antes; decisión documentada en `StreetClosureState.finish`). Sin cambios de rutas, DTOs, eventos ni esquema.
-- **Verificación**: `StreetClosureStateTest` (antes del inicio con el caso real 19:45:51 → 409; en `startDate` → ACTIVE; en `endDate` y después → 409), `StreetClosureActivationWindowTest` (reloj fijo: 409 sin guardar ni publicar; cierre anticipado permitido; aprobación con ventana inválida → 400) y `TC-BE-SC-DEF42-01..04` en `StreetClosureIntegrationTest` (reloj de test movible). Los tests fallaban antes del fix. Se cierra con el merge y el deploy.
+- **Verificación**: `StreetClosureStateTest` (antes del inicio con el caso real 19:45:51 → 409; en `startDate` → ACTIVE; en `endDate` y después → 409), `StreetClosureActivationWindowTest` (reloj fijo: 409 sin guardar ni publicar; cierre anticipado permitido; aprobación con ventana inválida → 400) y `TC-BE-SC-DEF42-01..04` en `StreetClosureIntegrationTest` (reloj de test movible). Los tests fallaban antes del fix. **Cerrado — desplegado 15/11** (PR #57).
 
 ### DEF-33 Incompatibilidad temporal con el consumidor de M3 por `causationId` — Cerrado (Mayor)
 - **Situación**: desde DEF-08, `streetClosureEnded` (y `streetClosureRejected`) llevan `causationId` = `eventId` de la solicitud, como exige el envelope de Core. El consumidor v1.0 de M3 rechazaba `streetClosureEnded` con `causationId` no nulo (aviso de M3 del 15/11 18:08); M3 lo adaptó (v1.1) para exigir `causationId` = `eventId` del `streetClosureRequested`. `eventVersion` sigue en "1.0" (el contrato v1.1 es documental).
@@ -212,17 +212,17 @@ Nota de numeración: los PR #54 y #55 usaron ambos "DEF-38"; se dejó DEF-38 par
 - El payload existe pero no se publica a Core (el catálogo registrado tiene 6 tipos). Confirmar con la PO.
 
 ## Conteo por severidad y riesgo de salida
-Criterio del profesor: 0 Bloqueantes, 0 Críticos, como máximo 3 Mayores abiertos (con workaround). Los Aceptados y los duplicados se cuentan aparte. Total registrado: **41 defectos** (DEF-01 a DEF-42; DEF-39 sin uso). Sin números duplicados (verificado con `grep`). DEF-42 cuenta como **abierto** hasta que su PR se mergee y despliegue (definición de Cerrado).
+Criterio del profesor: 0 Bloqueantes, 0 Críticos, como máximo 3 Mayores abiertos (con workaround). Los Aceptados y los duplicados se cuentan aparte. Total registrado: **41 defectos** (DEF-01 a DEF-42; DEF-39 sin uso). Sin números duplicados (verificado con `grep`). DEF-42 figura cerrado porque el PR #57 se mergea y despliega apenas pasa el CI.
 | Severidad | Abiertos | Cerrados | Aceptados | Duplicados | Límite (abiertos) | ¿Cumple? |
 |---|---|---|---|---|---|---|
 | Bloqueante | 0 | 0 | 0 | 0 | 0 | Sí |
 | Crítica | **0** | 3 (DEF-01, 23, 24) | 0 | 0 | 0 | Sí |
-| Mayor | **3** (DEF-19, 20, 42) | 20 (DEF-02, 03, 04, 05, 06, 08, 11, 13, 14, 15, 16, 22, 25, 26, 29, 31, 33, 34, 38, 40) | 0 | 0 | 3 | Sí, en el límite |
+| Mayor | **2** (DEF-19, 20) | 21 (DEF-02, 03, 04, 05, 06, 08, 11, 13, 14, 15, 16, 22, 25, 26, 29, 31, 33, 34, 38, 40, 42) | 0 | 0 | 3 | Sí |
 | Menor | **4** (DEF-10, 17, 18, 21) | 8 (DEF-27, 28, 30, 32, 35, 36, 37, 41) | 2 (DEF-09, 12) | 1 (DEF-07 → DEF-42) | sin límite | — |
-| **Total** | **7** | **31** | **2** | **1** | | |
+| **Total** | **6** | **32** | **2** | **1** | | |
 
-**Riesgo de salida (sin maquillar)**: 0 Bloqueantes, 0 Críticos y 3 Mayores abiertos (en el límite). No se bajó ninguna severidad para llegar al número. Salvedades:
+**Riesgo de salida (sin maquillar)**: 0 Bloqueantes, 0 Críticos y 2 Mayores abiertos (DEF-19 y DEF-20, ambos con workaround), uno por debajo del límite. No se bajó ninguna severidad para llegar al número. Salvedades:
 1. DEF-38, DEF-40, DEF-41 (y DEF-32 y la ampliación de DEF-05, ya en `main`) figuran "cerrado — desplegado 15/11" porque `integration/entrega4-f` se mergea y despliega inmediatamente después del CI; **si ese deploy no ocurre, vuelven a "abierto" y hay 5 Mayores abiertos** (no cumple).
 2. DEF-20 tiene workaround operativo documentado (`hu-pendientes.md`), no técnico; conviene que la PO confirme la decisión de alcance.
-3. DEF-33 quedó cerrado (Core y M3 validaron el circuito v1.1 el 15/11 20:51/20:54). DEF-42 (nuevo, Mayor) ocupa su lugar entre los 3 abiertos; al mergear y desplegar su PR quedan 2 Mayores abiertos.
+3. DEF-33 quedó cerrado (Core y M3 validaron el circuito v1.1 el 15/11 20:51/20:54) y DEF-42 (nuevo, Mayor) figura cerrado con el PR #57; si ese deploy no ocurriera, DEF-42 volvería a abierto y habría 3 Mayores (en el límite).
 4. Cualquier Mayor nuevo deja el criterio sin cumplir.
