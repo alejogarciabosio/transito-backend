@@ -4,7 +4,7 @@ Tres defectos que llegaron tarde (detectados recién en la 4.ª entrega, el 15/1
 
 ## 1. El adaptador REST de M1 nunca arrancaba (DEF-03)
 - **Qué pasó**: con `USERS_REST_ENABLED=true` el backend no levantaba: el validador inyectaba el `ObjectMapper` de Jackson 2 y Spring Boot 4 provee el de `tools.jackson`. Lo vio A1 al seguir el README con el compose (`reports/a1.md`).
-- **Por qué no se detectó antes**: el valor por defecto era `false`, así que ningún arranque ni test cargaba el bean. `RestIdentityValidatorTest` probaba la clase aislada, sin contexto de Spring. La cobertura de líneas (88 %) no avisa de un bean que nunca se instancia. Además la integración con M1 real estaba "pendiente de coordinación externa", por lo que nadie la ejecutó.
+- **Por qué no se detectó antes**: el valor por defecto era `false`, así que ningún arranque ni test cargaba el bean. `RestIdentityValidatorTest` probaba la clase aislada, sin contexto de Spring. La cobertura de líneas (88 %) no avisa de un bean que nunca se instancia. Además la integración con M1 real estaba "pendiente de coordinación externa", por lo que nadie la ejecutó. Cuando llegaron las cuentas de M1 (15/11) el adaptador se probó en local contra M1 real y respondió 200 para ciudadano y empleado.
 - **Qué lo habría atrapado**: una prueba de contexto con la propiedad en `true` (hoy `integration/RestIdentityContextTest`) y el job de CI con el compose levantado y `USERS_REST_ENABLED=true` contra el mock. Regla nueva: todo bean condicional por propiedad tiene una prueba de contexto con la propiedad activada.
 
 ## 2. `/actuator/health` colgado con el broker caído (DEF-02)
