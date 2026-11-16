@@ -53,7 +53,7 @@ Nota: las reproducciones `@Tag("bug")` (19 métodos en `BugReproductionTest`) se
 
 | Entorno | Descripción | Uso | Limitaciones |
 |---|---|---|---|
-| Local con compose | `docker compose up`: app + PostgreSQL + RabbitMQ + mocks WireMock de M1 y Core (README) | demo, carga, ZAP, Newman, broker caído y outbox | el adaptador REST de M1 queda apagado por defecto (`USERS_REST_ENABLED=false`) |
+| Local con compose | `docker compose up`: app + PostgreSQL + RabbitMQ + mocks WireMock de M1 y Core (README) | demo, carga, ZAP, Newman, broker caído y outbox | el adaptador REST de M1 queda apagado por defecto (`USERS_REST_ENABLED=false`); el 15/11 se activó en local contra M1 real (04 sección 7) |
 | CI (GitHub Actions) | backend: `test` (`./mvnw verify`, cobertura mínima 85 %), `gitleaks`, `dependencias` (Trivy), `api-tests` (Newman), `zap-baseline`, `sonarcloud`; frontend: `test`, `e2e`, `sonarcloud`, `gitleaks` | puerta de calidad | mutación y k6 no están en el CI (se corren a mano) |
 | Producción (Railway) | integrada con Core y M1/M2/M3/M5/M6; `main` despliega automáticamente | solo pruebas manuales autorizadas y de bajo impacto | sin carga ni intrusión; pool de base de 3 conexiones |
 
@@ -89,13 +89,13 @@ Escala: Probabilidad 1 (rara) a 3 (probable); Impacto 1 (menor) a 3 (alto). Punt
 
 | Id | Riesgo | P | I | Pts | Prio | Pruebas que lo cubren | Estado al 15/11 |
 |---|---|---|---|---|---|---|---|
-| R1 | Credenciales de desarrollo fijas activas en producción (login local) | 3 | 3 | 9 | Alta | `TC-BE-AUTH-04b`, `RestIdentityContextTest`, `git grep` de contraseñas | Mitigado: contraseñas fuera del código (DEF-01 cerrado), login de las 3 cuentas verificado en producción. Residual: el adaptador de M1 sigue sin activar |
+| R1 | Credenciales de desarrollo fijas activas en producción (login local) | 3 | 3 | 9 | Alta | `TC-BE-AUTH-04b`, `RestIdentityContextTest`, `git grep` de contraseñas | Mitigado: contraseñas fuera del código (DEF-01 cerrado), login de las 3 cuentas verificado en producción. Residual: el adaptador de M1 está validado en local contra M1 real (15/11) pero sin activar en producción, a propósito |
 | R2 | Pérdida de eventos si el broker está caído | 2 | 3 | 6 | Alta | `OutboxIntegrationTest.brokerCaidoYVuelve`, `rollbackNoDejaEvento`, `sinDuplicadosEnParalelo`; stop/start de RabbitMQ en compose (s12, i5); `HealthWithBrokerDownTest` | Cubierto: Transactional Outbox en producción (DEF-14 cerrado). Entrega "al menos una vez": los consumidores deduplican por `eventId` |
 | R3 | BOLA/IDOR: ciudadano accede a recursos ajenos | 2 | 3 | 6 | Alta | `SecurityEvidenceTests.bolaInfractions/bolaImpoundments/bolaAccidents/bolaParkingSession`, `ParkingIntegrationTest.Ownership` | Cubierto en los 4 recursos (DEF-15 cerrado) |
 | R4 | Transiciones inválidas del corte de calle | 2 | 3 | 6 | Alta | `TC-BE-SC-07`, `StreetClosureStateTest`, `StateTransitionTests`, `TC-BE-SC-DEF42-01..04` | Cubierto (409), incluida la activación fuera de la ventana autorizada (DEF-42, cerrado) |
 | R5 | Fuga de datos personales (DNI en JWT, payload en logs) | 3 | 2 | 6 | Alta | `SecurityEvidenceTests.jwtHasNoPii`, `JwtSinDniIntegrationTest`, `EventLoggingSinPiiTest`, `IncomingEventLoggingSinPiiTest` | Cubierto (DEF-05 y DEF-06 cerrados) |
 | R6 | Evento duplicado o inválido procesado dos veces | 2 | 2 | 4 | Media | `IncomingEventDispatcherTest`, `StreetClosureRequestedHandlerTest`, `TC-BE-SC-02` | Cubierto |
-| R7 | Indisponibilidad o respuesta inválida de M1 (login) | 2 | 2 | 4 | Media | `RestIdentityContextTest`, `RestIdentityValidatorTest` | Cubierto con M1 simulado; contra M1 real NO VERIFICABLE (adaptador sin activar) |
+| R7 | Indisponibilidad o respuesta inválida de M1 (login) | 2 | 2 | 4 | Media | `RestIdentityContextTest`, `RestIdentityValidatorTest` | Cubierto con M1 simulado; contra M1 real: login verificado en local el 15/11 (TC-REAL-M1); caída real de M1 NO VERIFICABLE |
 | R8 | Despliegue de `main` rompe producción (deploy automático) | 2 | 3 | 6 | Alta | CI completo; smoke manual post-deploy (health, Core, catálogo de eventos, frontend) | Parcial: los 4 deploys del 15/11 se verificaron a mano; no hay smoke automático post-deploy |
 | R9 | Sugerencia de IA incorrecta o manipulada | 2 | 2 | 4 | Media | `InfractionSuggestionServiceTest.promptInjectionCannotChangeContract`, `InfractionSuggestionIntegrationTest.promptInjection/piiMasked`, `GroqAiGatewayTest` | Cubierto con proveedor simulado; eval real PENDIENTE |
 | R10 | Degradación bajo carga (pool de 3 conexiones) | 2 | 2 | 4 | Media | k6 con base vacía y con 5 950 infracciones | Materializado y corregido: el N+1 del listado agotaba el pool (p95 10 s, DEF-40); hoy p95 309 ms con datos. Residual: listado sin paginar |
