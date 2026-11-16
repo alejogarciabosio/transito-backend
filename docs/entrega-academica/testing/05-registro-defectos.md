@@ -1,6 +1,6 @@
 # 05 - Registro de defectos
 
-Actualizado: 15/11/2026 ~20:40 ART (integración `integration/entrega4-f`: PR #55, #54 y #53 sobre `main` `b3b990f`; se despliega inmediatamente después del CI; `./mvnw -q -B verify` **518 tests, 0 fallos, 94,34 % de líneas**). Frontend en producción: `main` `6040e60` (PR #12). Estado anterior: Versión de referencia: `main` del backend en `57b2765` (merge del PR #48, desplegado en Railway y verificado: health UP, Core conectado, 6 eventos registrados, tabla `outbox_events` creada y relay activo) y `main` del frontend en `1f0187d` (PR #10).
+Actualizado: 15/11/2026 ~21:10 ART (cierre de DEF-33 con la confirmación de Core y M3 de las 20:51/20:54; nuevo DEF-42 corregido en el PR `fix/s22-activacion-en-ventana`, pendiente de merge y deploy; con ese PR `./mvnw -q -B verify` da **532 tests, 0 fallos, 94,45 % de líneas**). Estado anterior: (integración `integration/entrega4-f`: PR #55, #54 y #53 sobre `main` `b3b990f`; se despliega inmediatamente después del CI; `./mvnw -q -B verify` **518 tests, 0 fallos, 94,34 % de líneas**). Frontend en producción: `main` `6040e60` (PR #12). Estado anterior: Versión de referencia: `main` del backend en `57b2765` (merge del PR #48, desplegado en Railway y verificado: health UP, Core conectado, 6 eventos registrados, tabla `outbox_events` creada y relay activo) y `main` del frontend en `1f0187d` (PR #10).
 Fuentes: código de `main` (`git grep`; cada "cerrado" se revisó en el código), `./mvnw verify` sobre `57b2765` (497 tests, 0 fallos, 93,74 % de líneas), CI de `main` (Newman, ZAP baseline, Trivy, Sonar, gitleaks en verde), reportes de los agentes (s1-s15, i3-i5, d2, t1, t2), `TABLERO.md` y `pruebas-modulos-15-11.md`. No se hicieron pruebas nuevas contra producción para este registro.
 
 ## Severidades usadas
@@ -23,7 +23,7 @@ Estados: **Abierto**, **Cerrado** (corregido en `main`, desplegado y verificado 
 | DEF-04 | Sin registro de eventos publicados (regla 9.3 del TP) | Mayor | **Cerrado 15/11** (PR #46, en #48) |
 | DEF-05 | Logs con payload completo de eventos (ampliado: cuerpo de mensajes AMQP inválidos en el log) | Mayor | Cerrado 15/11 (PR #34, en #39); ampliación cerrada en PR #50 (en `main` por #52) |
 | DEF-06 | DNI (`nationalId`) dentro del JWT | Mayor | **Cerrado 15/11** (PR #42 + frontend #10, en #48) |
-| DEF-07 | Un corte se activa antes de `startDate` | Menor | Abierto |
+| DEF-07 | Un corte se activa antes de `startDate` | Menor | **Duplicado de DEF-42** (mismo defecto, confirmado por Core en producción; se sigue y se cuenta como DEF-42) |
 | DEF-08 | `causationId` nulo en `streetClosureEnded` (hallado también por Core) | Mayor (reclasificado desde Menor al confirmarlo Core) | Cerrado 15/11 (PR #33, en #31) |
 | DEF-09 | Swagger y `/v3/api-docs` públicos en producción | Menor | Aceptado |
 | DEF-10 | 200 con `auth=false` de M1 devuelve 502 | Menor | Abierto (comportamiento testeado) |
@@ -49,7 +49,7 @@ Estados: **Abierto**, **Cerrado** (corregido en `main`, desplegado y verificado 
 | DEF-30 | Falta la cabecera `Cross-Origin-Resource-Policy` (ZAP, Low) | Menor | **Cerrado 15/11** (PR #45, en #48) |
 | DEF-31 | `updateTicketStatus` no cumplía el esquema de Core (M2 v1.78) al cerrar el operativo | Mayor | **Cerrado 15/11** (PR #44, en #48) |
 | DEF-32 | `spring.jpa.show-sql=true` en producción: el relay del outbox imprime un SELECT cada 2 s | Menor | **Cerrado** (PR #50, en `main` por #52; se despliega con `integration/entrega4-f`) |
-| DEF-33 | Incompatibilidad temporal con el consumidor de M3: rechaza `streetClosureEnded` con `causationId` no nulo | Mayor | **Abierto** (mitigado; circuito v1.1 repetido el 15/11, falta la confirmación de M3/Core) |
+| DEF-33 | Incompatibilidad temporal con el consumidor de M3: rechaza `streetClosureEnded` con `causationId` no nulo | Mayor | **Cerrado 15/11** (circuito v1.1 validado por Core 20:51 y M3 20:54) |
 | DEF-34 | Frontend: los adjuntos del descargo no se envían (el input acepta archivos que se descartan sin aviso) | Mayor | **Cerrado 15/11** (PR frontend #12, desplegado `6040e60`: adjuntos ocultos con aviso "próximamente"; la carga de adjuntos sigue en DEF-20 / HU-INF-04) |
 | DEF-35 | Frontend: el panel no muestra el texto del descargo | Menor | **Cerrado — desplegado 15/11** (PR frontend #12 `6040e60` + DEF-38 en `integration/entrega4-f`) |
 | DEF-36 | Frontend: el botón "Marcar impago" sigue visible tras marcar la sesión (un segundo clic da 409) | Menor | **Cerrado 15/11** (PR frontend #12, desplegado `6040e60`) |
@@ -57,6 +57,7 @@ Estados: **Abierto**, **Cerrado** (corregido en `main`, desplegado y verificado 
 | DEF-38 | Backend: el texto del descargo no se persistía (se recibía en `AppealRequest.reason` y se perdía) | Mayor | **Cerrado — desplegado 15/11** (PR #54, en `integration/entrega4-f`); vinculado a DEF-35 |
 | DEF-40 | Listado de infracciones degradado con muchos datos: N+1 de colecciones y open-in-view agotan el pool (p95 10 s, 25 % de HTTP 500 a 50 VU con 5 950 infracciones) | Mayor | **Cerrado — desplegado 15/11** (PR #55, en `integration/entrega4-f`) |
 | DEF-41 | Spring Boot genera e imprime al arrancar "Using generated security password" (usuario en memoria que no se usa) | Menor | **Cerrado — desplegado 15/11** (PR #55, en `integration/entrega4-f`) |
+| DEF-42 | Se podía activar un corte antes del inicio de la ventana autorizada (hallado por Core en producción) | Mayor | **Corregido en PR** (`fix/s22-activacion-en-ventana`; Abierto hasta merge y deploy) |
 
 Nota de numeración: los PR #54 y #55 usaron ambos "DEF-38"; se dejó DEF-38 para el descargo y se renumeraron los de #55 a DEF-40 y DEF-41. **DEF-39 no se usa** (quedó libre al renumerar; no hay ningún defecto con ese número).
 
@@ -140,13 +141,19 @@ Nota de numeración: los PR #54 y #55 usaron ambos "DEF-38"; se dejó DEF-38 par
 - **Verificación**: `InputLimitsValidationTests` (256 → 400, 255 → 201, NUL → 400) y re-escaneo ZAP: 0 High, 0 Medium ([evidencias/zap](evidencias/zap/README.md)).
 
 ## Detalle de los abiertos y aceptados
-### DEF-33 Incompatibilidad temporal con el consumidor de M3 por `causationId` — Abierto (Mayor, mitigado)
-- **Situación**: desde DEF-08, `streetClosureEnded` (y `streetClosureRejected`) llevan `causationId` = `eventId` de la solicitud, como exige el envelope de Core. El consumidor v1.0 de M3 rechaza `streetClosureEnded` con `causationId` no nulo (aviso de M3 del 15/11 18:08). M3 lo va a adaptar para exigir `causationId` = `eventId` del `streetClosureRequested`. `eventVersion` sigue en "1.0" (el contrato v1.1 es documental).
-- **Impacto**: el circuito de cortes con M3 (F2, flujo principal) no puede completarse hasta que M3 despliegue; con M6 funciona.
-- **Por qué Mayor y no Menor**: bloquea un flujo principal con uno de los dos módulos de origen. **No es Crítico** porque hay workaround y no hay pérdida de datos.
-- **Workaround (vigente)**: no se aprueban cortes de M3 hasta que confirmen su deploy (producción sin cortes APPROVED/ACTIVE de M3); las solicitudes quedan en REQUESTED. Después: repetir un corte completo con Core monitoreando y cerrar el defecto.
-- **Re-prueba del 15/11 19:45–19:48**: se repitió el circuito v1.1 completo; `streetClosureApproved` `614222ce-715d-44e7-8e63-89250488ea7b` y `streetClosureEnded` `7f098173-82c6-4831-849f-47a3b5ec0cb4` (`causationId` `7f371af0-…`), ambos publicados al primer intento. **Sigue Abierto**: falta la confirmación de M3/Core de que su consumidor los aceptó.
-- **Causa raíz**: del lado del consumidor de M3; se registra porque afecta el comportamiento visible de M7 y fue un cambio nuestro el que lo destapó.
+### DEF-42 Activación de un corte antes del inicio de la ventana autorizada — Corregido en PR (Mayor)
+- **Hallado por Core** en producción el 15/11, en la re-prueba del circuito v1.1 con M3 (DEF-33): un corte APPROVED con ventana autorizada `startDate` 19:46:41 se activó a las 19:45:51, 50 s antes del inicio. **M3 confirmó** que no es válido: solo se puede activar dentro de la ventana autorizada `[startDate, endDate)`. Es el mismo defecto que DEF-07 (registrado antes desde el código como Menor, sin workaround técnico); DEF-07 queda como duplicado.
+- **Causa raíz**: `ApprovedState.activate` solo validaba el estado; no comparaba la hora actual con la ventana. El script de los circuitos aprueba con inicio = ahora + 1 min y activa enseguida, por eso se disparó.
+- **Por qué Mayor**: incumple una regla de negocio acordada con los módulos de origen y produce un comportamiento visible para otros módulos (el corte figura ACTIVE en la consulta ciudadana antes de lo autorizado). No es Crítico: no hay pérdida de datos ni evento erróneo (la activación no se publica) y hay workaround (activar recién al llegar `startDate`).
+- **Corrección** (PR `fix/s22-activacion-en-ventana`): `StreetClosureState.activate(closure, now)`; `ApprovedState` rechaza `now < startDate` o `now >= endDate` con `InvalidStateTransitionException` → **409 Problem Details** "El corte solo puede activarse dentro de la ventana autorizada (desde … hasta …)". La hora sale de un `java.time.Clock` inyectable (bean nuevo `ClockConfig`, reloj del sistema). Además la aprobación valida la ventana: inicio ≥ fin, o un fin nuevo ya vencido → **400** (un inicio pasado con fin futuro sigue permitido). La **finalización manual** de un ACTIVE se mantiene en cualquier momento, también antes de `endDate` (la obra puede terminar antes; decisión documentada en `StreetClosureState.finish`). Sin cambios de rutas, DTOs, eventos ni esquema.
+- **Verificación**: `StreetClosureStateTest` (antes del inicio con el caso real 19:45:51 → 409; en `startDate` → ACTIVE; en `endDate` y después → 409), `StreetClosureActivationWindowTest` (reloj fijo: 409 sin guardar ni publicar; cierre anticipado permitido; aprobación con ventana inválida → 400) y `TC-BE-SC-DEF42-01..04` en `StreetClosureIntegrationTest` (reloj de test movible). Los tests fallaban antes del fix. Se cierra con el merge y el deploy.
+
+### DEF-33 Incompatibilidad temporal con el consumidor de M3 por `causationId` — Cerrado (Mayor)
+- **Situación**: desde DEF-08, `streetClosureEnded` (y `streetClosureRejected`) llevan `causationId` = `eventId` de la solicitud, como exige el envelope de Core. El consumidor v1.0 de M3 rechazaba `streetClosureEnded` con `causationId` no nulo (aviso de M3 del 15/11 18:08); M3 lo adaptó (v1.1) para exigir `causationId` = `eventId` del `streetClosureRequested`. `eventVersion` sigue en "1.0" (el contrato v1.1 es documental).
+- **Por qué fue Mayor**: bloqueaba un flujo principal con uno de los dos módulos de origen; había workaround (no aprobar cortes de M3 hasta su deploy).
+- **Re-prueba del 15/11 19:45–19:48**: circuito v1.1 completo; `streetClosureApproved` `614222ce-715d-44e7-8e63-89250488ea7b` y `streetClosureEnded` `7f098173-82c6-4831-849f-47a3b5ec0cb4`.
+- **Cierre (15/11 20:51 y 20:54)**: **Core** validó el circuito: Approved y Ended ROUTED y DELIVERED a `q.obras` y `q.ambiente` en 1 intento, correlationId `3f2e4d0b-…` y causationId `7f371af0-…` correctos, 0 dead letters. **M3** confirmó ambos PROCESSED y el corte en estado ENDED. En esa misma prueba Core detectó la activación anticipada (DEF-42).
+- **Causa raíz**: del lado del consumidor de M3; se registró porque afectaba el comportamiento visible de M7 y fue un cambio nuestro el que lo destapó.
 
 ### DEF-32 `show-sql` activo en producción — Cerrado (Menor)
 - **Situación anterior**: `spring.jpa.show-sql=true` en `application.properties`; el relay del outbox imprimía un SELECT cada 2 s en los logs de Railway (sin valores: Hibernate usa `?`).
@@ -179,8 +186,8 @@ Nota de numeración: los PR #54 y #55 usaron ambos "DEF-38"; se dejó DEF-38 par
 - **Corrección** (PR #54, `fix/s20-persistir-descargo`, en `integration/entrega4-f`; **cerrado — desplegado 15/11**): columna nueva `infractions.appeal_reason` (`varchar(2000)`, nullable, sin default; la crea `ddl-auto=update`, igual que `owner_username`), se guarda en la transición PENDING_APPEAL → APPEALED y se expone como campo **opcional** `appealReason` en `InfractionResponse` (aditivo; mismas reglas de acceso que el GET: titular y personal). No se agrega a ningún evento nuevo (`infractionConfirmed`/`infractionAnulled` no lo llevan) ni se loguea. `infractionAppealed` mantiene su campo `reason` como antes (contrato congelado).
 - **Verificación**: tests TC-BE-INF-15b/15c/15d en `InfractionIntegrationTest`; migración probada en el compose local (fila apelada en `main` queda con `appeal_reason` null, la app arranca UP sobre la misma base y una apelación nueva guarda el texto).
 
-### DEF-07 Activación antes de `startDate` — Abierto
-- La activación (`ApprovedState.activate`) solo valida el estado; no compara con `startDate`. **Workaround**: operativo.
+### DEF-07 Activación antes de `startDate` — Duplicado de DEF-42
+- Registrado desde el código (Menor). Core lo encontró en producción el 15/11 y se registró como DEF-42 (Mayor); se corrige y se cuenta allí.
 
 ### DEF-09 Swagger público — Aceptado
 - `SecurityConfig` permite `/swagger-ui/**`, `/v3/api-docs/**` y `/openapi.yaml`. **Decisión**: documentación de API pública intencionalmente para la integración entre módulos. `application-prod.properties` apaga springdoc con el perfil `prod`, pero producción usa `SPRING_PROFILES_ACTIVE=dev`, así que hoy no tiene efecto (a propósito).
@@ -205,17 +212,17 @@ Nota de numeración: los PR #54 y #55 usaron ambos "DEF-38"; se dejó DEF-38 par
 - El payload existe pero no se publica a Core (el catálogo registrado tiene 6 tipos). Confirmar con la PO.
 
 ## Conteo por severidad y riesgo de salida
-Criterio del profesor: 0 Bloqueantes, 0 Críticos, como máximo 3 Mayores abiertos (con workaround). Los Aceptados se cuentan aparte. Total registrado: **40 defectos** (DEF-01 a DEF-41; DEF-39 sin uso). Sin números duplicados (verificado con `grep`).
-| Severidad | Abiertos | Cerrados | Aceptados | Límite (abiertos) | ¿Cumple? |
-|---|---|---|---|---|---|
-| Bloqueante | 0 | 0 | 0 | 0 | Sí |
-| Crítica | **0** | 3 (DEF-01, 23, 24) | 0 | 0 | Sí |
-| Mayor | **3** (DEF-19, 20, 33) | 19 (DEF-02, 03, 04, 05, 06, 08, 11, 13, 14, 15, 16, 22, 25, 26, 29, 31, 34, 38, 40) | 0 | 3 | Sí, en el límite |
-| Menor | **5** (DEF-07, 10, 17, 18, 21) | 8 (DEF-27, 28, 30, 32, 35, 36, 37, 41) | 2 (DEF-09, 12) | sin límite | — |
-| **Total** | **8** | **30** | **2** | | |
+Criterio del profesor: 0 Bloqueantes, 0 Críticos, como máximo 3 Mayores abiertos (con workaround). Los Aceptados y los duplicados se cuentan aparte. Total registrado: **41 defectos** (DEF-01 a DEF-42; DEF-39 sin uso). Sin números duplicados (verificado con `grep`). DEF-42 cuenta como **abierto** hasta que su PR se mergee y despliegue (definición de Cerrado).
+| Severidad | Abiertos | Cerrados | Aceptados | Duplicados | Límite (abiertos) | ¿Cumple? |
+|---|---|---|---|---|---|---|
+| Bloqueante | 0 | 0 | 0 | 0 | 0 | Sí |
+| Crítica | **0** | 3 (DEF-01, 23, 24) | 0 | 0 | 0 | Sí |
+| Mayor | **3** (DEF-19, 20, 42) | 20 (DEF-02, 03, 04, 05, 06, 08, 11, 13, 14, 15, 16, 22, 25, 26, 29, 31, 33, 34, 38, 40) | 0 | 0 | 3 | Sí, en el límite |
+| Menor | **4** (DEF-10, 17, 18, 21) | 8 (DEF-27, 28, 30, 32, 35, 36, 37, 41) | 2 (DEF-09, 12) | 1 (DEF-07 → DEF-42) | sin límite | — |
+| **Total** | **7** | **31** | **2** | **1** | | |
 
 **Riesgo de salida (sin maquillar)**: 0 Bloqueantes, 0 Críticos y 3 Mayores abiertos (en el límite). No se bajó ninguna severidad para llegar al número. Salvedades:
 1. DEF-38, DEF-40, DEF-41 (y DEF-32 y la ampliación de DEF-05, ya en `main`) figuran "cerrado — desplegado 15/11" porque `integration/entrega4-f` se mergea y despliega inmediatamente después del CI; **si ese deploy no ocurre, vuelven a "abierto" y hay 5 Mayores abiertos** (no cumple).
 2. DEF-20 tiene workaround operativo documentado (`hu-pendientes.md`), no técnico; conviene que la PO confirme la decisión de alcance.
-3. DEF-33 sigue abierto hasta la confirmación de M3/Core (circuito v1.1 repetido el 15/11 19:45–19:48 con publicación al primer intento).
+3. DEF-33 quedó cerrado (Core y M3 validaron el circuito v1.1 el 15/11 20:51/20:54). DEF-42 (nuevo, Mayor) ocupa su lugar entre los 3 abiertos; al mergear y desplegar su PR quedan 2 Mayores abiertos.
 4. Cualquier Mayor nuevo deja el criterio sin cumplir.

@@ -1,5 +1,6 @@
 package ar.edu.uade.transito.transito_backend.service;
 
+import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.List;
@@ -7,6 +8,7 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 import org.hibernate.Hibernate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,13 +17,13 @@ import ar.edu.uade.transito.transito_backend.event.EventPublisher;
 import ar.edu.uade.transito.transito_backend.event.payload.StreetClosureApprovedPayload;
 import ar.edu.uade.transito.transito_backend.event.payload.StreetClosureEndedPayload;
 import ar.edu.uade.transito.transito_backend.event.payload.StreetClosureRejectedPayload;
+import ar.edu.uade.transito.transito_backend.exception.InvalidRequestException;
 import ar.edu.uade.transito.transito_backend.exception.ResourceNotFoundException;
 import ar.edu.uade.transito.transito_backend.model.StreetClosure;
 import ar.edu.uade.transito.transito_backend.model.enums.StreetClosureStatus;
 import ar.edu.uade.transito.transito_backend.model.state.StreetClosureState;
 import ar.edu.uade.transito.transito_backend.model.state.StreetClosureStates;
 import ar.edu.uade.transito.transito_backend.repository.StreetClosureRepository;
-import lombok.RequiredArgsConstructor;
 
 /**
  * A diferencia del resto de los servicios, {@link #createFromRequest} no se expone vía POST:
@@ -30,7 +32,6 @@ import lombok.RequiredArgsConstructor;
  * para que un futuro consumer de eventos lo invoque.
  */
 @Service
-@RequiredArgsConstructor
 @Transactional
 public class StreetClosureService {
 
@@ -38,6 +39,24 @@ public class StreetClosureService {
 
     private final StreetClosureRepository streetClosureRepository;
     private final EventPublisher eventPublisher;
+    private final Clock clock;
+
+    /** Constructor para tests unitarios: reloj del sistema. */
+    public StreetClosureService(StreetClosureRepository streetClosureRepository, EventPublisher eventPublisher) {
+        this(streetClosureRepository, eventPublisher, Clock.systemUTC());
+    }
+
+    @Autowired
+    public StreetClosureService(StreetClosureRepository streetClosureRepository, EventPublisher eventPublisher,
+            Clock clock) {
+        this.streetClosureRepository = streetClosureRepository;
+        this.eventPublisher = eventPublisher;
+        this.clock = clock;
+    }
+
+    private OffsetDateTime now() {
+        return OffsetDateTime.now(clock.withZone(MUNICIPAL_TIME_ZONE));
+    }
 
     public StreetClosure createFromRequest(StreetClosure closure) {
         closure.setStatus(StreetClosureStatus.REQUESTED);
@@ -67,7 +86,9 @@ public class StreetClosureService {
 
     public StreetClosure approve(UUID streetClosureId, StreetClosure changes) {
         StreetClosure existing = findById(streetClosureId);
-        transition(existing, stateOf(existing).approve(existing));
+        StreetClosureState next = stateOf(existing).approve(existing);
+        validateAuthorizedWindow(existing, changes);
+        transition(existing, next);
         existing.setDetours(changes.getDetours());
         existing.setConditions(changes.getConditions());
         if (changes.getStartDate() != null) {
@@ -106,7 +127,7 @@ public class StreetClosureService {
 
     public StreetClosure activate(UUID streetClosureId, String activatedBy) {
         StreetClosure existing = findById(streetClosureId);
-        transition(existing, stateOf(existing).activate(existing));
+        transition(existing, stateOf(existing).activate(existing, now()));
         StreetClosure saved = streetClosureRepository.save(existing);
 
         return saved;
@@ -120,7 +141,7 @@ public class StreetClosureService {
         eventPublisher.publish(EventEnvelope.of("streetClosureEnded", new StreetClosureEndedPayload(
                 saved.getStreetClosureId(),
                 saved.getClosureRequestId(),
-                OffsetDateTime.now(MUNICIPAL_TIME_ZONE),
+                now(),
                 notes), saved.getSourceCorrelationId(), saved.getSourceEventId()));
 
         return saved;
@@ -178,8 +199,25 @@ public class StreetClosureService {
         StreetClosure saved = streetClosureRepository.save(closure);
         if (wasActive) {
             eventPublisher.publish(EventEnvelope.of("streetClosureEnded", new StreetClosureEndedPayload(
-                    saved.getStreetClosureId(), saved.getClosureRequestId(), OffsetDateTime.now(MUNICIPAL_TIME_ZONE),
+                    saved.getStreetClosureId(), saved.getClosureRequestId(), now(),
                     "Cierre automático al vencer el horario autorizado."), saved.getSourceCorrelationId(), saved.getSourceEventId()));
+        }
+    }
+
+    /**
+     * DEF-42: la ventana autorizada resultante debe tener inicio anterior al fin; y si la aprobación fija un
+     * fin nuevo, no puede estar ya vencido. Un inicio en el pasado con fin futuro es válido (corte inmediato).
+     */
+    private void validateAuthorizedWindow(StreetClosure existing, StreetClosure changes) {
+        OffsetDateTime start = changes.getStartDate() != null ? changes.getStartDate() : existing.getStartDate();
+        OffsetDateTime end = changes.getEndDate() != null ? changes.getEndDate() : existing.getEndDate();
+        if (start != null && end != null && !start.isBefore(end)) {
+            throw new InvalidRequestException("El inicio de la ventana autorizada (" + start
+                    + ") debe ser anterior al fin (" + end + ")");
+        }
+        if (changes.getEndDate() != null && !changes.getEndDate().isAfter(now())) {
+            throw new InvalidRequestException("El fin de la ventana autorizada (" + changes.getEndDate()
+                    + ") no puede estar en el pasado");
         }
     }
 

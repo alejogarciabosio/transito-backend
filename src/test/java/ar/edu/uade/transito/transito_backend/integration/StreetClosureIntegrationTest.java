@@ -209,4 +209,56 @@ class StreetClosureIntegrationTest extends AbstractIntegrationTest {
         get("/street-closures", CIUDADANO).andExpect(status().isForbidden());
         get("/street-closures/" + approved, CIUDADANO).andExpect(status().isForbidden());
     }
+
+    // ---- DEF-42 (hallado por Core en producción, 15/11): activar solo dentro de [startDate, endDate) ----
+
+    @Test
+    @DisplayName("TC-BE-SC-DEF42-01: activar antes del inicio de la ventana → 409 Problem Details, sigue APPROVED y sin evento")
+    void activateBeforeWindowStart() throws Exception {
+        String id = requestClosure("obras");
+        post("/street-closures/" + id + "/approval", SUPERVISOR, APPROVE).andExpect(status().isOk());
+        events.clear();
+        clock.set(OffsetDateTime.parse(REQUESTED_FROM).minusSeconds(50));
+        post("/street-closures/" + id + "/activation", OPERADOR, null)
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.detail", org.hamcrest.Matchers.containsString(
+                        "El corte solo puede activarse dentro de la ventana autorizada (desde ")));
+        get("/street-closures/" + id, SUPERVISOR).andExpect(jsonPath("$.status").value("APPROVED"));
+        assertThat(events.all()).as("un intento rechazado no publica eventos").isEmpty();
+    }
+
+    @Test
+    @DisplayName("TC-BE-SC-DEF42-02: activar exactamente en startDate → 200 ACTIVE")
+    void activateAtWindowStart() throws Exception {
+        String id = requestClosure("obras");
+        post("/street-closures/" + id + "/approval", SUPERVISOR, APPROVE).andExpect(status().isOk());
+        clock.set(OffsetDateTime.parse(REQUESTED_FROM));
+        post("/street-closures/" + id + "/activation", OPERADOR, null)
+                .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("ACTIVE"));
+    }
+
+    @Test
+    @DisplayName("TC-BE-SC-DEF42-03: activar en endDate o después → 409")
+    void activateAfterWindowEnd() throws Exception {
+        String id = requestClosure("obras");
+        post("/street-closures/" + id + "/approval", SUPERVISOR, APPROVE).andExpect(status().isOk());
+        clock.set(OffsetDateTime.parse(REQUESTED_TO));
+        post("/street-closures/" + id + "/activation", OPERADOR, null).andExpect(status().isConflict());
+        get("/street-closures/" + id, SUPERVISOR).andExpect(jsonPath("$.status").value("APPROVED"));
+    }
+
+    @Test
+    @DisplayName("TC-BE-SC-DEF42-04: aprobar con ventana inválida (inicio >= fin, o fin ya pasado) → 400 y sigue REQUESTED")
+    void approveWithInvalidWindow() throws Exception {
+        String id = requestClosure("obras");
+        post("/street-closures/" + id + "/approval", SUPERVISOR, """
+                {"detours":[],"conditions":[],"authorizedFrom":"2026-10-01T10:00:00-03:00","authorizedTo":"2026-10-01T09:00:00-03:00"}
+                """).andExpect(status().isBadRequest());
+        post("/street-closures/" + id + "/approval", SUPERVISOR, """
+                {"detours":[],"conditions":[],"authorizedTo":"2026-10-01T11:00:00-03:00"}
+                """).andExpect(status().isBadRequest());
+        get("/street-closures/" + id, SUPERVISOR).andExpect(jsonPath("$.status").value("REQUESTED"));
+        assertThat(events.all()).isEmpty();
+    }
 }

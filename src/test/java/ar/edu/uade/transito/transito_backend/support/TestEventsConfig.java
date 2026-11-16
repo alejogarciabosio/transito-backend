@@ -12,4 +12,11 @@ public class TestEventsConfig {
     public RecordingEventPublisher recordingEventPublisher() {
         return new RecordingEventPublisher();
     }
+
+    /** Hora fija para las reglas temporales de los cortes (DEF-42); cada test la reinicia. */
+    @Bean
+    @Primary
+    public MutableTestClock mutableTestClock() {
+        return new MutableTestClock();
+    }
 }
