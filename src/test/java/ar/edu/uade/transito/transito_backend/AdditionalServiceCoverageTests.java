@@ -105,7 +105,7 @@ class AdditionalServiceCoverageTests {
             }
             return value;
         });
-        VehicleImpoundmentService service = new VehicleImpoundmentService(repository, mock(EventPublisher.class));
+        VehicleImpoundmentService service = new VehicleImpoundmentService(repository, mock(EventPublisher.class), java.time.Clock.systemUTC());
         VehicleImpoundment impoundment = VehicleImpoundment.builder()
                 .licensePlate("AB123CD")
                 .reason("Falta grave")
@@ -221,7 +221,7 @@ class AdditionalServiceCoverageTests {
             }
             return operation;
         });
-        TrafficOperationService service = new TrafficOperationService(repository, mock(EventPublisher.class));
+        TrafficOperationService service = new TrafficOperationService(repository, mock(EventPublisher.class), java.time.Clock.systemUTC());
         TrafficOperation operation = TrafficOperation.builder()
                 .type(OperationType.ROUTINE_CONTROL)
                 .zone("Centro")

@@ -35,7 +35,7 @@ class IncomingEventDispatcherTest {
         ProcessedEventRepository repository = mock(ProcessedEventRepository.class);
         when(repository.existsById(any())).thenReturn(false);
 
-        new IncomingEventDispatcher(List.of(handler), repository).dispatch(message("ticketUpdated"));
+        new IncomingEventDispatcher(List.of(handler), repository, java.time.Clock.systemUTC()).dispatch(message("ticketUpdated"));
 
         verify(handler).handle(argThat(data -> data.path("ticketId").asInt() == 1));
         verify(repository).save(argThat(saved -> saved.getEventId().toString().equals(EVENT_ID)
@@ -49,7 +49,7 @@ class IncomingEventDispatcherTest {
         ProcessedEventRepository repository = mock(ProcessedEventRepository.class);
         when(repository.existsById(any())).thenReturn(true);
 
-        new IncomingEventDispatcher(List.of(handler), repository).dispatch(message("ticketUpdated"));
+        new IncomingEventDispatcher(List.of(handler), repository, java.time.Clock.systemUTC()).dispatch(message("ticketUpdated"));
 
         verify(handler, never()).handle(any());
         verify(repository, never()).save(any());
@@ -61,7 +61,7 @@ class IncomingEventDispatcherTest {
         when(handler.eventType()).thenReturn("ticketUpdated");
         ProcessedEventRepository repository = mock(ProcessedEventRepository.class);
 
-        new IncomingEventDispatcher(List.of(handler), repository).dispatch(message("paymentRegistered"));
+        new IncomingEventDispatcher(List.of(handler), repository, java.time.Clock.systemUTC()).dispatch(message("paymentRegistered"));
 
         verify(handler, never()).handle(any());
         verify(repository, never()).save(any());
@@ -74,7 +74,7 @@ class IncomingEventDispatcherTest {
         doThrow(new IllegalStateException("fallo")).when(handler).handle(any());
         ProcessedEventRepository repository = mock(ProcessedEventRepository.class);
         when(repository.existsById(any())).thenReturn(false);
-        IncomingEventDispatcher dispatcher = new IncomingEventDispatcher(List.of(handler), repository);
+        IncomingEventDispatcher dispatcher = new IncomingEventDispatcher(List.of(handler), repository, java.time.Clock.systemUTC());
 
         assertThrows(IllegalStateException.class, () -> dispatcher.dispatch(message("ticketUpdated")));
 

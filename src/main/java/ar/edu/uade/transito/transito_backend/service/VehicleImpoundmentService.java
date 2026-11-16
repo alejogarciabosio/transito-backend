@@ -1,13 +1,15 @@
 package ar.edu.uade.transito.transito_backend.service;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Clock;
 import java.util.List;
 import java.util.UUID;
 
 import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import ar.edu.uade.transito.transito_backend.config.MunicipalTime;
 
 import ar.edu.uade.transito.transito_backend.event.EventEnvelope;
 import ar.edu.uade.transito.transito_backend.event.EventPublisher;
@@ -28,6 +30,7 @@ public class VehicleImpoundmentService {
 
     private final VehicleImpoundmentRepository vehicleImpoundmentRepository;
     private final EventPublisher eventPublisher;
+    private final Clock clock;
 
     public VehicleImpoundment register(VehicleImpoundment impoundment) {
         impoundment.setStatus(ImpoundmentStatus.IMPOUNDED);
@@ -99,7 +102,7 @@ public class VehicleImpoundmentService {
 
         eventPublisher.publish(EventEnvelope.of("vehicleReleased", new VehicleReleasedPayload(
                 saved.getImpoundmentId(),
-                LocalDateTime.now(),
+                MunicipalTime.now(clock),
                 saved.getVerifiedRequirements(),
                 saved.getTowingAndStorageFee(),
                 saved.getPaymentReference(),

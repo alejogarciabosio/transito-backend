@@ -76,7 +76,7 @@ class MutationKillingServicesTest {
     void parkingSessionStartResetsPaymentStateAndPersistsOnActiveZone() {
         var sessions = mock(ParkingSessionRepository.class);
         var zones = mock(ParkingZoneRepository.class);
-        var service = new ParkingSessionService(sessions, mock(InfractionRepository.class), zones, mock(InfractionService.class));
+        var service = new ParkingSessionService(sessions, mock(InfractionRepository.class), zones, mock(InfractionService.class), java.time.Clock.systemUTC());
         UUID zoneId = UUID.randomUUID();
         when(zones.findById(zoneId)).thenReturn(Optional.of(ParkingZone.builder().zoneId(zoneId).status(ParkingZoneStatus.ACTIVE).build()));
         when(sessions.save(any(ParkingSession.class))).thenAnswer(i -> i.getArgument(0));
@@ -95,7 +95,7 @@ class MutationKillingServicesTest {
     void parkingSessionStartRejectsMissingAndInactiveZones() {
         var sessions = mock(ParkingSessionRepository.class);
         var zones = mock(ParkingZoneRepository.class);
-        var service = new ParkingSessionService(sessions, mock(InfractionRepository.class), zones, mock(InfractionService.class));
+        var service = new ParkingSessionService(sessions, mock(InfractionRepository.class), zones, mock(InfractionService.class), java.time.Clock.systemUTC());
         UUID missing = UUID.randomUUID();
         UUID inactive = UUID.randomUUID();
         when(zones.findById(missing)).thenReturn(Optional.empty());
@@ -299,7 +299,7 @@ class MutationKillingServicesTest {
     void impoundmentRegisterForcesImpoundedStatusAndPublishesEvent() {
         var repo = mock(VehicleImpoundmentRepository.class);
         var publisher = mock(EventPublisher.class);
-        var service = new VehicleImpoundmentService(repo, publisher);
+        var service = new VehicleImpoundmentService(repo, publisher, java.time.Clock.systemUTC());
         when(repo.save(any(VehicleImpoundment.class))).thenAnswer(i -> i.getArgument(0));
         var input = VehicleImpoundment.builder().licensePlate("AA111BB").status(ImpoundmentStatus.RELEASED).paymentReference("X").build();
 
@@ -316,7 +316,7 @@ class MutationKillingServicesTest {
     @Test
     void impoundmentReleaseBoundaryZeroFeeNeedsNoPaymentReferenceButPositiveFeeDoes() {
         var repo = mock(VehicleImpoundmentRepository.class);
-        var service = new VehicleImpoundmentService(repo, mock(EventPublisher.class));
+        var service = new VehicleImpoundmentService(repo, mock(EventPublisher.class), java.time.Clock.systemUTC());
         UUID id = UUID.randomUUID();
         when(repo.save(any(VehicleImpoundment.class))).thenAnswer(i -> i.getArgument(0));
         when(repo.findById(id)).thenAnswer(i -> Optional.of(VehicleImpoundment.builder().impoundmentId(id).status(ImpoundmentStatus.IMPOUNDED).build()));

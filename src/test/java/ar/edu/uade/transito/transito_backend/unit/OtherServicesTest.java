@@ -90,7 +90,7 @@ class OtherServicesTest {
         var publisher = mock(EventPublisher.class);
         UUID id = UUID.randomUUID();
         when(repo.findById(id)).thenReturn(Optional.of(VehicleImpoundment.builder().impoundmentId(id).status(ImpoundmentStatus.RELEASED).build()));
-        var service = new VehicleImpoundmentService(repo, publisher);
+        var service = new VehicleImpoundmentService(repo, publisher, java.time.Clock.systemUTC());
         assertThatThrownBy(() -> service.release(id, List.of(), null, null, "u")).isInstanceOf(InvalidStateTransitionException.class);
         verify(publisher, never()).publish(any());
         when(repo.findById(any())).thenReturn(Optional.empty());
