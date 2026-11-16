@@ -58,7 +58,7 @@ Estados: **Abierto**, **Cerrado** (corregido en `main`, desplegado y verificado 
 | DEF-40 | Listado de infracciones degradado con muchos datos: N+1 de colecciones y open-in-view agotan el pool (p95 10 s, 25 % de HTTP 500 a 50 VU con 5 950 infracciones) | Mayor | **Cerrado — desplegado 15/11** (PR #55, en `integration/entrega4-f`) |
 | DEF-41 | Spring Boot genera e imprime al arrancar "Using generated security password" (usuario en memoria que no se usa) | Menor | **Cerrado — desplegado 15/11** (PR #55, en `integration/entrega4-f`) |
 | DEF-42 | Se podía activar un corte antes del inicio de la ventana autorizada (hallado por Core en producción) | Mayor | **Cerrado — desplegado 15/11** (PR #57 `fix/s22-activacion-en-ventana`) |
-| DEF-43 | Hora de operativos y registros automáticos guardada en UTC (se ve +3 h en el frontend; hallado en la prueba M2 del 15/11) | Menor | **Abierto — corregido en PR** (`fix/s23-hora-argentina`, pendiente de merge y deploy) |
+| DEF-43 | Hora de operativos y registros automáticos guardada en UTC (se ve +3 h en el frontend; hallado en la prueba M2 del 15/11) | Menor | **Cerrado** — PR #59, desplegado 15/11 |
 
 Nota de numeración: los PR #54 y #55 usaron ambos "DEF-38"; se dejó DEF-38 para el descargo y se renumeraron los de #55 a DEF-40 y DEF-41. **DEF-39 no se usa** (quedó libre al renumerar; no hay ningún defecto con ese número).
 
@@ -142,7 +142,7 @@ Nota de numeración: los PR #54 y #55 usaron ambos "DEF-38"; se dejó DEF-38 par
 - **Verificación**: `InputLimitsValidationTests` (256 → 400, 255 → 201, NUL → 400) y re-escaneo ZAP: 0 High, 0 Medium ([evidencias/zap](evidencias/zap/README.md)).
 
 ## Detalle de los abiertos y aceptados
-### DEF-43 Hora de operativos y registros automáticos guardada en UTC — Abierto, corregido en PR (Menor)
+### DEF-43 Hora de operativos y registros automáticos guardada en UTC — Cerrado (Menor)
 - **Hallado** en la prueba de integración con M2 del 15/11 (fila 5 de 04 §7): el operativo `a1c94b63-6818-4eeb-a3a9-5f52b774a5db`, creado automáticamente al procesar el `ticketUpdated` `83a759ab-…` a las 15:27 ART, se mostró en el frontend con inicio "15/11/26, 6:27 p. m."; el cierre de las 21:59 ART se mostró "16/11/26, 12:59 a. m." (+3 h en ambos).
 - **Causa raíz**: los registros que genera el servidor usaban `LocalDateTime.now()` sin zona; Railway corre en UTC y las columnas son `timestamp without time zone`, así que se guardaba la hora UTC como si fuera local. El frontend carga las fechas con `datetime-local` (hora argentina, sin zona) y las muestra con `new Date(str)` como hora local del navegador: es correcto si el backend guarda hora argentina, por eso no se cambia.
 - **Alcance** (todos los `LocalDateTime.now()` del backend): inicio del operativo creado desde un ticket (`TicketUpdatedHandler`), cierre del operativo sin fecha de fin (`TrafficOperationService.close`), cierre de la sesión de estacionamiento y fecha de la infracción por impago (`ParkingSessionService`), `releaseDateTime` del evento `vehicleReleased` (`VehicleImpoundmentService`) y `processedAt` del registro de eventos entrantes (`IncomingEventDispatcher`). Los `OffsetDateTime.now()`/`Instant` (envelope, outbox, cortes de DEF-42) llevan offset y no se ven afectados.
@@ -222,14 +222,14 @@ Nota de numeración: los PR #54 y #55 usaron ambos "DEF-38"; se dejó DEF-38 par
 - El payload existe pero no se publica a Core (el catálogo registrado tiene 6 tipos). Confirmar con la PO.
 
 ## Conteo por severidad y riesgo de salida
-Criterio del profesor: 0 Bloqueantes, 0 Críticos, como máximo 3 Mayores abiertos (con workaround). Los Aceptados y los duplicados se cuentan aparte. Total registrado: **42 defectos** (DEF-01 a DEF-43; DEF-39 sin uso). DEF-43 (Menor) figura abierto hasta que el PR `fix/s23-hora-argentina` se mergee y despliegue. Sin números duplicados (verificado con `grep`). DEF-42 figura cerrado porque el PR #57 se mergea y despliega apenas pasa el CI.
+Criterio del profesor: 0 Bloqueantes, 0 Críticos, como máximo 3 Mayores abiertos (con workaround). Los Aceptados y los duplicados se cuentan aparte. Total registrado: **42 defectos** (DEF-01 a DEF-43; DEF-39 sin uso). DEF-43 (Menor) cerrado: PR #59 desplegado el 15/11 (los registros previos al deploy conservan la hora en UTC). Sin números duplicados (verificado con `grep`). DEF-42 figura cerrado porque el PR #57 se mergea y despliega apenas pasa el CI.
 | Severidad | Abiertos | Cerrados | Aceptados | Duplicados | Límite (abiertos) | ¿Cumple? |
 |---|---|---|---|---|---|---|
 | Bloqueante | 0 | 0 | 0 | 0 | 0 | Sí |
 | Crítica | **0** | 3 (DEF-01, 23, 24) | 0 | 0 | 0 | Sí |
 | Mayor | **2** (DEF-19, 20) | 21 (DEF-02, 03, 04, 05, 06, 08, 11, 13, 14, 15, 16, 22, 25, 26, 29, 31, 33, 34, 38, 40, 42) | 0 | 0 | 3 | Sí |
-| Menor | **5** (DEF-10, 17, 18, 21, 43) | 8 (DEF-27, 28, 30, 32, 35, 36, 37, 41) | 2 (DEF-09, 12) | 1 (DEF-07 → DEF-42) | sin límite | — |
-| **Total** | **7** | **32** | **2** | **1** | | |
+| Menor | **4** (DEF-10, 17, 18, 21) | 9 (DEF-27, 28, 30, 32, 35, 36, 37, 41, 43) | 2 (DEF-09, 12) | 1 (DEF-07 → DEF-42) | sin límite | — |
+| **Total** | **6** | **33** | **2** | **1** | | |
 
 **Riesgo de salida (sin maquillar)**: 0 Bloqueantes, 0 Críticos y 2 Mayores abiertos (DEF-19 y DEF-20, ambos con workaround), uno por debajo del límite. No se bajó ninguna severidad para llegar al número. Salvedades:
 1. DEF-38, DEF-40, DEF-41 (y DEF-32 y la ampliación de DEF-05, ya en `main`) figuran "cerrado — desplegado 15/11" porque `integration/entrega4-f` se mergea y despliega inmediatamente después del CI; **si ese deploy no ocurre, vuelven a "abierto" y hay 5 Mayores abiertos** (no cumple).
