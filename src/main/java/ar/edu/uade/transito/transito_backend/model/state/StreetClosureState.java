@@ -1,5 +1,7 @@
 package ar.edu.uade.transito.transito_backend.model.state;
 
+import java.time.OffsetDateTime;
+
 import ar.edu.uade.transito.transito_backend.exception.InvalidStateTransitionException;
 import ar.edu.uade.transito.transito_backend.model.StreetClosure;
 import ar.edu.uade.transito.transito_backend.model.enums.StreetClosureStatus;
@@ -28,12 +30,19 @@ public interface StreetClosureState {
         throw invalid(closure, StreetClosureStatus.REQUESTED.name());
     }
 
-    /** APPROVED → ACTIVE. */
-    default StreetClosureState activate(StreetClosure closure) {
+    /**
+     * APPROVED → ACTIVE, solo dentro de la ventana autorizada {@code [startDate, endDate)} (DEF-42).
+     *
+     * @param now instante actual (lo provee el servicio desde un {@link java.time.Clock} inyectable)
+     */
+    default StreetClosureState activate(StreetClosure closure, OffsetDateTime now) {
         throw invalid(closure, StreetClosureStatus.APPROVED.name());
     }
 
-    /** ACTIVE → FINISHED (cierre manual). */
+    /**
+     * ACTIVE → FINISHED (cierre manual). Se admite en cualquier momento mientras esté ACTIVE, también
+     * antes del {@code endDate}: la obra puede terminar antes de lo autorizado (decisión documentada, DEF-42).
+     */
     default StreetClosureState finish(StreetClosure closure) {
         throw invalid(closure, StreetClosureStatus.ACTIVE.name());
     }

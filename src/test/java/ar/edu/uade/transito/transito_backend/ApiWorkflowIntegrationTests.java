@@ -186,8 +186,9 @@ class ApiWorkflowIntegrationTests {
                 .reason("Reparación de calzada")
                 .requestedAt(OffsetDateTime.now())
                 .requestingModule(RequestingModule.OBRAS)
-                .startDate(OffsetDateTime.parse("2026-10-12T00:00:00-03:00"))
-                .endDate(OffsetDateTime.parse("2026-10-13T00:00:00-03:00"))
+                // DEF-42: la activación exige estar dentro de la ventana (este test usa el reloj real)
+                .startDate(OffsetDateTime.now().minusHours(1))
+                .endDate(OffsetDateTime.now().plusDays(1))
                 .affectedStreet(List.of("Av. Corrientes"))
                 .status(StreetClosureStatus.REQUESTED)
                 .build());

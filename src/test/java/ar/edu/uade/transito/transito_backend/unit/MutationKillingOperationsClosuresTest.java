@@ -178,7 +178,9 @@ class MutationKillingOperationsClosuresTest {
     @Test
     void closureApproveReplacesDatesWhenProvided() {
         var repo = mock(StreetClosureRepository.class);
-        var service = new StreetClosureService(repo, mock(EventPublisher.class));
+        // DEF-42: reloj fijo anterior a la ventana nueva (un fin en el pasado se rechaza con 400)
+        var service = new StreetClosureService(repo, mock(EventPublisher.class),
+                java.time.Clock.fixed(java.time.Instant.parse("2026-05-15T12:00:00Z"), java.time.ZoneOffset.UTC));
         UUID id = UUID.randomUUID();
         var existing = StreetClosure.builder().streetClosureId(id).status(StreetClosureStatus.REQUESTED)
                 .requestingModule(RequestingModule.AMBIENTE)

@@ -39,6 +39,7 @@ public abstract class AbstractIntegrationTest {
     @Autowired protected MockMvc mockMvc;
     @Autowired protected JwtService jwtService;
     @Autowired protected RecordingEventPublisher events;
+    @Autowired protected MutableTestClock clock;
     @Autowired protected IncomingEventDispatcher incomingEventDispatcher;
     @Autowired protected ObjectMapper objectMapper;
     @Autowired protected ar.edu.uade.transito.transito_backend.auth.LoginRateLimitFilter loginRateLimitFilter;
@@ -64,6 +65,7 @@ public abstract class AbstractIntegrationTest {
         trafficOperationRepository.deleteAll();
         vehicleImpoundmentRepository.deleteAll();
         events.clear();
+        clock.reset();
         loginRateLimitFilter.reset();
         idempotencyFilter.reset();
     }

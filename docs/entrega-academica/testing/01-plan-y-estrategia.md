@@ -1,6 +1,6 @@
 # 01 - Plan y estrategia de pruebas (M7 Tránsito)
 
-Base: ISO/IEC/IEEE 29119-3 (documentación de pruebas). Versión: estado final del 15/11/2026 ~18:45 ART, redactada con asistencia de IA (ver `07-declaracion-ia.md`) y revisada contra el código de `main` del backend (commit `57b2765`, PR #48, desplegado en Railway) y del frontend (`1f0187d`, PR #10).
+Base: ISO/IEC/IEEE 29119-3 (documentación de pruebas). Versión: estado final del 15/11/2026 ~21:30 ART (backend rama `fix/s22-activacion-en-ventana`, PR #57: 532 tests, 94,45 % de líneas; frontend `main` `0279950`: 65 tests, 94,04 %); versión anterior del 15/11 ~18:45, redactada con asistencia de IA (ver `07-declaracion-ia.md`) y revisada contra el código de `main` del backend (commit `57b2765`, PR #48, desplegado en Railway) y del frontend (`1f0187d`, PR #10).
 Regla de honestidad: cada afirmación de resultado indica su evidencia; donde no hay ejecución se escribe **PENDIENTE** o **NO VERIFICABLE**. Los resultados se detallan en `04-informe-ejecucion.md`; aquí se resume el estado de cada nivel.
 
 ## 1. Alcance
@@ -32,14 +32,15 @@ Total de historias trazadas: **31** (INF 6, COR 5, OPE 4, ACC 4, VEH 4, EST 5, I
 
 | Nivel | Herramienta | Dónde está | Estado de ejecución (15/11, `main` `57b2765`) |
 |---|---|---|---|
-| Unitario | JUnit 5 + Mockito/AssertJ | `src/test/java/.../unit/`, `ai/`, `listener/`, `event/`, `model/` | Ejecutado: parte de los 518 tests de `./mvnw verify` (`integration/entrega4-f`), 0 fallos |
-| Integración (API + base) | `@SpringBootTest` + MockMvc, base en memoria; PostgreSQL real con Testcontainers | `integration/`, `PostgresContainerIntegrationTest` | Ejecutado, 0 fallos |
+| Unitario | JUnit 5 + Mockito/AssertJ | `src/test/java/.../unit/`, `ai/`, `listener/`, `event/`, `model/` | Ejecutado: parte de los 532 tests de `./mvnw verify` (rama del PR #57), 0 fallos |
+| Integración (API + base) | `@SpringBootTest` + MockMvc, base en memoria; PostgreSQL y RabbitMQ reales con Testcontainers | `integration/`, `PostgresContainerIntegrationTest`, `OutboxRabbitContainerIntegrationTest`, `ConsumerRabbitContainerIntegrationTest` | Ejecutado, 0 fallos (Testcontainers con RabbitMQ: TC-BE-TC-01..05) |
 | Integración con servidor HTTP real | `EtagServerTest`, `RestIdentityContextTest` (M1 simulado) | `integration/` | Ejecutado, 0 fallos |
-| Contrato | `ApiContractSmokeTests`, `EventInfrastructureTest`, `OutboxContractTest` (bytes idénticos al formato anterior), `CoreSchemaContractTest` (esquemas JSON de Core para `ticketUpdated`/`updateTicketStatus`), `InfractionConfirmedOffsetTest`; Newman/Postman | `src/test`, `tests/postman/` | Ejecutado. Newman en el CI de `main`: 273 requests, 695 aserciones, 0 fallas. Contrato SOAP: hay WSDL (`GET /soap/authentication?wsdl`) pero ninguna prueba valida contra él: NO VERIFICABLE |
+| Contrato | `ApiContractSmokeTests`, `EventInfrastructureTest`, `OutboxContractTest` (bytes idénticos al formato anterior), `CoreSchemaContractTest` (esquemas JSON de Core para `ticketUpdated`/`updateTicketStatus`), `InfractionConfirmedOffsetTest`; Newman/Postman | `src/test`, `tests/postman/` | Ejecutado. Newman en el CI: 273 requests, 695 aserciones, 0 fallas. Contrato OpenAPI (`OpenApiStaticContractTest`, 3) y SOAP: `SoapWsdlContractTest` (2) verifica que el WSDL versionado (`docs/contratos-integracion/authentication.wsdl`) es el que expone `GET /soap/authentication?wsdl` |
 | Seguridad automatizada | `SecurityEvidenceTests`, `AuthAndSecurityIntegrationTest`, `JwtSinDniIntegrationTest`, `ValidationAndHeadersDefectsTest`, `InputLimitsValidationTests` | `integration/` | Ejecutado, 0 fallos (BOLA 4/4 recursos y `jwtHasNoPii` ya están en el build normal) |
+| Frontend unitario/componentes | Vitest | frontend `src/` | 65 tests, 0 fallos, 94,04 % de líneas (`main` `0279950`, 15/11) |
 | E2E | Playwright (7 escenarios, API simulada) | frontend `e2e/tests/transito.e2e.js` | 7/7 en el CI de `main` del frontend; 3 corridas sin inestables (I2) |
 | Accesibilidad | axe + Lighthouse (modo snapshot) | frontend `scripts/a11y/` | axe 0 violaciones en 3 anchos (I2) |
-| No funcional: carga | k6, 50 usuarios × 5 min, contra compose local | `tests/k6/load.js` | Ejecutado (T1): p95 341 ms. Medido antes de los PR #31/#39/#48: repetición sobre `main` final PENDIENTE |
+| No funcional: carga | k6 1.3.0, 50 usuarios × 5 min, contra compose local | `tests/k6/load.js` | Ejecutado dos veces (15/11): base vacía p95 13,3 ms, 0 errores; con 5 950 infracciones p95 309 ms (listado 424 ms), 0 HTTP 500, tras corregir el N+1 (DEF-40). Ver 04 sección 4.2 |
 | No funcional: mutación | PIT, perfil `mutation` del `pom.xml` | `pom.xml`, `mutation-resumen.md` | Ejecutado (T2): 67 % perfil del pom; 92 % alcance ampliado. Medido antes de los PR #31/#39/#48 |
 | No funcional: seguridad dinámica | OWASP ZAP baseline (CI) + activo autenticado (local) | `tests/run-zap.sh`, job `zap-baseline` | Ejecutado: activo 0 High / 0 Medium (s8); baseline del CI de `main`: 0 FAIL, 1 WARN informativo |
 | No funcional: dependencias | Trivy (backend y frontend), `npm audit` | job `dependencias` | Ejecutado: 0 High/Critical con fix disponible (job bloqueante en verde) |
@@ -70,12 +71,12 @@ Nota: las reproducciones `@Tag("bug")` (19 métodos en `BugReproductionTest`) se
 **Salida** (para dar la entrega por probada) y estado al 15/11 ~18:45:
 | # | Criterio | Umbral | Estado |
 |---|---|---|---|
-| 1 | Backend `./mvnw verify` | verde, ≥ 85 % de líneas | Cumple: 518 tests, 0 fallos, 94,34 % (`integration/entrega4-f`) |
-| 2 | Frontend | lint, `test:coverage` ≥ 85 %, build, E2E | Cumple: 60 tests, 93,48 %; E2E 7/7 en CI |
+| 1 | Backend `./mvnw verify` | verde, ≥ 85 % de líneas | Cumple: 532 tests, 0 fallos, 94,45 % (rama del PR #57) |
+| 2 | Frontend | lint, `test:coverage` ≥ 85 %, build, E2E | Cumple: 65 tests, 94,04 % (`main` `0279950`); E2E 7/7 en CI |
 | 3 | CI verde sobre el tag `v2.0-entrega4` | verde | **PENDIENTE**: el tag se crea al final (lo hace una persona). CI de `main` `57b2765`: todos los jobs en verde |
-| 4 | Defectos abiertos | 0 Bloqueantes, 0 Críticos, ≤ 3 Mayores con workaround | 0 / 0 / 3 (DEF-19, DEF-20, DEF-33). Cumple en número; DEF-20 no tiene workaround técnico (ver 05, "Riesgo de salida") |
+| 4 | Defectos abiertos | 0 Bloqueantes, 0 Críticos, ≤ 3 Mayores con workaround | Cumple: 0 / 0 / 2 (DEF-19 y DEF-20, ambos con workaround; el de DEF-20 es operativo). DEF-33 y DEF-42 cerrados (ver 05) |
 | 5 | Mutación | ≥ 60 % | Cumple: 67 % (perfil del pom) |
-| 6 | Carga | p95 < 500 ms con 50 usuarios | Cumple: 341 ms (medido antes del merge final) |
+| 6 | Carga | p95 < 500 ms con 50 usuarios | Cumple: 13,3 ms con la base vacía y 309 ms con 5 950 infracciones |
 | 7 | ZAP | sin High | Cumple: 0 High, 0 Medium |
 | 8 | Dependencias | sin CVE High/Critical sin mitigación | Cumple: Trivy 0 |
 | 9 | SonarCloud | Quality Gate aprobado | Cumple: PASSED |
@@ -91,18 +92,18 @@ Escala: Probabilidad 1 (rara) a 3 (probable); Impacto 1 (menor) a 3 (alto). Punt
 | R1 | Credenciales de desarrollo fijas activas en producción (login local) | 3 | 3 | 9 | Alta | `TC-BE-AUTH-04b`, `RestIdentityContextTest`, `git grep` de contraseñas | Mitigado: contraseñas fuera del código (DEF-01 cerrado), login de las 3 cuentas verificado en producción. Residual: el adaptador de M1 sigue sin activar |
 | R2 | Pérdida de eventos si el broker está caído | 2 | 3 | 6 | Alta | `OutboxIntegrationTest.brokerCaidoYVuelve`, `rollbackNoDejaEvento`, `sinDuplicadosEnParalelo`; stop/start de RabbitMQ en compose (s12, i5); `HealthWithBrokerDownTest` | Cubierto: Transactional Outbox en producción (DEF-14 cerrado). Entrega "al menos una vez": los consumidores deduplican por `eventId` |
 | R3 | BOLA/IDOR: ciudadano accede a recursos ajenos | 2 | 3 | 6 | Alta | `SecurityEvidenceTests.bolaInfractions/bolaImpoundments/bolaAccidents/bolaParkingSession`, `ParkingIntegrationTest.Ownership` | Cubierto en los 4 recursos (DEF-15 cerrado) |
-| R4 | Transiciones inválidas del corte de calle | 2 | 3 | 6 | Alta | `TC-BE-SC-07`, `StreetClosureStateTest` (30 casos), `StateTransitionTests` | Cubierto (409) |
+| R4 | Transiciones inválidas del corte de calle | 2 | 3 | 6 | Alta | `TC-BE-SC-07`, `StreetClosureStateTest`, `StateTransitionTests`, `TC-BE-SC-DEF42-01..04` | Cubierto (409), incluida la activación fuera de la ventana autorizada (DEF-42, cerrado) |
 | R5 | Fuga de datos personales (DNI en JWT, payload en logs) | 3 | 2 | 6 | Alta | `SecurityEvidenceTests.jwtHasNoPii`, `JwtSinDniIntegrationTest`, `EventLoggingSinPiiTest`, `IncomingEventLoggingSinPiiTest` | Cubierto (DEF-05 y DEF-06 cerrados) |
 | R6 | Evento duplicado o inválido procesado dos veces | 2 | 2 | 4 | Media | `IncomingEventDispatcherTest`, `StreetClosureRequestedHandlerTest`, `TC-BE-SC-02` | Cubierto |
 | R7 | Indisponibilidad o respuesta inválida de M1 (login) | 2 | 2 | 4 | Media | `RestIdentityContextTest`, `RestIdentityValidatorTest` | Cubierto con M1 simulado; contra M1 real NO VERIFICABLE (adaptador sin activar) |
 | R8 | Despliegue de `main` rompe producción (deploy automático) | 2 | 3 | 6 | Alta | CI completo; smoke manual post-deploy (health, Core, catálogo de eventos, frontend) | Parcial: los 4 deploys del 15/11 se verificaron a mano; no hay smoke automático post-deploy |
 | R9 | Sugerencia de IA incorrecta o manipulada | 2 | 2 | 4 | Media | `InfractionSuggestionServiceTest.promptInjectionCannotChangeContract`, `InfractionSuggestionIntegrationTest.promptInjection/piiMasked`, `GroqAiGatewayTest` | Cubierto con proveedor simulado; eval real PENDIENTE |
-| R10 | Degradación bajo carga (pool de 3 conexiones) | 2 | 2 | 4 | Media | k6 | Medido: p95 341 ms; listado sin paginar a 472 ms (cerca del límite); repetición sobre `main` final PENDIENTE |
+| R10 | Degradación bajo carga (pool de 3 conexiones) | 2 | 2 | 4 | Media | k6 con base vacía y con 5 950 infracciones | Materializado y corregido: el N+1 del listado agotaba el pool (p95 10 s, DEF-40); hoy p95 309 ms con datos. Residual: listado sin paginar |
 | R11 | Fuerza bruta sobre el login | 2 | 2 | 4 | Media | `SecurityEvidenceTests.bruteForce`, `LoginRateLimitIntegrationTest` | Cubierto (DEF-22 cerrado, sonda en producción) |
 | R12 | Requisito sin implementar (importes, costos de retención, HU-COR-05, filtros e indicadores del backend) | 3 | 2 | 6 | Alta | Matriz 02, sección "sin cobertura" | Declarado como DEF-19 y DEF-20 (abiertos) |
 | R13 | Secretos en el historial de Git | 1 | 3 | 3 | Media | gitleaks sobre historial | 4 hallazgos en `.gitleaksignore`; riesgo aceptado (DEF-12) |
-| R14 | Cambio correcto del envelope rompe a un consumidor de otro módulo | 3 | 2 | 6 | Alta | `TC-BE-SC-09`; re-prueba con M3 y Core | Materializado: el consumidor v1.0 de M3 rechaza `streetClosureEnded` con `causationId` (DEF-33, abierto con workaround) |
-| R15 | Logs de producción ruidosos que ocultan errores | 3 | 1 | 3 | Media | revisión de `application.properties` y logs de Railway | Materializado: `show-sql` imprime el SELECT del relay cada 2 s (DEF-32, abierto) |
+| R14 | Cambio correcto del envelope rompe a un consumidor de otro módulo | 3 | 2 | 6 | Alta | `TC-BE-SC-09`; re-prueba con M3 y Core | Materializado y resuelto: el consumidor v1.0 de M3 rechazaba `causationId` (DEF-33); circuito v1.1 validado por Core y M3 el 15/11 (cerrado) |
+| R15 | Logs de producción ruidosos que ocultan errores | 3 | 1 | 3 | Media | revisión de `application.properties` y logs de Railway | Materializado y corregido: `show-sql` apagado (DEF-32, cerrado) |
 
 Matriz (celdas con ids de riesgo):
 

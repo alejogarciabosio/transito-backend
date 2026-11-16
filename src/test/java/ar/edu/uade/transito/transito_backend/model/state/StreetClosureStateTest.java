@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -31,7 +32,7 @@ class StreetClosureStateTest {
     enum Operation {
         APPROVE(StreetClosureState::approve, "REQUESTED"),
         REJECT(StreetClosureState::reject, "REQUESTED"),
-        ACTIVATE(StreetClosureState::activate, "APPROVED"),
+        ACTIVATE((state, closure) -> state.activate(closure, OffsetDateTime.now()), "APPROVED"),
         FINISH(StreetClosureState::finish, "ACTIVE"),
         EXPIRE(StreetClosureState::expire, "ACTIVE o APPROVED");
 
@@ -119,5 +120,48 @@ class StreetClosureStateTest {
     @Test
     void resolverRejectsNullStatus() {
         assertThatNullPointerException().isThrownBy(() -> StreetClosureStates.of((StreetClosureStatus) null));
+    }
+
+    // ---- DEF-42: activar solo dentro de la ventana autorizada [startDate, endDate) ----
+
+    private static final OffsetDateTime START = OffsetDateTime.parse("2026-11-15T19:46:41-03:00");
+    private static final OffsetDateTime END = OffsetDateTime.parse("2026-11-16T06:00:00-03:00");
+
+    private static StreetClosure approvedWithWindow() {
+        StreetClosure closure = closure(APPROVED);
+        closure.setStartDate(START);
+        closure.setEndDate(END);
+        return closure;
+    }
+
+    @Test
+    @DisplayName("DEF-42: activar antes del inicio (caso de producción 19:45:51 < 19:46:41) → 409 con la ventana en el mensaje")
+    void activateBeforeStartIsRejected() {
+        StreetClosure closure = approvedWithWindow();
+        assertThatThrownBy(() -> StreetClosureStates.of(APPROVED)
+                .activate(closure, OffsetDateTime.parse("2026-11-15T19:45:51-03:00")))
+                .isInstanceOf(InvalidStateTransitionException.class)
+                .hasMessageContaining("El corte solo puede activarse dentro de la ventana autorizada")
+                .hasMessageContaining("desde " + START)
+                .hasMessageContaining("hasta " + END);
+    }
+
+    @Test
+    @DisplayName("DEF-42: activar exactamente en startDate o dentro de la ventana → ACTIVE")
+    void activateInsideWindowIsAllowed() {
+        StreetClosure closure = approvedWithWindow();
+        assertThat(StreetClosureStates.of(APPROVED).activate(closure, START).status()).isEqualTo(ACTIVE);
+        assertThat(StreetClosureStates.of(APPROVED).activate(closure, END.minusNanos(1)).status()).isEqualTo(ACTIVE);
+    }
+
+    @Test
+    @DisplayName("DEF-42: activar en endDate o después → 409 (la ventana es semiabierta)")
+    void activateAtOrAfterEndIsRejected() {
+        StreetClosure closure = approvedWithWindow();
+        for (OffsetDateTime now : List.of(END, END.plusMinutes(1))) {
+            assertThatThrownBy(() -> StreetClosureStates.of(APPROVED).activate(closure, now))
+                    .isInstanceOf(InvalidStateTransitionException.class)
+                    .hasMessageContaining("ventana autorizada");
+        }
     }
 }

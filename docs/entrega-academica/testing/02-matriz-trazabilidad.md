@@ -14,8 +14,8 @@ Fuente de las HU y criterios: Google Doc del TPO, secciones F1-F7: **31 historia
 
 | Evidencia | Qué es |
 |---|---|
-| EV-1 | `./mvnw -q -B verify` sobre `integration/entrega4-f` (15/11 ~20:33, agente I7): exit 0, **518 tests**, 0 fallos, 0 errores, 0 omitidos; líneas **94,34 %** (2068/2192), ramas 82,09 % (614/748). Antes, sobre `main` `57b2765` (D3): 497 tests, 93,74 % |
-| EV-2 | Frontend `main` `1f0187d`: `vitest run --coverage` 60 tests, 93,48 % de líneas (corrida D3 del 15/11 y CI de `main`) |
+| EV-1 | `./mvnw -q -B verify` sobre la rama del PR #57 `fix/s22-activacion-en-ventana` (15/11 ~21:30): exit 0, **532 tests**, 0 fallos; líneas **94,45 %**, ramas 82,43 % (638/774). Antes: 518 tests y 94,34 % (`integration/entrega4-f`); 497 tests y 93,74 % (`main` `57b2765`) |
+| EV-2 | Frontend `main` `0279950`: `npm ci && npm run test:coverage` → **65 tests**, 0 fallos, **94,04 % de líneas** (1059/1126) (15/11 ~21:30). Antes: 60 tests y 93,48 % sobre `1f0187d` |
 | EV-3 | E2E Playwright 7/7 en el CI de `main` del frontend; 3 corridas sin inestables (`reports/i2.md`) |
 | EV-4 | Grupo `bug` sobre `57b2765` (D3, 15/11): `./mvnw -q -B test -Dbugs.excluded=none -Dgroups=bug -Djacoco.skip=true` -> 19 tests, 16 pasan, 1 falla (`bug09a`) y 2 dan error de preparación (`bug02`, `bug14`); las 3 son pruebas desactualizadas (DEF-17, DEF-18) |
 | EV-5 | Pruebas con otros módulos en producción del 15/11, con `eventId` confirmados por Core y por cada módulo (`04-informe-ejecucion.md` sección 7, `pruebas-modulos-15-11.md`) |
@@ -71,10 +71,10 @@ Los nombres `TC-BE-*` son los ids que ya figuran en los `@DisplayName` de los te
 | HU-COR-03 | Calle afectada, fechas, rutas alternativas, condiciones | TC-BE-SC-03/04 | `approve`, `approvalCanSetAuthorizedWindow`; `ApiWorkflowIntegrationTests.streetClosureCompletesItsHttpLifecycle` | PASA | EV-1 | |
 | HU-COR-03 | Desvíos asociados al corte | TC-BE-SC-03 | `approve`; `MapperCoverageTests.mapsParkingSessionAndStreetClosureResponses` | PASA | EV-1 | |
 | HU-COR-04 | Solo activar un corte aprobado | TC-BE-SC-07 | `invalidTransitions`; `StateTransitionTests.streetClosureCannotActivateBeforeApproval` | PASA | EV-1 | |
-| HU-COR-04 | Activar antes de `startDate` | TC-PEND-14 | ninguno: `StreetClosureService.activate` solo valida el estado | NO IMPLEMENTADO (la regla no existe) | git grep; observado en prueba real | DEF-07 |
+| HU-COR-04 | Activar solo dentro de la ventana autorizada `[startDate, endDate)` | TC-PEND-14, TC-BE-SC-DEF42-01..04 | `StreetClosureIntegrationTest.activateBeforeWindowStart`, `activateAtWindowStart`, `activateAfterWindowEnd`, `approveWithInvalidWindow`; `StreetClosureStateTest`; `StreetClosureActivationWindowTest` | PASA (antes NO IMPLEMENTADO; observado por Core en producción) | EV-1 | DEF-42 (cerrado; DEF-07 duplicado) |
 | HU-COR-04 | Extender el período | TC-BE-SC-EXT | `StreetClosureRequestedHandlerTest.keepsTheReferenceToThePreviousRequestForAnExtension` (la prórroga llega como nuevo evento) | PASA | EV-1 | |
 | HU-COR-04 | Finalizar un corte activo, fecha y hora, observaciones | TC-BE-SC-06 | `fullLifecycle`; `AdditionalServiceCoverageTests.streetClosureCompletesTheApprovedLifecycle`; real con M3 y M6 | PASA | EV-1, EV-5 | |
-| HU-COR-04 | Publica `streetClosureEnded` con `causationId` | TC-BE-SC-06, TC-BE-SC-09 | `fullLifecycle`, `StreetClosureIntegrationTest.responsesKeepCorrelationAndCausation`, `OtherServicesTest.expireDueClosures` | PASA. Real: re-prueba con M3 PENDIENTE (su consumidor v1.0 rechaza `causationId` no nulo) | EV-1 | DEF-08 (cerrado), DEF-33 |
+| HU-COR-04 | Publica `streetClosureEnded` con `causationId` | TC-BE-SC-06, TC-BE-SC-09 | `fullLifecycle`, `StreetClosureIntegrationTest.responsesKeepCorrelationAndCausation`, `OtherServicesTest.expireDueClosures` | PASA. Real: circuito v1.1 con M3 validado por Core y M3 el 15/11 | EV-1, EV-5 | DEF-08 (cerrado), DEF-33 (cerrado) |
 | HU-COR-04 | Vencimiento automático de ventana | TC-BE-SC-U02 | `OtherServicesTest.expireDueClosures` | PASA | EV-1 | |
 | HU-COR-04 | RF-COR-11: publicar `streetClosureActivated` | TC-PEND-14b | `fullLifecycle` afirma que NO se publica la activación | NO IMPLEMENTADO por diseño; a confirmar con el PO | git grep | DEF-21 |
 | HU-COR-05 | Recibir servicios urbanos, podas, riesgo de árboles, obras | TC-PEND-04 | ninguno: no hay handlers para esos eventos en `listener/handler/` (5 handlers: pagos, deuda, ticket, solicitud de corte, reverso) | NO IMPLEMENTADO | git grep | DEF-20 |
@@ -158,6 +158,6 @@ Los nombres `TC-BE-*` son los ids que ya figuran en los `@DisplayName` de los te
 
 ## Resumen de cobertura (contado sobre las tablas de arriba)
 - 31 HU de F1-F7: todas tienen al menos una fila. Ninguna HU queda sin caso: las que no tienen test tienen un caso `TC-PEND-*` en 03.
-- HU con algún criterio sin implementar o sin test (marcadas arriba): HU-INF-01 (importe y reincidencia), HU-INF-03 (un criterio), HU-INF-04 (adjuntos, `appealId`), HU-COR-04 (activación temprana, evento de activación), HU-COR-05, HU-OPE-03, HU-ACC-03 (historial), HU-VEH-02, HU-VEH-03 (parcial), HU-EST-03, HU-EST-04, HU-IND-01, HU-IND-02, HU-IND-03 (parcial).
+- HU con algún criterio sin implementar o sin test (marcadas arriba): HU-INF-01 (importe y reincidencia), HU-INF-03 (un criterio), HU-INF-04 (adjuntos, `appealId`), HU-COR-04 (evento de activación), HU-COR-05, HU-OPE-03, HU-ACC-03 (historial), HU-VEH-02, HU-VEH-03 (parcial), HU-EST-03, HU-EST-04, HU-IND-01, HU-IND-02, HU-IND-03 (parcial).
 - Criterios con test que FALLA hoy en el build normal: **ninguno** (EV-1: 0 fallos). En el grupo `bug` (EV-4) solo fallan 3 reproducciones desactualizadas (`bug09a`, `bug02`, `bug14`; DEF-17 y DEF-18), que no son veredicto sobre el producto.
-- Pendiente de prueba real con otros módulos (EV-5): re-prueba de cortes con M3 (DEF-33), procesamiento de `infractionConfirmed` por M5, `ticketUpdated` de M2, adaptador de M1.
+- Pendiente de prueba real con otros módulos (EV-5): procesamiento de `infractionConfirmed` por M5, `ticketUpdated` de M2, adaptador de M1. El circuito de cortes con M3 v1.1 quedó validado por Core y M3 el 15/11 (DEF-33 cerrado).

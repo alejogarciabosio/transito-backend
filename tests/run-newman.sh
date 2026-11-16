@@ -26,12 +26,13 @@ mkdir -p tests/reports
 
 # Siembra 2 pedidos de corte (A: aprobar/activar/finalizar; R: rechazar) por el broker RabbitMQ local,
 # como lo haría M3 vía Core. Los cortes no se crean por REST.
+# Ventana relativa a ahora (desde -1 h hasta +1 día): la activación exige estar dentro de [startDate, endDate) (DEF-42).
 publish_closure() { # $1 = sufijo
   RUN_ID="$RUN_ID" SUF="$1" node -e '
     const id=require("crypto").randomUUID();
     const data={closureRequestId:"CR-NM-"+process.env.RUN_ID+"-"+process.env.SUF,sourceModule:"M3",sourceRef:"OBRA-NM",reason:"Corte de prueba (Newman)",
-      affectedSections:[{street:"Av. Test",from:"A",to:"B",direction:"BOTH"}],requestedFrom:"2026-12-01T08:00:00-03:00",requestedTo:"2026-12-02T08:00:00-03:00",
-      closureType:"PARTIAL",requestedAt:"2026-11-15T10:00:00-03:00"};
+      affectedSections:[{street:"Av. Test",from:"A",to:"B",direction:"BOTH"}],requestedFrom:new Date(Date.now()-3600e3).toISOString(),requestedTo:new Date(Date.now()+86400e3).toISOString(),
+      closureType:"PARTIAL",requestedAt:new Date(Date.now()-7200e3).toISOString()};
     process.stdout.write(JSON.stringify({properties:{},routing_key:"q.transito",payload:JSON.stringify({eventId:id,eventType:"streetClosureRequested",data}),payload_encoding:"string"}));' |
   curl -sf -u "module_transito:$RABBIT_PASS" -H 'content-type: application/json' -X POST \
     "$RABBIT_URL/api/exchanges/%2F/amq.default/publish" -d @- >/dev/null

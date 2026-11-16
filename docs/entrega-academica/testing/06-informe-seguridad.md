@@ -3,7 +3,7 @@
 Actualizado: 15/11/2026 ~18:45 ART (estado final), sobre `main` `57b2765` (PR #48, desplegado) y frontend `1f0187d` (PR #10). Estados: **CUMPLE** (hay test o evidencia ejecutada), **NO CUMPLE** (hay evidencia de incumplimiento), **NO VERIFICABLE** (sin evidencia ejecutada; incluye "PENDIENTE" cuando otro agente lo está midiendo). Ningún CUMPLE se basa en inferencia: si no hay ejecución, no se marca.
 Referencias: OWASP Top 10 2025 / ASVS 5.0 y OWASP API Top 10, según la matriz del TPO.
 
-Evidencia "verify" = `./mvnw -q -B verify` sobre `integration/entrega4-f` (518 tests, 0 fallos, 94,34 % de líneas, corrida I7; antes 497 sobre `57b2765`, D3 y job `test` del CI de `main`); "Newman" = job `api-tests` del CI de `main` (273 requests, 695 aserciones, 0 fallas, los 6 `[KI-n]` corregidos); "ZAP" = activo autenticado local (s8) y baseline del CI de `main`.
+Evidencia "verify" = `./mvnw -q -B verify` sobre la rama del PR #57 (532 tests, 0 fallos, 94,45 % de líneas; antes 518 sobre `integration/entrega4-f` y 497 sobre `57b2765`); "Newman" = job `api-tests` del CI de `main` (273 requests, 695 aserciones, 0 fallas, los 6 `[KI-n]` corregidos); "ZAP" = activo autenticado local (s8) y baseline del CI de `main`.
 
 ## 1. Matriz SEC del TPO (checkpoint 3)
 | Id | Criterio | Estado | Evidencia | Defecto |
@@ -44,14 +44,14 @@ Evidencia "verify" = `./mvnw -q -B verify` sobre `integration/entrega4-f` (518 t
 | ZAP baseline y activo autenticado | CUMPLE (0 High, 0 Medium) | ZAP 2.17.0 contra compose local, [evidencias/zap](evidencias/zap/README.md). El Medium (500 con textos >255/NUL) se corrigió (PR #37) y el Low de `Cross-Origin-Resource-Policy` también (PR #45). Baseline del CI de `main`: 0 FAIL, 1 WARN informativo (Non-Storable Content), 67 PASS | DEF-26, DEF-30 (cerrados) |
 | Dependencias (Trivy, `npm audit`, SCA) | CUMPLE | Backend: Trivy sobre el jar, 25 High/Critical (8 Critical) → 0 tras Boot 4.1.2 y amqp-client 5.34.0 (PR #30); job CI `dependencias` bloqueante. Frontend: `npm audit --omit=dev` 0 y Trivy 0 | DEF-23 (cerrado) |
 | Autenticación en producción | CUMPLE con salvedad | El login de producción usa el validador de usuarios de prueba con contraseñas configuradas por variable de entorno (sin valores en el código), con límite de intentos por IP y por usuario. Login real de las 3 cuentas verificado por el equipo tras el deploy de #39. Salvedad: el adaptador de M1 está corregido pero sin activar (faltan las cuentas de M1 para probarlo) | DEF-01 (cerrado) |
-| Logs de producción | CUMPLE sin PII, con ruido | los logs no traen DNI ni payload (SEC-D01); pero `spring.jpa.show-sql=true` imprime el SELECT del relay del outbox cada 2 s (con `?`, sin valores), lo que dificulta ver errores | DEF-32 (abierto, Menor) |
-| Integridad del envelope hacia otros módulos | CUMPLE en M7, con incompatibilidad externa | `causationId` y `correlationId` correctos (`TC-BE-SC-09`); el consumidor v1.0 de M3 rechaza `causationId` no nulo: mitigado no aprobando cortes de M3 hasta su deploy | DEF-33 (abierto, Mayor) |
+| Logs de producción | CUMPLE | los logs no traen DNI ni payload (SEC-D01); el ruido de `spring.jpa.show-sql=true` (SELECT del relay cada 2 s) se corrigió con `show-sql=false` (PR #50) | DEF-32 (cerrado, Menor) |
+| Integridad del envelope hacia otros módulos | CUMPLE | `causationId` y `correlationId` correctos (`TC-BE-SC-09`); circuito v1.1 con M3 validado por Core y M3 el 15/11 (correlationId y causationId correctos, 0 dead letters) | DEF-33 (cerrado, Mayor) |
 | Aislamiento de capas de red / allowlist de Core | NO VERIFICABLE | fuera del alcance de las pruebas | |
 | Rotación de credenciales | No se rota por decisión | decisión del humano del 15/11; riesgo aceptado | DEF-12 (aceptado) |
 
 ## 3. Resumen
 CUMPLE: W01, W02, W03 (BOLA en los 4 recursos), W04, W05 (parcial: sin handler de último recurso), W06, I01, I02, D01, D02 (con salvedad DEF-12), SEC-05, SEC-09 (JWT sin DNI), BFLA, JWT inválidos, mass assignment, inyecciones a nivel API, XXE, 429, cabeceras (incluida CORP), actuator, Idempotency/ETag, ZAP sin High/Medium, dependencias sin High/Critical, autenticación en producción (con salvedad del adaptador de M1).
 NO CUMPLE: ningún criterio de la matriz SEC.
-ABIERTOS relacionados (ver 05): DEF-32 logs ruidosos por `show-sql` (Menor); DEF-33 incompatibilidad del consumidor de M3 con `causationId` (Mayor, mitigado).
+ABIERTOS relacionados (ver 05): ninguno de seguridad. Cerrados al final: DEF-32 logs ruidosos por `show-sql` (Menor) y DEF-33 incompatibilidad del consumidor de M3 con `causationId` (Mayor).
 RIESGO ACEPTADO: Swagger público (DEF-09); historial con contraseña de prueba de M1 sin rotar (DEF-12).
 NO VERIFICABLE / PENDIENTE: secretos en la imagen, cabeceras del backend en producción, aislamiento de red, eval de IA con proveedor real, adaptador de M1 contra M1 real.
