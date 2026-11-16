@@ -48,7 +48,7 @@ class MutationKillingOperationsClosuresTest {
     void operationCreateForcesOpenStatusClearsResolutionAndPublishesCreated() {
         var repo = mock(TrafficOperationRepository.class);
         var publisher = mock(EventPublisher.class);
-        var service = new TrafficOperationService(repo, publisher);
+        var service = new TrafficOperationService(repo, publisher, java.time.Clock.systemUTC());
         when(repo.save(any(TrafficOperation.class))).thenAnswer(i -> i.getArgument(0));
         var input = TrafficOperation.builder().zone("Centro").status(OperationStatus.CLOSED)
                 .resolution(OperationResolution.NO_ACTION).startDateTime(LocalDateTime.now()).build();
@@ -63,7 +63,7 @@ class MutationKillingOperationsClosuresTest {
     @Test
     void operationUpdateChangesOnlyProvidedFieldsAndRejectsEndBeforeStart() {
         var repo = mock(TrafficOperationRepository.class);
-        var service = new TrafficOperationService(repo, mock(EventPublisher.class));
+        var service = new TrafficOperationService(repo, mock(EventPublisher.class), java.time.Clock.systemUTC());
         UUID id = UUID.randomUUID();
         LocalDateTime start = LocalDateTime.of(2026, 5, 1, 10, 0);
         var existing = TrafficOperation.builder().operationId(id).status(OperationStatus.OPEN).zone("Norte")
@@ -100,7 +100,7 @@ class MutationKillingOperationsClosuresTest {
     void operationCloseWithUuidTicketPublishesResolvedOrRejectedAndSetsEnd() {
         var repo = mock(TrafficOperationRepository.class);
         var publisher = mock(EventPublisher.class);
-        var service = new TrafficOperationService(repo, publisher);
+        var service = new TrafficOperationService(repo, publisher, java.time.Clock.systemUTC());
         UUID id = UUID.randomUUID();
         UUID ticket = UUID.randomUUID();
         var op = TrafficOperation.builder().operationId(id).status(OperationStatus.OPEN)
@@ -123,7 +123,7 @@ class MutationKillingOperationsClosuresTest {
     void operationCloseResolvedAndNonUuidOrBlankTicketBehaviour() {
         var repo = mock(TrafficOperationRepository.class);
         var publisher = mock(EventPublisher.class);
-        var service = new TrafficOperationService(repo, publisher);
+        var service = new TrafficOperationService(repo, publisher, java.time.Clock.systemUTC());
         when(repo.save(any(TrafficOperation.class))).thenAnswer(i -> i.getArgument(0));
 
         UUID resolvedId = UUID.randomUUID();

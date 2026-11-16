@@ -47,9 +47,9 @@ class IncomingEventLoggingSinPiiTest {
         JsonNode message = mapper.readTree(BODY);
 
         when(repository.existsById(any())).thenReturn(false);
-        new IncomingEventDispatcher(List.of(), repository).dispatch(message);
+        new IncomingEventDispatcher(List.of(), repository, java.time.Clock.systemUTC()).dispatch(message);
         when(repository.existsById(any())).thenReturn(true);
-        new IncomingEventDispatcher(List.of(), repository).dispatch(message);
+        new IncomingEventDispatcher(List.of(), repository, java.time.Clock.systemUTC()).dispatch(message);
 
         assertThat(output.getAll()).contains(EVENT_ID, "vehicleOwnerUpdated").doesNotContain(DNI, PATENTE);
     }

@@ -1,12 +1,14 @@
 package ar.edu.uade.transito.transito_backend.service;
 
-import java.time.LocalDateTime;
+import java.time.Clock;
 import java.util.List;
 import java.util.UUID;
 
 import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import ar.edu.uade.transito.transito_backend.config.MunicipalTime;
 
 import ar.edu.uade.transito.transito_backend.event.EventEnvelope;
 import ar.edu.uade.transito.transito_backend.event.EventPublisher;
@@ -28,6 +30,7 @@ public class TrafficOperationService {
 
     private final TrafficOperationRepository trafficOperationRepository;
     private final EventPublisher eventPublisher;
+    private final Clock clock;
 
     public TrafficOperation create(TrafficOperation operation) {
         operation.setStatus(OperationStatus.OPEN);
@@ -88,7 +91,7 @@ public class TrafficOperationService {
         existing.setStatus(OperationStatus.CLOSED);
         existing.setResolution(resolution);
         if (existing.getEndDateTime() == null) {
-            existing.setEndDateTime(LocalDateTime.now());
+            existing.setEndDateTime(MunicipalTime.now(clock));
         }
 
         TrafficOperation closed = trafficOperationRepository.save(existing);

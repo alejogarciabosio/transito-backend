@@ -1,6 +1,6 @@
 package ar.edu.uade.transito.transito_backend.listener.handler;
 
-import java.time.LocalDateTime;
+import java.time.Clock;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -8,6 +8,8 @@ import org.springframework.stereotype.Component;
 
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+
+import ar.edu.uade.transito.transito_backend.config.MunicipalTime;
 
 import ar.edu.uade.transito.transito_backend.event.EventPublisher;
 import ar.edu.uade.transito.transito_backend.event.EventEnvelope;
@@ -29,6 +31,7 @@ public class TicketUpdatedHandler implements ContextualIncomingEventHandler {
     private final ObjectMapper objectMapper;
     private final TrafficOperationService trafficOperationService;
     private final EventPublisher eventPublisher;
+    private final Clock clock;
 
     @Override
     public String eventType() {
@@ -54,7 +57,7 @@ public class TicketUpdatedHandler implements ContextualIncomingEventHandler {
         trafficOperationService.create(TrafficOperation.builder()
                 .type(OperationType.COMPLAINT_VERIFICATION)
                 .zone(zone)
-                .startDateTime(LocalDateTime.now())
+                .startDateTime(MunicipalTime.now(clock))
                 .ticketId(payload.ticketId().toString())
                 .sourceEventId(eventId)
                 .sourceCorrelationId(correlationId)

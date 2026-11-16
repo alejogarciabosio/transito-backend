@@ -90,7 +90,7 @@ class ServiceBusinessRulesTests {
         TrafficOperationRepository repository = mock(TrafficOperationRepository.class);
         when(repository.findById(id)).thenReturn(Optional.of(existing));
         when(repository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
-        TrafficOperationService service = new TrafficOperationService(repository, mock(EventPublisher.class));
+        TrafficOperationService service = new TrafficOperationService(repository, mock(EventPublisher.class), java.time.Clock.systemUTC());
 
         TrafficOperation updated = service.update(id,
                 TrafficOperation.builder()
@@ -113,7 +113,7 @@ class ServiceBusinessRulesTests {
         VehicleImpoundmentRepository repository = mock(VehicleImpoundmentRepository.class);
         when(repository.findById(id)).thenReturn(Optional.of(existing));
         VehicleImpoundmentService service = new VehicleImpoundmentService(
-                repository, mock(EventPublisher.class));
+                repository, mock(EventPublisher.class), java.time.Clock.systemUTC());
 
         assertThrows(InvalidRequestException.class, () -> service.release(
                 id, List.of("DOCUMENTATION_OK"), new BigDecimal("85000"), null, "USR-1"));
@@ -135,7 +135,7 @@ class ServiceBusinessRulesTests {
                 sessionRepository,
                 infractionRepository,
                 mock(ar.edu.uade.transito.transito_backend.repository.ParkingZoneRepository.class),
-                mock(InfractionService.class));
+                mock(InfractionService.class), java.time.Clock.systemUTC());
 
         assertThrows(InvalidStateTransitionException.class,
                 () -> service.flagUnpaid(id, "INS-1", new BigDecimal("50000")));

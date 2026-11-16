@@ -1,12 +1,14 @@
 package ar.edu.uade.transito.transito_backend.service;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Clock;
 import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import ar.edu.uade.transito.transito_backend.config.MunicipalTime;
 
 import ar.edu.uade.transito.transito_backend.auth.AuthenticatedUser;
 import ar.edu.uade.transito.transito_backend.exception.InvalidStateTransitionException;
@@ -30,6 +32,7 @@ public class ParkingSessionService {
     private final InfractionRepository infractionRepository;
     private final ParkingZoneRepository parkingZoneRepository;
     private final InfractionService infractionService;
+    private final Clock clock;
 
     /**
      * Inicia la sesión registrando como dueño al ciudadano autenticado (DEF-15). Si la inicia
@@ -92,7 +95,7 @@ public class ParkingSessionService {
         if (existing.getEndDateTime() != null) {
             throw new InvalidStateTransitionException("La sesión " + sessionId + " ya está cerrada");
         }
-        existing.setEndDateTime(LocalDateTime.now());
+        existing.setEndDateTime(MunicipalTime.now(clock));
         return parkingSessionRepository.save(existing);
     }
 
@@ -120,7 +123,7 @@ public class ParkingSessionService {
                 .licensePlate(session.getLicensePlate())
                 .infractionType(InfractionType.UNPAID_PARKING)
                 .location(location)
-                .infractionDateTime(LocalDateTime.now())
+                .infractionDateTime(MunicipalTime.now(clock))
                 .inspectorId(inspectorId)
                 .baseAmount(baseAmount)
                 .finalAmount(baseAmount)

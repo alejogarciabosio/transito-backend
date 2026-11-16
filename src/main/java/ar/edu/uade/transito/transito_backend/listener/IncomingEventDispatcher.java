@@ -1,6 +1,6 @@
 package ar.edu.uade.transito.transito_backend.listener;
 
-import java.time.LocalDateTime;
+import java.time.Clock;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -14,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import tools.jackson.databind.JsonNode;
 
+import ar.edu.uade.transito.transito_backend.config.MunicipalTime;
+
 import ar.edu.uade.transito.transito_backend.model.ProcessedEvent;
 import ar.edu.uade.transito.transito_backend.repository.ProcessedEventRepository;
 
@@ -24,11 +26,14 @@ public class IncomingEventDispatcher {
 
     private final Map<String, IncomingEventHandler> handlersByType;
     private final ProcessedEventRepository processedEventRepository;
+    private final Clock clock;
 
-    public IncomingEventDispatcher(List<IncomingEventHandler> handlers, ProcessedEventRepository processedEventRepository) {
+    public IncomingEventDispatcher(List<IncomingEventHandler> handlers, ProcessedEventRepository processedEventRepository,
+            Clock clock) {
         this.handlersByType = handlers.stream()
                 .collect(Collectors.toMap(IncomingEventHandler::eventType, Function.identity()));
         this.processedEventRepository = processedEventRepository;
+        this.clock = clock;
     }
 
     @Transactional
@@ -61,7 +66,7 @@ public class IncomingEventDispatcher {
         processedEventRepository.save(ProcessedEvent.builder()
                 .eventId(eventId)
                 .eventType(eventType)
-                .processedAt(LocalDateTime.now())
+                .processedAt(MunicipalTime.now(clock))
                 .build());
     }
 }

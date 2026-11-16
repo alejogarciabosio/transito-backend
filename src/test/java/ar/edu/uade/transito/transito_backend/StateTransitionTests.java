@@ -155,7 +155,7 @@ class StateTransitionTests {
                 .build();
         TrafficOperationRepository repository = mock(TrafficOperationRepository.class);
         when(repository.findById(id)).thenReturn(Optional.of(operation));
-        TrafficOperationService service = new TrafficOperationService(repository, mock(EventPublisher.class));
+        TrafficOperationService service = new TrafficOperationService(repository, mock(EventPublisher.class), java.time.Clock.systemUTC());
 
         assertThrows(InvalidStateTransitionException.class,
                 () -> service.close(id, OperationResolution.NO_ACTION));

@@ -37,7 +37,7 @@ class TicketUpdatedHandlerTest {
 
         UUID incomingEventId = UUID.randomUUID();
         UUID incomingCorrelationId = UUID.randomUUID();
-        new TicketUpdatedHandler(mapper, operations, publisher).handle(data, incomingEventId, incomingCorrelationId);
+        new TicketUpdatedHandler(mapper, operations, publisher, java.time.Clock.systemUTC()).handle(data, incomingEventId, incomingCorrelationId);
 
         ArgumentCaptor<TrafficOperation> operation = ArgumentCaptor.forClass(TrafficOperation.class);
         verify(operations).create(operation.capture());
@@ -71,7 +71,7 @@ class TicketUpdatedHandlerTest {
         when(mapper.convertValue(data, TicketUpdatedPayload.class))
                 .thenReturn(new TicketUpdatedPayload(UUID.randomUUID(), "M3", "ROUTED", null));
 
-        new TicketUpdatedHandler(mapper, operations, publisher).handle(data, UUID.randomUUID(), null);
+        new TicketUpdatedHandler(mapper, operations, publisher, java.time.Clock.systemUTC()).handle(data, UUID.randomUUID(), null);
 
         verify(operations, never()).create(any());
         verify(publisher, never()).publish(any(EventEnvelope.class));
