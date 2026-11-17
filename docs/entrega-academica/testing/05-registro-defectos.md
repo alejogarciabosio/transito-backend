@@ -136,7 +136,7 @@ Nota de numeración: los PR #54 y #55 usaron ambos "DEF-38"; se dejó DEF-38 par
 ### DEF-25 `infractionDateTime` sin offset (hallado por M5, Cerrado)
 - **Defecto**: `infractionConfirmed` publicaba `infractionDateTime` como `LocalDateTime` (sin zona); M5 lo pidió con offset (contrato v4).
 - **Corrección** (PR #40, en #39): `InfractionConfirmedPayload.infractionDateTime` es `OffsetDateTime` (mismo nombre de campo), convertido con America/Argentina/Buenos_Aires.
-- **Verificación**: `InfractionConfirmedOffsetTest` serializa con el conversor de producción y espera `...-03:00`. Falta que M5 lo confirme con un evento real (ver 04, sección 7).
+- **Verificación**: `InfractionConfirmedOffsetTest` serializa con el conversor de producción y espera `...-03:00`. Confirmado por M5 en el entorno de pruebas del 17/11 (ver 04, sección 7, fila 4).
 
 ### DEF-26 500 con textos de más de 255 caracteres o byte NUL (hallado por ZAP, Cerrado)
 - **Defecto**: ZAP activo autenticado (Medium "Buffer Overflow" y Low "Server Error"): con textos >255 la columna `varchar(255)` fallaba y la API respondía 500; con `\u0000`, error de codificación de PostgreSQL → 500.

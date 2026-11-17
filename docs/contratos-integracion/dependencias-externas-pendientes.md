@@ -15,7 +15,7 @@
   usuarios de prueba y no contra M1.
 - **Quién lo destraba:** el equipo de Usuarios (M1).
 
-## 2. Broker de eventos (RabbitMQ) — listo para conexión, pendiente de habilitación externa
+## 2. Broker de eventos (RabbitMQ) — activo contra Core en producción desde el 15/11
 
 - **Qué hay hoy:** `RabbitMqEventPublisher` publica al exchange `muni.inbox` y
   `RabbitMqIncomingEventListener` consume `q.transito`. La integración se habilita con
@@ -25,23 +25,23 @@
 - **Configuración confirmada por Core:** host `core-uade-2026.duckdns.org`, puerto `5671`,
   virtual host `core`, usuario `module_transito` y AMQPS. La validación del certificado y
   del hostname están activadas en la configuración; no se requiere certificado de cliente.
-- **Qué falta para operar:** Core debe entregar la contraseña AMQP de forma privada y
-  habilitar la IP pública de salida del backend M7 (y de cualquier red de prueba). Luego
-  corresponde ejecutar la prueba bilateral de consumo y publicación.
+- **Estado:** AMQPS activo contra Core en producción desde el 15/11; la prueba bilateral de
+  consumo y publicación se hizo con M3, M6 y M2 (ver `entrega-academica/testing/04-informe-ejecucion.md`, sección 7).
 - **Registros en Core:** M7 no hace POST automáticos de publicaciones o suscripciones, por
   lo que no reactiva pausas configuradas en el dashboard. `streetClosureRequested` ya está
   suscripto con `maxAttempts: 4`. Core debe registrar/corregir la publicación
   `streetClosureEnded`: el registro histórico `streetClousureEnded` no es un alias válido.
-- **Pendiente M5 — Rentas:** confirmar que Core tiene activa la publicación
-  `infractionConfirmed` para `transito` y que M5 está suscripto a ese mismo evento. El backend
-  ya lo publica al confirmar una infracción; falta la prueba bilateral M7 → Core → M5.
+- **M5 — Rentas (hecho, entorno de pruebas):** la prueba bilateral `infractionConfirmed` M7 → M5 →
+  pago → `paymentRegistered` M5 → M7 quedó validada por el equipo en un entorno de pruebas
+  (no en producción) el 17/11. El problema de fecha sin offset que había señalado M5 se
+  corrigió y desplegó el 15/11 17:50 (DEF-25).
 
 ## Resumen
 
 | Dependencia | Estado hoy | Bloqueado por | Si no se resuelve |
 |---|---|---|---|
 | Identidad (login) | Cliente SOAP listo; stub activo hasta habilitación | URL final y prueba con M1 | No hay login validado por Usuarios |
-| Broker (RabbitMQ) | Código y AMQPS configurados; desactivado hasta habilitación | Contraseña, allowlist de IP, registros y prueba con Core/M5 | No hay tráfico real hasta habilitarlo |
+| Broker (RabbitMQ) | AMQPS activo contra Core en producción desde el 15/11; M5 validado en entorno de pruebas (17/11) | — | — |
 
 Los dos puntos dependen de que los módulos externos entreguen acceso o confirmen su
 configuración; no requieren cambios funcionales adicionales en M7.
