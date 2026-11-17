@@ -9,7 +9,7 @@ Regla de honestidad: cada afirmación de resultado indica su evidencia; donde no
 | Área | Qué se prueba | Fuente de requisitos |
 |---|---|---|
 | F1 Infracciones | alta (evidencia o validación del inspector), edición, apelación, confirmación, anulación, consulta propia | HU-INF-01..06 |
-| F2 Cortes de calle | recepción del evento, aprobar/rechazar, activar, finalizar, vencimiento, 409; recepción de servicios urbanos, podas y riesgo de árboles | HU-COR-01..05 (HU-COR-05 sin implementar: se traza como brecha, DEF-20) |
+| F2 Cortes de calle | recepción del evento, aprobar/rechazar, activar, finalizar, vencimiento, 409; recepción de servicios urbanos, podas y riesgo de árboles | HU-COR-01..05 (HU-COR-05 sin implementar: se traza como alcance diferido, ex DEF-20) |
 | F3 Operativos | alta, edición, cierre, derivación desde ticket de M2 | HU-OPE-01..04 |
 | F4 Accidentes | alta, involucrados/daños, verificación, ticket de origen | HU-ACC-01..04 |
 | F5 Retenidos | ingreso, requisitos, liberación, pagos de Rentas | HU-VEH-01..04 |
@@ -74,7 +74,7 @@ Nota: las reproducciones `@Tag("bug")` (19 métodos en `BugReproductionTest`) se
 | 1 | Backend `./mvnw verify` | verde, ≥ 85 % de líneas | Cumple: 532 tests, 0 fallos, 94,45 % (rama del PR #57) |
 | 2 | Frontend | lint, `test:coverage` ≥ 85 %, build, E2E | Cumple: 65 tests, 94,04 % (`main` `0279950`); E2E 7/7 en CI |
 | 3 | CI verde sobre el tag `v2.0-entrega4` | verde | **PENDIENTE**: el tag se crea al final (lo hace una persona). CI de `main` `57b2765`: todos los jobs en verde |
-| 4 | Defectos abiertos | 0 Bloqueantes, 0 Críticos, ≤ 3 Mayores con workaround | Cumple: 0 / 0 / 2 (DEF-19 y DEF-20, ambos con workaround; el de DEF-20 es operativo). DEF-33 y DEF-42 cerrados (ver 05) |
+| 4 | Defectos abiertos | 0 Bloqueantes, 0 Críticos, 0 Mayores abiertos | Cumple: 0 / 0 / 0. DEF-33 y DEF-42 cerrados; DEF-19 revisado a Menor y DEF-20 reclasificado como alcance diferido el 17/11 (ver 05) |
 | 5 | Mutación | ≥ 60 % | Cumple: 67 % (perfil del pom) |
 | 6 | Carga | p95 < 500 ms con 50 usuarios | Cumple: 13,3 ms con la base vacía y 309 ms con 5 950 infracciones |
 | 7 | ZAP | sin High | Cumple: 0 High, 0 Medium |
@@ -100,7 +100,7 @@ Escala: Probabilidad 1 (rara) a 3 (probable); Impacto 1 (menor) a 3 (alto). Punt
 | R9 | Sugerencia de IA incorrecta o manipulada | 2 | 2 | 4 | Media | `InfractionSuggestionServiceTest.promptInjectionCannotChangeContract`, `InfractionSuggestionIntegrationTest.promptInjection/piiMasked`, `GroqAiGatewayTest` | Cubierto con proveedor simulado; eval real PENDIENTE |
 | R10 | Degradación bajo carga (pool de 3 conexiones) | 2 | 2 | 4 | Media | k6 con base vacía y con 5 950 infracciones | Materializado y corregido: el N+1 del listado agotaba el pool (p95 10 s, DEF-40); hoy p95 309 ms con datos. Residual: listado sin paginar |
 | R11 | Fuerza bruta sobre el login | 2 | 2 | 4 | Media | `SecurityEvidenceTests.bruteForce`, `LoginRateLimitIntegrationTest` | Cubierto (DEF-22 cerrado, sonda en producción) |
-| R12 | Requisito sin implementar (importes, costos de retención, HU-COR-05, filtros e indicadores del backend) | 3 | 2 | 6 | Alta | Matriz 02, sección "sin cobertura" | Declarado como DEF-19 y DEF-20 (abiertos) |
+| R12 | Requisito sin implementar (importes, costos de retención, HU-COR-05, filtros e indicadores del backend) | 3 | 2 | 6 | Alta | Matriz 02, sección "sin cobertura" | Declarado: DEF-19 (Menor, abierto) y alcance diferido a la próxima iteración (ex DEF-20, `hu-pendientes.md`) |
 | R13 | Secretos en el historial de Git | 1 | 3 | 3 | Media | gitleaks sobre historial | 4 hallazgos en `.gitleaksignore`; riesgo aceptado (DEF-12) |
 | R14 | Cambio correcto del envelope rompe a un consumidor de otro módulo | 3 | 2 | 6 | Alta | `TC-BE-SC-09`; re-prueba con M3 y Core | Materializado y resuelto: el consumidor v1.0 de M3 rechazaba `causationId` (DEF-33); circuito v1.1 validado por Core y M3 el 15/11 (cerrado) |
 | R15 | Logs de producción ruidosos que ocultan errores | 3 | 1 | 3 | Media | revisión de `application.properties` y logs de Railway | Materializado y corregido: `show-sql` apagado (DEF-32, cerrado) |

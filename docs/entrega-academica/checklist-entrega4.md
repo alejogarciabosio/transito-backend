@@ -55,5 +55,5 @@ Fecha de actualización: 13/11/2026. Esta lista separa evidencia verificada de t
 
 1. Repetir `./mvnw verify` con el árbol limpio.
 2. Confirmar CI verde, cobertura, escaneos y evidencia de integraciones.
-3. Revisar que no haya defectos bloqueantes/críticos y que los mayores tengan workaround documentado.
+3. Revisar que no haya defectos bloqueantes, críticos ni mayores abiertos (criterio: 0 / 0 / 0).
 4. Crear `v2.0-entrega4` **solo cuando** lo anterior esté cerrado; los commits posteriores no cuentan para la entrega.

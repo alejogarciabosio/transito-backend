@@ -1,6 +1,6 @@
 # 05 - Registro de defectos
 
-Actualizado: 15/11/2026 ~21:30 ART (cierre de DEF-33 con la confirmación de Core y M3 de las 20:51/20:54; DEF-42 cerrado con el PR #57 `fix/s22-activacion-en-ventana`, que se mergea y despliega al pasar el CI; con ese PR `./mvnw -q -B verify` da **532 tests, 0 fallos, 94,45 % de líneas**; frontend `main` `0279950`: 65 tests, 94,04 %). Estado anterior: (integración `integration/entrega4-f`: PR #55, #54 y #53 sobre `main` `b3b990f`; se despliega inmediatamente después del CI; `./mvnw -q -B verify` **518 tests, 0 fallos, 94,34 % de líneas**). Frontend en producción: `main` `6040e60` (PR #12). Estado anterior: Versión de referencia: `main` del backend en `57b2765` (merge del PR #48, desplegado en Railway y verificado: health UP, Core conectado, 6 eventos registrados, tabla `outbox_events` creada y relay activo) y `main` del frontend en `1f0187d` (PR #10).
+Actualizado: 17/11/2026 (revisión de clasificación con el criterio final del profesor, "0 Bloqueantes, 0 Críticos, 0 Mayores abiertos": DEF-20 reclasificado como alcance no implementado y DEF-19 revisado de Mayor a Menor; ver sus secciones). Estado anterior: 15/11/2026 ~21:30 ART (cierre de DEF-33 con la confirmación de Core y M3 de las 20:51/20:54; DEF-42 cerrado con el PR #57 `fix/s22-activacion-en-ventana`, que se mergea y despliega al pasar el CI; con ese PR `./mvnw -q -B verify` da **532 tests, 0 fallos, 94,45 % de líneas**; frontend `main` `0279950`: 65 tests, 94,04 %). Estado anterior: (integración `integration/entrega4-f`: PR #55, #54 y #53 sobre `main` `b3b990f`; se despliega inmediatamente después del CI; `./mvnw -q -B verify` **518 tests, 0 fallos, 94,34 % de líneas**). Frontend en producción: `main` `6040e60` (PR #12). Estado anterior: Versión de referencia: `main` del backend en `57b2765` (merge del PR #48, desplegado en Railway y verificado: health UP, Core conectado, 6 eventos registrados, tabla `outbox_events` creada y relay activo) y `main` del frontend en `1f0187d` (PR #10).
 Fuentes: código de `main` (`git grep`; cada "cerrado" se revisó en el código), `./mvnw verify` sobre `57b2765` (497 tests, 0 fallos, 93,74 % de líneas), CI de `main` (Newman, ZAP baseline, Trivy, Sonar, gitleaks en verde), reportes de los agentes (s1-s15, i3-i5, d2, t1, t2), `TABLERO.md` y `pruebas-modulos-15-11.md`. No se hicieron pruebas nuevas contra producción para este registro.
 
 ## Severidades usadas
@@ -12,7 +12,9 @@ No tuve a mano el PDF de la cátedra con las definiciones del profesor; usé est
 | Mayor | incumple un requisito o criterio importante o degrada el servicio; existe workaround |
 | Menor | desvío cosmético, de bajo riesgo o de documentación |
 
-Estados: **Abierto**, **Cerrado** (corregido en `main`, desplegado y verificado con test o prueba), **Aceptado** (riesgo aceptado por decisión documentada).
+Estados: **Abierto**, **Cerrado** (corregido en `main`, desplegado y verificado con test o prueba), **Aceptado** (riesgo aceptado por decisión documentada), **Reclasificado** (se registró como defecto pero no lo es; la fila se conserva para que la corrección quede visible).
+
+Criterio para distinguir defecto de alcance: un **defecto** es un comportamiento implementado que se desvía del esperado; un criterio de una HU que nunca se construyó es **backlog/alcance**, no un defecto.
 
 ## Tabla resumen
 | Id | Título | Severidad | Estado |
@@ -35,8 +37,8 @@ Estados: **Abierto**, **Cerrado** (corregido en `main`, desplegado y verificado 
 | DEF-16 | Infracción sin evidencia ni validación de inspector se acepta | Mayor | **Cerrado 15/11** (PR #47, en #48) |
 | DEF-17 | `PATCH /infractions` parcial devuelve 400 en la reproducción BUG-BE-09a | Menor (probable test desactualizado) | Abierto (a confirmar) |
 | DEF-18 | Pruebas de reproducción BUG-BE-02 y 14 desactualizadas | Menor (deuda de tests) | Abierto |
-| DEF-19 | Importe base, reincidencia y costo de acarreo/estadía no se calculan en el servidor | Mayor | Abierto |
-| DEF-20 | HU sin implementar (COR-05, OPE-03, EST-03/04, parte de INF-04, IND) | Mayor | Abierto (con workaround operativo documentado, PR #51) |
+| DEF-19 | Importe base, reincidencia y costo de acarreo/estadía no se calculan en el servidor | Menor (revisada 17/11: era Mayor) | Abierto |
+| DEF-20 | HU sin implementar (COR-05, OPE-03, EST-03/04, parte de INF-04, IND) | — (no aplica) | Reclasificado 17/11: no es un defecto, es alcance no implementado (diferido a la próxima iteración, decisión de la PO); ver `hu-pendientes.md` |
 | DEF-21 | `streetClosureActivated` no se publica (RF-COR-11) | Menor | Abierto (a confirmar con la PO) |
 | DEF-22 | Límite de intentos de login evadible rotando `X-Forwarded-For` (KI-2) | Mayor | Cerrado 15/11 (PR #29, en #31) |
 | DEF-23 | 25 CVE High/Critical en dependencias del backend (8 Critical, 17 High) | Crítica | Cerrado 15/11 (PR #30, en #31) |
@@ -50,7 +52,7 @@ Estados: **Abierto**, **Cerrado** (corregido en `main`, desplegado y verificado 
 | DEF-31 | `updateTicketStatus` no cumplía el esquema de Core (M2 v1.78) al cerrar el operativo | Mayor | **Cerrado 15/11** (PR #44, en #48) |
 | DEF-32 | `spring.jpa.show-sql=true` en producción: el relay del outbox imprime un SELECT cada 2 s | Menor | **Cerrado** (PR #50, en `main` por #52; se despliega con `integration/entrega4-f`) |
 | DEF-33 | Incompatibilidad temporal con el consumidor de M3: rechaza `streetClosureEnded` con `causationId` no nulo | Mayor | **Cerrado 15/11** (circuito v1.1 validado por Core 20:51 y M3 20:54) |
-| DEF-34 | Frontend: los adjuntos del descargo no se envían (el input acepta archivos que se descartan sin aviso) | Mayor | **Cerrado 15/11** (PR frontend #12, desplegado `6040e60`: adjuntos ocultos con aviso "próximamente"; la carga de adjuntos sigue en DEF-20 / HU-INF-04) |
+| DEF-34 | Frontend: los adjuntos del descargo no se envían (el input acepta archivos que se descartan sin aviso) | Mayor | **Cerrado 15/11** (PR frontend #12, desplegado `6040e60`: adjuntos ocultos con aviso "próximamente"; la carga de adjuntos sigue como alcance diferido de HU-INF-04, ex DEF-20) |
 | DEF-35 | Frontend: el panel no muestra el texto del descargo | Menor | **Cerrado — desplegado 15/11** (PR frontend #12 `6040e60` + DEF-38 en `integration/entrega4-f`) |
 | DEF-36 | Frontend: el botón "Marcar impago" sigue visible tras marcar la sesión (un segundo clic da 409) | Menor | **Cerrado 15/11** (PR frontend #12, desplegado `6040e60`) |
 | DEF-37 | Frontend: borrar una tarifa con sesiones activas muestra un error genérico (409 sin traducir) | Menor | **Cerrado 15/11** (PR frontend #12, desplegado `6040e60`) |
@@ -172,7 +174,7 @@ Nota de numeración: los PR #54 y #55 usaron ambos "DEF-38"; se dejó DEF-38 par
 ### DEF-34 Adjuntos del descargo no se envían — Cerrado (Mayor)
 - **Hallado** al escribir el manual de usuario (S18): la pantalla de descargo del ciudadano tiene un selector de archivos, pero `AppealRequest` del backend solo recibe `reason`; los archivos elegidos se descartan sin aviso.
 - **Por qué Mayor**: el ciudadano cree que presentó documentación que el sistema nunca recibió (pérdida silenciosa de datos aportados por el ciudadano en un trámite con plazos). Hay workaround (presentar la documentación por mesa de entradas), así que no es Crítico.
-- **Corrección**: PR frontend #12 (`fix/s19-fallas-ui`): se quita el input y se muestra "Adjuntos: próximamente; enviá la documentación por mesa de entradas". **Cerrado 15/11**: PR #12 mergeado y desplegado en producción (`6040e60`); el input ya no aparece y se ve el aviso "próximamente". La **carga** de adjuntos sigue siendo parte de la HU pendiente HU-INF-04 (DEF-20, abierto), con workaround en `docs/entrega-academica/hu-pendientes.md`.
+- **Corrección**: PR frontend #12 (`fix/s19-fallas-ui`): se quita el input y se muestra "Adjuntos: próximamente; enviá la documentación por mesa de entradas". **Cerrado 15/11**: PR #12 mergeado y desplegado en producción (`6040e60`); el input ya no aparece y se ve el aviso "próximamente". La **carga** de adjuntos sigue siendo parte de la HU pendiente HU-INF-04 (alcance diferido a la próxima iteración, ex DEF-20), con workaround en `docs/entrega-academica/hu-pendientes.md`.
 
 ### DEF-35, DEF-36 y DEF-37 Fallas de UI del frontend — Cerrados (Menores)
 - **Hallados** al escribir el manual de usuario (S18). Corrección en PR frontend #12 (`fix/s19-fallas-ui`), mergeado y desplegado en producción (`6040e60`).
@@ -211,28 +213,33 @@ Nota de numeración: los PR #54 y #55 usaron ambos "DEF-38"; se dejó DEF-38 par
 ### DEF-17 y DEF-18 Pruebas desactualizadas — Abierto
 - Corrida del grupo `bug` sobre `57b2765`: `bug09a` envía `finalAmount=1` y espera 200 (recibe 400, coherente con la regla de importes); `bug02` y `bug14` fallan al preparar el corte ("affectedSections es obligatorio", contrato actual del handler). Acción: actualizarlas o retirarlas. No afectan el build normal.
 
-### DEF-19 Importes no calculados — Abierto (Mayor)
-- `CreateInfractionRequest` recibe `baseAmount` y `finalAmount`; no hay tabla de importes por tipo, reincidencia ni cálculo de estadía. **Workaround**: carga manual del importe por el inspector o el administrador (validada: importes positivos, final ≥ base).
+### DEF-19 Importes no calculados — Abierto (Menor)
+- `CreateInfractionRequest` recibe `baseAmount` y `finalAmount`; no hay tabla de importes por tipo, reincidencia ni cálculo de estadía en el servidor. **Workaround**: carga manual del importe por el inspector o el administrador (validada: importes positivos, final ≥ base).
+- **Por qué Menor** (revisado 17/11): la función anda y calcula bien: el frontend aplica la tabla de precios por tipo y los porcentajes de los agravantes. Solo el personal autorizado (inspector/administrador) puede crear infracciones, y el servidor valida los importes (positivos, final ≥ base). Lo que falta es una mejora (recalcular en el servidor): no hay una función rota ni un resultado incorrecto en el flujo normal. La reincidencia es un agravante que selecciona el inspector, y el costo de acarreo/estadía lo carga quien libera el vehículo con la sugerencia que muestra la UI; ambos quedan documentados como diseño actual. El recálculo en el servidor queda planificado para la próxima iteración.
+- **Historial**: registrado como Mayor. Severidad revisada 17/11: Mayor → Menor (justificación arriba).
 
-### DEF-20 HU sin implementar — Abierto (Mayor)
+### DEF-20 HU sin implementar — Reclasificado 17/11 (no es un defecto: alcance no implementado)
 - HU-COR-05, HU-OPE-03 (controles), HU-EST-03/04 (detección y descarte de incumplimientos), adjuntos y `appealId` de HU-INF-04, filtros e indicadores del backend (HU-IND-01/02). Ver la matriz 02.
-- **Workaround operativo documentado** (PR #51): `docs/entrega-academica/hu-pendientes.md` detalla, para cada uno de los siete criterios de las seis HU, qué falta (verificado en el código) y cómo lo resuelve hoy el usuario usando solo endpoints existentes (por ejemplo, adjuntos por mesa de entradas). No es un workaround técnico: la función no existe; sigue Abierto como Mayor y conviene que la PO confirme el alcance.
+- **Workaround operativo documentado** (PR #51): `docs/entrega-academica/hu-pendientes.md` detalla, para cada uno de los siete criterios de las seis HU, qué falta (verificado en el código) y cómo lo resuelve hoy el usuario usando solo endpoints existentes (por ejemplo, adjuntos por mesa de entradas). No es un workaround técnico: la función no existe.
+- **Reclasificación 17/11**: no hay nada implementado que funcione mal; son criterios de HU que no se construyeron, es decir alcance no implementado y no un defecto (ver el criterio en "Severidades usadas"). Se difiere a la próxima iteración por decisión de la PO. Se conserva la fila para que la corrección quede visible y se cuenta aparte como Reclasificado, fuera de los abiertos.
+- **Historial**: registrado como Mayor (Abierto). Reclasificado 17/11 como alcance diferido.
 
 ### DEF-21 `streetClosureActivated` — Abierto
 - El payload existe pero no se publica a Core (el catálogo registrado tiene 6 tipos). Confirmar con la PO.
 
 ## Conteo por severidad y riesgo de salida
-Criterio del profesor: 0 Bloqueantes, 0 Críticos, como máximo 3 Mayores abiertos (con workaround). Los Aceptados y los duplicados se cuentan aparte. Total registrado: **42 defectos** (DEF-01 a DEF-43; DEF-39 sin uso). DEF-43 (Menor) cerrado: PR #59 desplegado el 15/11 (los registros previos al deploy conservan la hora en UTC). Sin números duplicados (verificado con `grep`). DEF-42 figura cerrado porque el PR #57 se mergea y despliega apenas pasa el CI.
-| Severidad | Abiertos | Cerrados | Aceptados | Duplicados | Límite (abiertos) | ¿Cumple? |
-|---|---|---|---|---|---|---|
-| Bloqueante | 0 | 0 | 0 | 0 | 0 | Sí |
-| Crítica | **0** | 3 (DEF-01, 23, 24) | 0 | 0 | 0 | Sí |
-| Mayor | **2** (DEF-19, 20) | 21 (DEF-02, 03, 04, 05, 06, 08, 11, 13, 14, 15, 16, 22, 25, 26, 29, 31, 33, 34, 38, 40, 42) | 0 | 0 | 3 | Sí |
-| Menor | **4** (DEF-10, 17, 18, 21) | 9 (DEF-27, 28, 30, 32, 35, 36, 37, 41, 43) | 2 (DEF-09, 12) | 1 (DEF-07 → DEF-42) | sin límite | — |
-| **Total** | **6** | **33** | **2** | **1** | | |
+Criterio del profesor: 0 Bloqueantes, 0 Críticos, 0 Mayores abiertos. Los Aceptados, los duplicados y los reclasificados se cuentan aparte. Total registrado: **42 defectos** (DEF-01 a DEF-43; DEF-39 sin uso). DEF-43 (Menor) cerrado: PR #59 desplegado el 15/11 (los registros previos al deploy conservan la hora en UTC). Sin números duplicados (verificado con `grep`). DEF-42 figura cerrado porque el PR #57 se mergea y despliega apenas pasa el CI.
+| Severidad | Abiertos | Cerrados | Aceptados | Duplicados | Reclasificados | Límite (abiertos) | ¿Cumple? |
+|---|---|---|---|---|---|---|---|
+| Bloqueante | 0 | 0 | 0 | 0 | 0 | 0 | Sí |
+| Crítica | **0** | 3 (DEF-01, 23, 24) | 0 | 0 | 0 | 0 | Sí |
+| Mayor | **0** | 21 (DEF-02, 03, 04, 05, 06, 08, 11, 13, 14, 15, 16, 22, 25, 26, 29, 31, 33, 34, 38, 40, 42) | 0 | 0 | 0 | 0 | Sí |
+| Menor | **5** (DEF-10, 17, 18, 19, 21) | 9 (DEF-27, 28, 30, 32, 35, 36, 37, 41, 43) | 2 (DEF-09, 12) | 1 (DEF-07 → DEF-42) | 0 | sin límite | — |
+| — (no aplica) | — | — | — | — | 1 (DEF-20: alcance no implementado) | — | — |
+| **Total** | **5** | **33** | **2** | **1** | **1** | | |
 
-**Riesgo de salida (sin maquillar)**: 0 Bloqueantes, 0 Críticos y 2 Mayores abiertos (DEF-19 y DEF-20, ambos con workaround), uno por debajo del límite. No se bajó ninguna severidad para llegar al número. Salvedades:
-1. DEF-38, DEF-40, DEF-41 (y DEF-32 y la ampliación de DEF-05, ya en `main`) figuran "cerrado — desplegado 15/11" porque `integration/entrega4-f` se mergea y despliega inmediatamente después del CI; **si ese deploy no ocurre, vuelven a "abierto" y hay 5 Mayores abiertos** (no cumple).
-2. DEF-20 tiene workaround operativo documentado (`hu-pendientes.md`), no técnico; conviene que la PO confirme la decisión de alcance.
-3. DEF-33 quedó cerrado (Core y M3 validaron el circuito v1.1 el 15/11 20:51/20:54) y DEF-42 (nuevo, Mayor) figura cerrado con el PR #57; si ese deploy no ocurriera, DEF-42 volvería a abierto y habría 3 Mayores (en el límite).
-4. Cualquier Mayor nuevo deja el criterio sin cumplir.
+**Riesgo de salida (sin maquillar)**: 0 Bloqueantes, 0 Críticos y 0 Mayores abiertos; quedan 5 Menores abiertos (DEF-10, 17, 18, 19, 21). El 17/11 se revisaron dos clasificaciones: DEF-20 se reclasificó como alcance (no es un defecto) y DEF-19 se bajó de Mayor a Menor con la justificación de su sección; ambas decisiones quedan registradas. Salvedades:
+1. DEF-38, DEF-40, DEF-41 (y DEF-32 y la ampliación de DEF-05, ya en `main`) figuran "cerrado — desplegado 15/11" porque `integration/entrega4-f` se mergea y despliega inmediatamente después del CI; **si ese deploy no ocurre, vuelven a "abierto" y hay 3 Mayores abiertos (DEF-05, 38, 40)** (no cumple).
+2. El alcance diferido (ex DEF-20) tiene workaround operativo documentado (`hu-pendientes.md`), no técnico; la decisión de diferirlo a la próxima iteración es de la PO.
+3. DEF-33 quedó cerrado (Core y M3 validaron el circuito v1.1 el 15/11 20:51/20:54) y DEF-42 (nuevo, Mayor) figura cerrado con el PR #57; si ese deploy no ocurriera, DEF-42 volvería a abierto como Mayor y el criterio no se cumpliría.
+4. Un Mayor nuevo dejaría el criterio sin cumplir.
