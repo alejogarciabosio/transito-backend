@@ -41,8 +41,8 @@ Los nombres `TC-BE-*` son los ids que ya figuran en los `@DisplayName` de los te
 | HU-INF-03 | Indicar si permite apelar | TC-PEND-03b | sin test específico | NO VERIFICABLE | | |
 | HU-INF-04 | Apelación asociada a `infractionId`, identifica al ciudadano | TC-BE-INF-13/15 | `InfractionIntegrationTest.ownerAppeals`, `appealForbidden`; `InfractionServiceTest.appealMatrix` | PASA | EV-1 | |
 | HU-INF-04 | Motivo y fecha | TC-BE-INF-13 | `InfractionIntegrationTest.ownerAppeals`; front `citizen.test.jsx` "presentar un descargo" | PASA | EV-1, EV-2 | |
-| HU-INF-04 | Adjuntar documentación | TC-PEND-03 | ninguno: `AppealRequest` sin adjuntos (git grep) | NO IMPLEMENTADO | git grep | DEF-20 |
-| HU-INF-04 | `appealId` único | TC-PEND-03 | ninguno: no existe `appealId` en `src/main` | NO IMPLEMENTADO | git grep | DEF-20 |
+| HU-INF-04 | Adjuntar documentación | TC-PEND-03 | ninguno: `AppealRequest` sin adjuntos (git grep) | NO IMPLEMENTADO | git grep | alcance diferido (ex DEF-20) |
+| HU-INF-04 | `appealId` único | TC-PEND-03 | ninguno: no existe `appealId` en `src/main` | NO IMPLEMENTADO | git grep | alcance diferido (ex DEF-20) |
 | HU-INF-04 | Infracción no firme mientras la apelación está pendiente | TC-BE-INF-13/14 | `InfractionIntegrationTest.ownerAppeals`, `appealInvalidState` | PASA | EV-1 | |
 | HU-INF-04 | No informar a Rentas con apelación pendiente | TC-BE-INF-03 | `InfractionIntegrationTest.registerDoesNotNotifyRentas` | PASA | EV-1 | |
 | HU-INF-05 | Solo usuario autorizado resuelve | TC-BE-INF-19/22 | `InfractionIntegrationTest.confirmForbidden`, `annulRules` | PASA | EV-1 | |
@@ -77,8 +77,8 @@ Los nombres `TC-BE-*` son los ids que ya figuran en los `@DisplayName` de los te
 | HU-COR-04 | Publica `streetClosureEnded` con `causationId` | TC-BE-SC-06, TC-BE-SC-09 | `fullLifecycle`, `StreetClosureIntegrationTest.responsesKeepCorrelationAndCausation`, `OtherServicesTest.expireDueClosures` | PASA. Real: circuito v1.1 con M3 validado por Core y M3 el 15/11 | EV-1, EV-5 | DEF-08 (cerrado), DEF-33 (cerrado) |
 | HU-COR-04 | Vencimiento automático de ventana | TC-BE-SC-U02 | `OtherServicesTest.expireDueClosures`; real con M3 (15/11) | PASA. Real: corte ACTIVE cerrado por el scheduler (`streetClosureEnded` automático, solicitud ENDED) y corte APPROVED sin activar → EXPIRED sin Ended (validado por M3) | EV-1, EV-5 | |
 | HU-COR-04 | RF-COR-11: publicar `streetClosureActivated` | TC-PEND-14b | `fullLifecycle` afirma que NO se publica la activación | NO IMPLEMENTADO por diseño; a confirmar con el PO | git grep | DEF-21 |
-| HU-COR-05 | Recibir servicios urbanos, podas, riesgo de árboles, obras | TC-PEND-04 | ninguno: no hay handlers para esos eventos en `listener/handler/` (5 handlers: pagos, deuda, ticket, solicitud de corte, reverso) | NO IMPLEMENTADO | git grep | DEF-20 |
-| HU-COR-05 | Identificar zona; disponible para evaluar | TC-PEND-04 | ninguno | NO IMPLEMENTADO | git grep | DEF-20 |
+| HU-COR-05 | Recibir servicios urbanos, podas, riesgo de árboles, obras | TC-PEND-04 | ninguno: no hay handlers para esos eventos en `listener/handler/` (5 handlers: pagos, deuda, ticket, solicitud de corte, reverso) | NO IMPLEMENTADO | git grep | alcance diferido (ex DEF-20) |
+| HU-COR-05 | Identificar zona; disponible para evaluar | TC-PEND-04 | ninguno | NO IMPLEMENTADO | git grep | alcance diferido (ex DEF-20) |
 
 ## F3 - Operativos
 | HU | Criterio | Caso | Test automatizado | Resultado | Evid. | Defecto |
@@ -86,7 +86,7 @@ Los nombres `TC-BE-*` son los ids que ya figuran en los `@DisplayName` de los te
 | HU-OPE-01 | Tipo, zona, fecha y horario; `operationId` único | TC-BE-OP-01 | `integration/TrafficOperationIntegrationTest.create_publishesEvent`; `ApiWorkflowIntegrationTests.operationCompletesItsHttpLifecycle` | PASA | EV-1 | |
 | HU-OPE-01 | Publica `trafficOperationCreated` | TC-BE-OP-01 | `create_publishesEvent` | PASA | EV-1 | |
 | HU-OPE-02 | Asignar inspectores y móviles; consultarlos | TC-BE-OP-03 | `TrafficOperationIntegrationTest.update`; `ServiceBusinessRulesTests.operationPatchKeepsUnspecifiedFields` | PASA | EV-1 | |
-| HU-OPE-03 | Registrar controles y resultado del control | TC-PEND-06 | ninguno: el modelo solo tiene `resolution` al cerrar | NO IMPLEMENTADO como entidad "control" | git grep | DEF-20 |
+| HU-OPE-03 | Registrar controles y resultado del control | TC-PEND-06 | ninguno: el modelo solo tiene `resolution` al cerrar | NO IMPLEMENTADO como entidad "control" | git grep | alcance diferido (ex DEF-20) |
 | HU-OPE-03 | Cierre con resultado; cerrado no se edita | TC-BE-OP-04/06 | `closeSetsEnd`, `closedIsFinal`; `StateTransitionTests.closedOperationCannotBeClosedAgain` | PASA | EV-1 | |
 | HU-OPE-04 | Retención asociada al operativo con `originType=OPERATION` y `originId` | TC-BE-IMP-01 | `integration/VehicleImpoundmentIntegrationTest.register_publishesEvent` (usa `Payloads` con origen OPERATION); front `staff.test.jsx` "ingreso desde un operativo" | PASA | EV-1, EV-2 | |
 | HU-OPE-04 | Publica `vehicleImpounded` | TC-BE-IMP-01 | `register_publishesEvent` | PASA | EV-1 | |
@@ -125,9 +125,9 @@ Los nombres `TC-BE-*` son los ids que ya figuran en los `@DisplayName` de los te
 | HU-EST-01 | Zonas, horarios y tarifa asociada | TC-BE-PZ-01..05, TC-BE-PT-01..05 | `integration/ParkingIntegrationTest.create`, `update`, `logicalDelete`, `createAndQuery`, `deleteWithOpenSessions`; `ApiWorkflowIntegrationTests.parkingZoneAndTariffCompleteAdministrativeLifecycle`; `RequestValidationTests.rejectsParkingTariffWithInvertedValidityRange` | PASA | EV-1 | |
 | HU-EST-02 | Vehículo, zona, inicio, tarifa aplicada | TC-BE-PS-01 | `ParkingIntegrationTest.start`; `SecurityEvidenceTests.massAssignmentSession` | PASA | EV-1 | |
 | HU-EST-02 | Disponible para control posterior | TC-BE-PS-02/03 | `ParkingIntegrationTest.queries`, `close` | PASA | EV-1 | |
-| HU-EST-03 | Detectar falta de pago o vencimiento | TC-PEND-08 | ninguno: no hay detección automática; solo el inspector marca impago | NO IMPLEMENTADO | git grep | DEF-20 |
+| HU-EST-03 | Detectar falta de pago o vencimiento | TC-PEND-08 | ninguno: no hay detección automática; solo el inspector marca impago | NO IMPLEMENTADO | git grep | alcance diferido (ex DEF-20) |
 | HU-EST-03 | Incumplimiento no genera infracción sola | TC-BE-PS-05 | `ParkingIntegrationTest.flagUnpaidRules` | PASA | EV-1 | |
-| HU-EST-04 | Validar o descartar el incumplimiento | TC-PEND-09 | ninguno: `ParkingSessionController` solo tiene `unpaid-flag` | NO IMPLEMENTADO (no existe "descartar") | git grep | DEF-20 |
+| HU-EST-04 | Validar o descartar el incumplimiento | TC-PEND-09 | ninguno: `ParkingSessionController` solo tiene `unpaid-flag` | NO IMPLEMENTADO (no existe "descartar") | git grep | alcance diferido (ex DEF-20) |
 | HU-EST-05 | Infracción asociada, inspector identificado, importe válido | TC-BE-PS-05, TC-BE-PS-05c, BUG-BE-01 | `ValidationAndHeadersDefectsTest.unpaidFlagValidAmountStillWorks`, `unpaidFlagRejectsInvalidAmount`; `InfractionEvidenceRuleTests.flagUnpaidStillWorks`; `bug01_flagUnpaidAlways500` | PASA (`bug01` pasa también en EV-4) | EV-1, EV-4 | DEF-11, DEF-29 (cerrados) |
 | HU-EST-05 | No generar dos infracciones por la misma sesión | TC-BE-PS-05 | `ServiceBusinessRulesTests.parkingSessionCannotGenerateMoreThanOneUnpaidInfraction`; `bug15_flagUnpaidTwice` | PASA | EV-1, EV-4 | |
 | HU-EST-05 | Sesión ajena no accesible por otro ciudadano (BOLA) | SEC-BOLA-04 | `SecurityEvidenceTests.bolaParkingSession`; `ParkingIntegrationTest.Ownership` (`otherCitizenGets404`, `closedForeignSessionGets404`, `ownerNotSettableFromBody` y 3 más) | PASA (404 a ciudadano ajeno, sin cambiar estado) | EV-1, EV-6 | DEF-15 (cerrado) |
@@ -136,9 +136,9 @@ Los nombres `TC-BE-*` son los ids que ya figuran en los `@DisplayName` de los te
 | HU | Criterio | Caso | Test automatizado | Resultado | Evid. | Defecto |
 |---|---|---|---|---|---|---|
 | HU-IND-01 | Consultar infracciones, operativos, accidentes, retenidos | TC-BE-INF-05, TC-BE-OP-02, TC-BE-ACC-02, TC-BE-IMP-02 | `InfractionIntegrationTest.listByRole`; `TrafficOperationIntegrationTest.permissions`; `RoadAccidentIntegrationTest.permissions`; `VehicleImpoundmentIntegrationTest.ownership`; front `staff.test.jsx` | PASA | EV-1, EV-2 | |
-| HU-IND-01 | Filtrar infracciones por tipo, estado, fecha y zona | TC-PEND-10 | backend: ninguno (`InfractionController` no recibe filtros). Frontend: `staff.test.jsx` "filtra por estado" (filtro de pantalla, solo por estado) | NO IMPLEMENTADO en el backend; parcial en el frontend | git grep, EV-2 | DEF-20 |
+| HU-IND-01 | Filtrar infracciones por tipo, estado, fecha y zona | TC-PEND-10 | backend: ninguno (`InfractionController` no recibe filtros). Frontend: `staff.test.jsx` "filtra por estado" (filtro de pantalla, solo por estado) | NO IMPLEMENTADO en el backend; parcial en el frontend | git grep, EV-2 | alcance diferido (ex DEF-20) |
 | HU-IND-01 | Información coincide con los registros | TC-BE-INF-05 | `listByRole` | PASA | EV-1 | |
-| HU-IND-02 | Indicadores de infracciones, siniestralidad, retenidos, ocupación, cumplimiento de pago | TC-PEND-11 | backend: ninguno (sin endpoint de indicadores). Frontend: `staff.test.jsx` "panel con indicadores reales" | NO VERIFICABLE: no verifiqué cómo calcula el frontend los indicadores ni si cubre ocupación y cumplimiento de pago | EV-2 | DEF-20 |
+| HU-IND-02 | Indicadores de infracciones, siniestralidad, retenidos, ocupación, cumplimiento de pago | TC-PEND-11 | backend: ninguno (sin endpoint de indicadores). Frontend: `staff.test.jsx` "panel con indicadores reales" | NO VERIFICABLE: no verifiqué cómo calcula el frontend los indicadores ni si cubre ocupación y cumplimiento de pago | EV-2 | alcance diferido (ex DEF-20) |
 | HU-IND-03 | Tablero con principales indicadores, claro y organizado | TC-PEND-11 | front `staff.test.jsx` (panel con indicadores), `citizen.test.jsx` "contadores con datos reales"; axe 0 violaciones | PASA parcial (contenido y datos); claridad visual NO VERIFICABLE | EV-2 | |
 
 ## Transversales (seguridad, integración, IA)

@@ -1,8 +1,10 @@
-# HU comprometidas no implementadas (DEF-20) y su workaround operativo
+# Alcance diferido a la próxima iteración (ex DEF-20) y su workaround operativo
+
+Reclasificado 17/11/2026: esto **no es un defecto** sino alcance no implementado (criterios de HU que no se construyeron), diferido a la próxima iteración por decisión de la PO. Ver DEF-20 en `testing/05-registro-defectos.md`.
 
 Fecha: 15/11/2026, verificado contra `main` (`57b2765`) con `git grep` sobre `src/main`. Origen: matriz de trazabilidad
-(`docs/entrega-academica/testing/02-matriz-trazabilidad.md`, filas marcadas DEF-20). Cada workaround usa **solo endpoints
-que ya existen**; no cambia contratos ni esquema. La decisión final de alcance (diferir a la próxima entrega) es de la PO.
+(`docs/entrega-academica/testing/02-matriz-trazabilidad.md`, filas marcadas "alcance diferido (ex DEF-20)"). Cada workaround usa **solo endpoints
+que ya existen**; no cambia contratos ni esquema. La decisión de alcance (diferir a la próxima iteración) es de la PO.
 
 | HU / criterio | Qué falta (verificado en el código) | Workaround operativo hoy (qué hace el usuario) |
 |---|---|---|

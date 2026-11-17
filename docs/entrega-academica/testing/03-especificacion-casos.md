@@ -48,7 +48,7 @@ Prefijo de rutas: `/api/v1`. "Corte" = `StreetClosure`. Todas las rutas con rol 
 | TC-BE-INF-22 | inspector; infracción confirmada | anular | POST | 403; 409 | A | N | `InfractionIntegrationTest.annulRules` |
 | TC-PEND-01 | inspector | tipo de infracción conocido, sin enviar `baseAmount` | POST | el sistema calcula el importe base por tipo | A | P | no (NO IMPLEMENTADO, DEF-19) |
 | TC-PEND-02 | patente con infracción previa | misma patente | POST | se aplica reincidencia sobre el importe | M | P | no (NO IMPLEMENTADO, DEF-19) |
-| TC-PEND-03 | ciudadano titular | apelación con documentación adjunta | POST appeal | se guarda el adjunto y un `appealId` | M | P | no (NO IMPLEMENTADO, DEF-20) |
+| TC-PEND-03 | ciudadano titular | apelación con documentación adjunta | POST appeal | se guarda el adjunto y un `appealId` | M | P | no (NO IMPLEMENTADO, alcance diferido (ex DEF-20)) |
 | TC-PEND-03b | ciudadano | infracción confirmada | GET `/infractions/mine` | la respuesta indica si se puede apelar | B | P | no (NO VERIFICABLE) |
 
 ## C. Cortes de calle (F2)
@@ -72,7 +72,7 @@ Prefijo de rutas: `/api/v1`. "Corte" = `StreetClosure`. Todas las rutas con rol 
 | TC-BE-SC-CIU-01 | ciudadano o anónimo | | GET `/street-closures/current` | público; solo APPROVED o ACTIVE | M | P | `StreetClosureIntegrationTest.currentForCitizens` |
 | TC-PEND-14 | corte aprobado con `startDate` en el futuro | activar ahora | POST activation | debería rechazar (409/422) | M | B | sí desde DEF-42: `StreetClosureIntegrationTest.activateBeforeWindowStart` (409) y TC-BE-SC-DEF42-01..04 |
 | TC-PEND-14b | corte activado | activar | POST activation | debería publicarse `streetClosureActivated` (RF-COR-11) | B | P | no (el test `fullLifecycle` afirma lo contrario; DEF-21) |
-| TC-PEND-04 | evento `urbanServiceScheduled`/`treePruningScheduled`/`treeRiskDetected` | evento válido | despacho | queda disponible para evaluar | B | P | no (NO IMPLEMENTADO, DEF-20) |
+| TC-PEND-04 | evento `urbanServiceScheduled`/`treePruningScheduled`/`treeRiskDetected` | evento válido | despacho | queda disponible para evaluar | B | P | no (NO IMPLEMENTADO, alcance diferido (ex DEF-20)) |
 | TC-REAL-M3 | producción, evento de M3 | corte real | aprobar, activar, finalizar con `prueba-prod.sh` | M3 recibe `streetClosureApproved` y `streetClosureEnded` | A | P | no, manual 15/11: PASÓ (ids en 04 sección 7). Re-prueba v1.1 con `causationId` (19:45–19:48): PASÓ, validada por Core (20:51) y M3 (20:54); DEF-33 cerrado. Pruebas adicionales (22:36–22:40): rechazo, cierre automático y vencimiento sin activar, PASÓ, validadas por M3 (22:45); pendiente verificación de Core |
 | TC-REAL-M6 | producción, evento de M6 | corte real | aprobar, activar, finalizar | M6 confirma ambos eventos con ids originales | A | P | no, manual 15/11: PASÓ (04 sección 7) |
 
@@ -82,7 +82,7 @@ Prefijo de rutas: `/api/v1`. "Corte" = `StreetClosure`. Todas las rutas con rol 
 | TC-BE-OP-01 | inspector | tipo, zona, horario | POST `/operations` | OPEN y evento `trafficOperationCreated` | A | P | `TrafficOperationIntegrationTest.create_publishesEvent` |
 | TC-BE-OP-04/05 | operativo abierto | con y sin `endDateTime` | POST `/operations/{id}/closure` | CLOSED; respeta el fin existente; si no hay, usa la hora actual | M | B | `closeSetsEnd`, `closeKeepsEnd` |
 | TC-BE-OP-06 | operativo cerrado | editar o cerrar de nuevo | PATCH / POST | 409 | A | N | `closedIsFinal`; `StateTransitionTests.closedOperationCannotBeClosedAgain` |
-| TC-PEND-06 | operativo abierto | un control con resultado | registrar control | queda asociado | M | P | no (NO IMPLEMENTADO, DEF-20) |
+| TC-PEND-06 | operativo abierto | un control con resultado | registrar control | queda asociado | M | P | no (NO IMPLEMENTADO, alcance diferido (ex DEF-20)) |
 | TC-BE-ACC-01 | inspector | personas, vehículos, daño de infraestructura con descripción | POST `/accidents` | PRELIMINARY y `roadAccidentRegistered` | A | P | `RoadAccidentIntegrationTest.register_publishesEvent`; real con M3 |
 | TC-BE-ACC-01b | inspector | sin daño de infraestructura | POST | no se publica el evento | A | N | `register_withoutInfrastructureDamage_doesNotPublishEvent` |
 | TC-BE-ACC-01c | inspector | daño de infraestructura sin descripción | POST | 400 | A | N | `register_withInfrastructureDamageWithoutDescription_isRejected`; `RequestValidationTests.requiresDamageDescriptionWhenAccidentDamagesInfrastructure` |
@@ -115,8 +115,8 @@ Prefijo de rutas: `/api/v1`. "Corte" = `StreetClosure`. Todas las rutas con rol 
 | TC-BE-PS-05c | inspector, sesión impaga | `baseAmount` 0 o ausente | POST `/unpaid-flag` | 400 Problem Details, sin crear infracción | A | N | `ValidationAndHeadersDefectsTest.unpaidFlagRejectsInvalidAmount` (DEF-29) |
 | TC-BE-PS-05b | sesión paga; usuario ciudadano; ya marcada | marcar | POST unpaid-flag | 409; 403; 409 | A | N | `ParkingIntegrationTest.flagUnpaidRules`; `ServiceBusinessRulesTests.parkingSessionCannotGenerateMoreThanOneUnpaidInfraction` |
 | SEC-BOLA-04 | sesión de ciudadano A | usuario ciudadano B | GET y POST closure | 404 y estado sin cambios | A | N | `SecurityEvidenceTests.bolaParkingSession`; `ParkingIntegrationTest.otherCitizenGets404`, `closedForeignSessionGets404` (DEF-15 cerrado) |
-| TC-PEND-08 | sesión vencida | | consulta de control | queda como incumplimiento pendiente de validación | M | P | no (NO IMPLEMENTADO, DEF-20) |
-| TC-PEND-09 | incumplimiento pendiente | descartar | POST | no genera infracción | M | N | no (NO IMPLEMENTADO, DEF-20) |
+| TC-PEND-08 | sesión vencida | | consulta de control | queda como incumplimiento pendiente de validación | M | P | no (NO IMPLEMENTADO, alcance diferido (ex DEF-20)) |
+| TC-PEND-09 | incumplimiento pendiente | descartar | POST | no genera infracción | M | N | no (NO IMPLEMENTADO, alcance diferido (ex DEF-20)) |
 
 ## F. Eventos, resiliencia, errores
 | Id | Precondición | Datos | Pasos | Resultado esperado | Prio | Tipo | Auto |
