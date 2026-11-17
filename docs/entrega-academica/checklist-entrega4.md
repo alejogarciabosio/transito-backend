@@ -9,7 +9,7 @@ Fecha de actualización: 13/11/2026. Esta lista separa evidencia verificada de t
 | P0 | Conectividad AMQPS M7 → Core | Bloqueado | Railway intenta `core-uade-2026.duckdns.org:5671` y recibe `SocketTimeoutException`. Core debe revisar la allowlist/Security Group para el egress actual de Railway. |
 | P0 | Registro del catálogo Core | Pendiente | Cuando AMQPS quede disponible, confirmar en logs el token HTTP y el registro de `infractionConfirmed`, `streetClosureApproved`, `streetClosureRejected`, `streetClosureEnded`, `roadAccidentRegistered` y `updateTicketStatus`. |
 | P0 | E2E M3 → M7 → M3 | Pendiente | Pedir a Core reencolar o a M3 reenviar `streetClosureRequested` (eventId `1a0d2881-908a-4c40-986b-1e920cd20659`); guardar los eventId de solicitud y respuesta. Probar aprobación, rechazo, finalización/vencimiento y prórroga. |
-| P0 | E2E M7 ↔ M5 | Pendiente | Probar `infractionConfirmed` → alta de deuda y los retornos `paymentRegistered`, `debtSettled`, `paymentReversed`. `infractionAnulled` es interno de M7 y no integra el catálogo Core/M5. |
+| P0 | E2E M7 ↔ M5 | Hecho (entorno de pruebas) | Validado por el equipo en un entorno de pruebas (no en producción) el 17/11: `infractionConfirmed` → pago → `paymentRegistered` (ver `testing/04-informe-ejecucion.md`, sección 7, fila 4). `infractionAnulled` es interno de M7 y no integra el catálogo Core/M5. |
 | P1 | E2E de identidad M1 | Pendiente | Activar el adaptador REST en ambiente de integración y ejecutar login con una cuenta de ciudadano y una de empleado; conservar evidencia de ambas respuestas. |
 
 ## Build, calidad y pruebas
